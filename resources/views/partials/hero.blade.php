@@ -59,7 +59,7 @@
                             <div class="col-span-2 space-y-4">
                                 <div>
                                     <h3 class="text-xs font-semibold text-gray-700 dark:text-gray-200 flex items-center gap-1">
-                                        <x-heroicon-o-chart-bar class="h-4 w-4 text-pink-500"/> KPI Snapshot
+                                        <x-heroicon-o-chart-bar class="h-4 w-4 text-pink-500"/> Dashboard
                                     </h3>
                                     <div class="mt-2 grid grid-cols-3 gap-3">
                                         <div class="rounded-lg bg-white dark:bg-gray-700/70 border border-gray-200 dark:border-gray-600 p-2 shadow-sm">

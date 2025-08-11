@@ -49,6 +49,7 @@ class ProjectResource extends Resource
                                         })->toArray()
                                     )
                                     ->searchable()
+                                    ->unique(ignoreRecord: true)
                                     ->required()
                                     ->columnSpan(6),
                                 Select::make('year')
@@ -101,7 +102,7 @@ class ProjectResource extends Resource
                             ->default(fn () => Filament::auth()->id())
                             ->dehydrated(fn ($state, $context) => $context === 'create'),
                     ]),
-                
+
             ]);
     }
 

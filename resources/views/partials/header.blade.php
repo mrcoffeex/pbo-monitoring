@@ -1,4 +1,4 @@
-<header class="relative z-20 border-b border-gray-200 dark:border-gray-800 backdrop-blur bg-white/90 dark:bg-gray-900/80 supports-[backdrop-filter]:bg-white/60 supports-[backdrop-filter]:dark:bg-gray-900/60 transition-colors">
+<header class="sticky top-0 z-40 border-b border-gray-200 dark:border-gray-800 backdrop-blur bg-white/80 dark:bg-gray-900/70 supports-[backdrop-filter]:bg-white/60 supports-[backdrop-filter]:dark:bg-gray-900/60 transition-[background-color,backdrop-filter,border-color]">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <a href="/" class="inline-flex items-center gap-2 font-extrabold text-lg tracking-tight">
             <span class="bg-gradient-to-r from-pink-600 via-pink-500 to-pink-600 dark:from-pink-400 dark:via-pink-300 dark:to-pink-500 bg-clip-text text-transparent">PBO Monitoring</span>
@@ -36,3 +36,14 @@
         </nav>
     </div>
 </header>
+<script>
+    // Optional: elevate header background after scroll
+    const hdr = document.currentScript.previousElementSibling;
+    const solidClass = 'bg-white/95 dark:bg-gray-900/85 shadow-sm';
+    let applied = false;
+    window.addEventListener('scroll', () => {
+        const should = window.scrollY > 8;
+        if (should && !applied) { hdr.classList.add(...solidClass.split(' ')); applied = true; }
+        else if (!should && applied) { hdr.classList.remove(...solidClass.split(' ')); applied = false; }
+    });
+</script>
