@@ -1,0 +1,159 @@
+<?php
+
+namespace App\Filament\Resources;
+
+use App\Filament\Resources\UserResource\Pages;
+use App\Filament\Resources\UserResource\RelationManagers;
+use App\Models\User;
+use Filament\Forms;
+use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Form;
+use Filament\Resources\Resource;
+use Filament\Tables;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Hash;
+use Symfony\Contracts\Service\Attribute\Required;
+
+class UserResource extends Resource
+{
+    protected static ?string $model = User::class;
+
+    protected static ?string $navigationIcon = 'heroicon-o-user-group';
+
+    public static function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+                Section::make('Personal Details')
+                ->columns(12)
+                ->schema([
+                    TextInput::make('name')
+                        ->autofocus()
+                        ->required()
+                        ->minLength(4)
+                        ->maxLength(17)
+                        ->columnSpan(6),
+                    TextInput::make('email')
+                        ->required()
+                        ->email()
+                        ->minLength(4)
+                        ->maxLength(125)
+                        ->unique(ignoreRecord: true)
+                        ->columnSpan(6),
+                    Select::make('roles')
+                        ->relationship('roles', 'name')
+                        ->required()
+                        ->multiple()
+                        ->preload()
+                        ->searchable()
+                        ->columnSpan(6),
+                ]),
+                Section::make('Security Details')
+                ->columns(12)
+                ->schema([
+                    TextInput::make('password')
+                        ->password()
+                        ->label('Password')
+                        ->required(fn (string $context) => $context === 'create')
+                        ->same('passwordConfirmation') // must match confirmation field
+                        ->dehydrateStateUsing(fn ($state) => filled($state) ? Hash::make($state) : null)
+                        ->dehydrated(fn ($state) => filled($state))
+                        ->columnSpan(6),
+                    TextInput::make('passwordConfirmation')
+                        ->password()
+                        ->label('Confirm Password')
+                        ->required(fn (string $context) => $context === 'create')
+                        ->dehydrated(false)
+                        ->columnSpan(6),
+                ]),
+                Hidden::make('email_verified_at')
+                    ->default(now())
+                    ->dehydrated(fn (string $context) => $context === 'create'),
+            ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->defaultSort('created_at', 'desc')
+            ->columns([
+                TextColumn::make('id')
+                    ->sortable(),
+                TextColumn::make('name')
+                    ->sortable()
+                    ->searchable(),
+                TextColumn::make('email')
+                    ->sortable()
+                    ->searchable(),
+                TextColumn::make('roles.name')
+                    ->label('Role')
+                    ->badge()
+                    ->sortable()
+                    ->searchable(),
+                TextColumn::make('email_verified_at')
+                    ->label('Verified')
+                    ->sortable()
+                    ->searchable()
+                    ->since()
+                    ->dateTimeTooltip(),
+                TextColumn::make('created_at')
+                    ->sortable()
+                    ->searchable()
+                    ->since()
+                    ->dateTimeTooltip(),
+            ])
+            ->filters([
+                //
+            ])
+            ->actions([
+                Tables\Actions\EditAction::make(),
+            ])
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
+                ]),
+            ]);
+    }
+
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return static::getModel()::count() > 0 ? 'primary' : 'danger';
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return 'System';
+    }
+
+    public static function getNavigationSort(): int
+    {
+        return 1;
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            //
+        ];
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListUsers::route('/'),
+            'create' => Pages\CreateUser::route('/create'),
+            'edit' => Pages\EditUser::route('/{record}/edit'),
+        ];
+    }
+}
