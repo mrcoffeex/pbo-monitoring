@@ -9,27 +9,32 @@ export default {
   ],
   darkMode: 'class',
   safelist: [
-    // Standard color utilities
-    'text-emerald-600','dark:text-emerald-400',
-    'text-indigo-600','dark:text-indigo-400',
-    'text-red-500','dark:text-red-400',
-    'text-slate-800','dark:text-slate-200',
-    'text-green-800','dark:text-green-200',
-    // Important variants (if needed)
-    '!text-emerald-600','dark:!text-emerald-400',
-    '!text-indigo-600','dark:!text-indigo-400',
-    '!text-red-500','dark:!text-red-400',
-    '!text-slate-800','dark:!text-slate-200',
-    '!text-green-800','dark:!text-green-200',
+    {
+      pattern:
+        /^(bg|text|border|ring|fill|stroke|placeholder|caret)-(slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-(50|100|200|300|400|500|600|700|800|900|950)$/,
+      variants: ['hover', 'focus', 'active', 'disabled', 'dark'],
+    },
+    {
+      pattern:
+        /^(from|via|to)-(slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-(50|100|200|300|400|500|600|700|800|900|950)$/,
+      variants: ['dark'],
+    },
+    {
+      pattern:
+        /^(divide|ring-offset)-(slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-(50|100|200|300|400|500|600|700|800|900|950)$/,
+      variants: ['dark'],
+    },
+    'bg-white','bg-black','text-white','text-black','dark:text-white','dark:bg-black',
+    'border-white','border-black','ring-white','ring-black',
   ],
   theme: {
     screens: {
-      'xs': '420px',      // small phones (custom)
-      'sm': '640px',      // default small
-      'md': '768px',      // tablets
-      'lg': '1024px',     // small laptops
-      'xl': '1280px',     // desktops
-      '2xl': '1536px',    // large desktops
+      xs: '420px',
+      sm: '640px',
+      md: '768px',
+      lg: '1024px',
+      xl: '1280px',
+      '2xl': '1536px',
     },
     extend: {
       container: {
@@ -42,7 +47,7 @@ export default {
           '2xl': '3rem',
         },
       },
-    }
+    },
   },
   plugins: [require('@tailwindcss/forms')],
-};
+}

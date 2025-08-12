@@ -31,22 +31,22 @@
 
     <div class="flex flex-col sm:flex-row flex-wrap gap-4 mb-6">
         <div class="flex-1 min-w-[160px] rounded-lg px-4 py-3 bg-white dark:bg-gray-900 ring-1 ring-gray-200 dark:ring-gray-700">
-            <div class="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">ABC Total</div>
+            <div class="text-[11px] uppercase tracking-wide text-blue-500 dark:text-blue-400 mb-2">ABC Total</div>
             <div class="text-sm font-semibold">₱ {{ number_format($abcTotal, 2) }}</div>
         </div>
         <div class="flex-1 min-w-[160px] rounded-lg px-4 py-3 bg-white dark:bg-gray-900 ring-1 ring-gray-200 dark:ring-gray-700">
-            <div class="flex justify-between items-center">
-                <span class="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">Payments</span>
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-[11px] uppercase tracking-wide text-green-500 dark:text-green-400">Payments</span>
                 <span class="text-[10px] px-2 py-0.5 rounded-full bg-primary-100 text-primary-700 dark:bg-primary-500/15 dark:text-primary-300">{{ $paymentPct }}%</span>
             </div>
             <div class="text-sm font-semibold">₱ {{ number_format($totalPayment, 2) }}</div>
         </div>
         <div class="flex-1 min-w-[160px] rounded-lg px-4 py-3 bg-white dark:bg-gray-900 ring-1 ring-gray-200 dark:ring-gray-700">
-            <div class="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">Unpaid</div>
+            <div class="text-[11px] uppercase tracking-wide text-red-500 dark:text-red-400 mb-2">Unpaid</div>
             <div class="text-sm font-semibold">₱ {{ number_format($unpaid, 2) }}</div>
         </div>
         <div class="flex-1 min-w-[160px] rounded-lg px-4 py-3 bg-white dark:bg-gray-900 ring-1 ring-gray-200 dark:ring-gray-700">
-            <div class="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">Implementation</div>
+            <div class="text-[11px] uppercase tracking-wide text-orange-500 dark:text-orange-400 mb-2">Implementation</div>
             <div class="text-sm font-semibold">{{ rtrim(rtrim(number_format($implPct,2), '0'), '.') }}%</div>
         </div>
     </div>

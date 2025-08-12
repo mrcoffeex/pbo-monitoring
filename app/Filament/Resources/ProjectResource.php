@@ -146,6 +146,7 @@ class ProjectResource extends Resource
                     ->searchable(),
                 TextColumn::make('year')
                     ->badge()
+                    ->color('warning')
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('center.funds')
@@ -166,6 +167,7 @@ class ProjectResource extends Resource
                 TextColumn::make('user.name')
                     ->label('Created By')
                     ->badge()
+                    ->color('info')
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('created_at')
