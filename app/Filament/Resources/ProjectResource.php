@@ -115,7 +115,7 @@ class ProjectResource extends Resource
                     ->label('Monitoring')
                     ->formatStateUsing(fn ($state, $record) =>
                         '<div class="flex justify-center items-center w-full">
-                            <a href="' . ProjectResource::getUrl('monitoring', ['record' => $record]) . '" class="filament-button bg-primary-600 text-white px-2 py-1 text-sm rounded hover:bg-primary-700 transition">
+                            <a href="' . ProjectResource::getUrl('monitoring', ['record' => $record]) . '" class="filament-button bg-pink-600 text-white px-2 py-1 text-sm rounded hover:bg-pink-700 transition">
                                 View
                             </a>
                         </div>'
@@ -125,7 +125,7 @@ class ProjectResource extends Resource
                     ->badge()
                     ->color(fn ($state) => match ($state) {
                         'approved' => 'success',
-                        'pending' => 'warning',
+                        'pending' => 'primary',
                         'canceled' => 'danger',
                         default => 'secondary',
                     })
@@ -146,7 +146,7 @@ class ProjectResource extends Resource
                     ->searchable(),
                 TextColumn::make('year')
                     ->badge()
-                    ->color('warning')
+                    ->color('primary')
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('center.funds')
@@ -185,11 +185,6 @@ class ProjectResource extends Resource
                 //
             ])
             ->actions([
-                // Action::make('monitor')
-                //     ->label('Monitor')
-                //     ->icon('heroicon-o-eye')
-                //     ->url(fn (Project $record): string => ProjectResource::getUrl('monitoring', ['record' => $record]))
-                //     ->color('primary'),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([

@@ -100,7 +100,7 @@ class TechnicalWorkingGroupResource extends Resource
                 TextColumn::make('review_date')
                     ->label('Review Date')
                     ->badge()
-                    ->color('warning')
+                    ->color('primary')
                     ->dateTime()
                     ->sortable()
                     ->searchable(),
@@ -113,7 +113,7 @@ class TechnicalWorkingGroupResource extends Resource
                 TextColumn::make('controlled_date')
                     ->label('Controlled Date')
                     ->badge()
-                    ->color('warning')
+                    ->color('primary')
                     ->dateTime()
                     ->sortable()
                     ->searchable(),

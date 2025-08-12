@@ -86,7 +86,7 @@ class ImplementationResource extends Resource
                     ->searchable(),
                 TextColumn::make('date')
                     ->badge()
-                    ->color('warning')
+                    ->color('primary')
                     ->date()
                     ->sortable()
                     ->searchable(),
@@ -139,7 +139,7 @@ class ImplementationResource extends Resource
 
     public static function getNavigationBadgeColor(): ?string
     {
-        return static::getModel()::count() > 0 ? 'warning' : 'danger';
+        return static::getModel()::count() > 0 ? 'primary' : 'danger';
     }
 
     public static function getNavigationGroup(): ?string

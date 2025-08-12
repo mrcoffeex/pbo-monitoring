@@ -18,7 +18,7 @@
     } elseif ($isCreator) {
         $badgeColor = 'info';
     } elseif ($isDay) {
-        $badgeColor = 'warning';
+        $badgeColor = 'primary';
     } else {
         $badgeColor = 'primary';
     }

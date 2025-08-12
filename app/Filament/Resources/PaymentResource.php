@@ -107,7 +107,7 @@ class PaymentResource extends Resource
                 TextColumn::make('date')
                     ->label('Date of Payment')
                     ->badge()
-                    ->color('warning')
+                    ->color('primary')
                     ->date()
                     ->sortable()
                     ->searchable(),

@@ -87,7 +87,7 @@ class PurchaseRequestResource extends Resource
                 TextColumn::make('received_date')
                     ->label('Received Date')
                     ->badge()
-                    ->color('warning')
+                    ->color('primary')
                     ->dateTime()
                     ->sortable()
                     ->searchable(),
@@ -98,7 +98,7 @@ class PurchaseRequestResource extends Resource
                 TextColumn::make('forward_twg_date')
                     ->label('Forward to TWG')
                     ->badge()
-                    ->color('warning')
+                    ->color('primary')
                     ->dateTime()
                     ->sortable()
                     ->searchable(),

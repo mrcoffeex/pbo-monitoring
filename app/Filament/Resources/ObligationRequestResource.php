@@ -95,7 +95,7 @@ class ObligationRequestResource extends Resource
                 TextColumn::make('controlled_date')
                     ->label('OBR Date')
                     ->badge()
-                    ->color('warning')
+                    ->color('primary')
                     ->date()
                     ->sortable()
                     ->searchable(),

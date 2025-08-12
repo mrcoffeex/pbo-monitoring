@@ -61,9 +61,9 @@ class DashboardStats extends BaseWidget
             // Stat::make('Users', number_format($userStats['total']))
             //     ->description("Up by {$userStats['growth_percent']}% vs last week")
             //     ->descriptionIcon($userStats['growth'] >= 0 ? 'heroicon-o-chevron-up' : 'heroicon-o-chevron-down')
-            //     ->color($userStats['growth'] >= 0 ? 'primary' : 'danger')
+            //     ->color($userStats['growth'] >= 0 ? 'primary' : 'primary')
             //     ->icon('heroicon-o-user-group')
-            //     ->chartColor($userStats['growth'] >= 0 ? 'primary' : 'danger')
+            //     ->chartColor($userStats['growth'] >= 0 ? 'primary' : 'primary')
             //     ->chart(array_values($userStats['daily_counts']))
             //     ->extraAttributes([
             //         'class' => 'shadow-md ring-1 ring-offset-1 ring-primary-100 transition-all duration-300 hover:scale-[1.02]',
@@ -87,9 +87,9 @@ class DashboardStats extends BaseWidget
             Stat::make('Payments', number_format($paymentStats['total']))
                 ->description("Up by {$paymentStats['growth_percent']}% vs last week")
                 ->descriptionIcon($paymentStats['growth'] >= 0 ? 'heroicon-o-chevron-up' : 'heroicon-o-chevron-down')
-                ->color($paymentStats['growth'] >= 0 ? 'success' : 'danger')
+                ->color($paymentStats['growth'] >= 0 ? 'success' : 'primary')
                 ->icon('heroicon-o-currency-dollar')
-                ->chartColor($paymentStats['growth'] >= 0 ? 'success' : 'danger')
+                ->chartColor($paymentStats['growth'] >= 0 ? 'success' : 'primary')
                 ->chart(array_values($paymentStats['daily_counts']))
                 ->extraAttributes([
                     'class' => 'shadow-md ring-1 ring-offset-1 ring-primary-100 transition-all duration-300 hover:scale-[1.02]',
@@ -98,17 +98,17 @@ class DashboardStats extends BaseWidget
             Stat::make('Issued NOA', Procurement::whereNotNull('noa_date_received')->count())
                 ->description('Projects with Issued NOA')
                 ->icon('heroicon-o-document-text')
-                ->color('success'),
+                ->color('primary'),
 
             Stat::make('Issued NTP', Procurement::whereNotNull('ntp_number')->count())
                 ->description('Projects with Issued NTP')
                 ->icon('heroicon-o-document-text')
-                ->color('success'),
+                ->color('primary'),
 
             Stat::make('No Purchase Request', $noPurchaseRequestCount)
                 ->description("Projects without Purchase Request - {$noPurchaseRequestPercent}%")
                 ->icon('heroicon-o-clipboard-document')
-                ->color('danger'),
+                ->color('primary'),
         ];
     }
 

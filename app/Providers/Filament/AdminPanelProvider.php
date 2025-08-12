@@ -18,6 +18,7 @@ use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\HtmlString;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 class AdminPanelProvider extends PanelProvider
@@ -26,12 +27,17 @@ class AdminPanelProvider extends PanelProvider
     {
         return $panel
             ->default()
+            ->brandName(new HtmlString(
+                '<span class="bg-gradient-to-r from-pink-600 via-fuchsia-500 to-gray-600 dark:from-pink-400 dark:via-fuchsia-400 dark:to-gray-400 bg-clip-text text-transparent font-extrabold text-xl leading-none">
+                    PBO Monitoring
+                 </span>'
+            ))
             ->id('admin')
             ->path('admin')
             ->profile()
             ->login()
             ->colors([
-                'primary' => '#f52798ff',
+                'primary' => Color::Pink,
             ])
             ->navigationGroups([
                 NavigationGroup::make()
@@ -54,8 +60,8 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
-                Widgets\AccountWidget::class,
-                Widgets\FilamentInfoWidget::class,
+                // Widgets\AccountWidget::class,
+                // Widgets\FilamentInfoWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,
