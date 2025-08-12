@@ -206,7 +206,7 @@ class ProjectResource extends Resource
 
     public static function getNavigationBadgeColor(): ?string
     {
-        return static::getModel()::count() > 0 ? 'primary' : 'danger';
+        return static::getModel()::count() > 0 ? 'info' : 'danger';
     }
 
     public static function getNavigationGroup(): ?string

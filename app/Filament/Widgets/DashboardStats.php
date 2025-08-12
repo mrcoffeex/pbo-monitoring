@@ -76,7 +76,7 @@ class DashboardStats extends BaseWidget
                 ->label('Projects')
                 ->description('Approved Projects')
                 ->icon('heroicon-o-folder-open')
-                ->color('primary'),
+                ->color('info'),
 
             Stat::make('Procurements', Procurement::count())
                 ->label('Procurements')
@@ -87,9 +87,9 @@ class DashboardStats extends BaseWidget
             Stat::make('Payments', number_format($paymentStats['total']))
                 ->description("Up by {$paymentStats['growth_percent']}% vs last week")
                 ->descriptionIcon($paymentStats['growth'] >= 0 ? 'heroicon-o-chevron-up' : 'heroicon-o-chevron-down')
-                ->color($paymentStats['growth'] >= 0 ? 'primary' : 'danger')
+                ->color($paymentStats['growth'] >= 0 ? 'success' : 'danger')
                 ->icon('heroicon-o-currency-dollar')
-                ->chartColor($paymentStats['growth'] >= 0 ? 'primary' : 'danger')
+                ->chartColor($paymentStats['growth'] >= 0 ? 'success' : 'danger')
                 ->chart(array_values($paymentStats['daily_counts']))
                 ->extraAttributes([
                     'class' => 'shadow-md ring-1 ring-offset-1 ring-primary-100 transition-all duration-300 hover:scale-[1.02]',
@@ -112,7 +112,7 @@ class DashboardStats extends BaseWidget
         ];
     }
 
-    
+
     public static function getCharts(): array
     {
         return [
@@ -120,5 +120,5 @@ class DashboardStats extends BaseWidget
             PaymentChart::class,
         ];
     }
-    
+
 }

@@ -37,8 +37,8 @@ class ImplementationChart extends ChartWidget
                 [
                     'label' => 'Implementations',
                     'data' => $data,
-                    'borderColor' => '#ff3ea8ff',
-                    'backgroundColor' => '#ff71bfff',
+                    'borderColor' => '#ffa53eff',
+                    'backgroundColor' => '#ffb171ff',
                     'fill' => true,
                     'tension' => 0.3,
                 ],

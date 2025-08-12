@@ -37,8 +37,8 @@ class PaymentChart extends ChartWidget
                 [
                     'label' => 'Payments',
                     'data' => $data,
-                    'borderColor' => '#ff3ea8ff',
-                    'backgroundColor' => '#ff71bfff',
+                    'borderColor' => '#54ff3eff',
+                    'backgroundColor' => '#7dff71ff',
                     'fill' => true,
                     'tension' => 0.3,
                 ],
