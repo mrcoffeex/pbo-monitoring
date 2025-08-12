@@ -56,12 +56,14 @@
             </button>
             <div
                 x-show="open"
-                x-transition
-                class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+                x-transition.opacity
+                x-cloak
+                @click.self="open = false"
+                class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 dark:bg-black/60 backdrop-blur-sm"
             >
                 <div
-                    @click.away="open = false"
                     class="bg-white dark:bg-gray-900 text-gray-800 dark:text-white rounded-lg shadow-lg max-w-md w-full mx-4 p-6 space-y-4"
+                    x-transition.scale.origin.center
                 >
                     <div class="flex justify-between items-center border-b pb-2">
                         <h2 class="text-lg font-semibold">Remarks</h2>
@@ -69,11 +71,9 @@
                             &times;
                         </button>
                     </div>
-
                     <div class="text-sm">
                         {{ $tooltip }}
                     </div>
-
                     <div class="text-right pt-2">
                         <button
                             @click="open = false"
