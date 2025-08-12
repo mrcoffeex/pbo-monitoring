@@ -8,7 +8,7 @@
                     Real-Time Provincial Infrastructure Monitoring
                 </span>
             </h1>
-            <p class="mt-6 text-xl sm:text-2xl leading-relaxed text-gray-700 dark:text-gray-300 max-w-2xl font-medium">
+            <p class="mt-6 text-md sm:text-xl leading-relaxed text-gray-700 dark:text-gray-300 max-w-2xl font-medium">
                 Streamline procurement, obligation, implementation, and payment tracking with actionable transparency.
             </p>
             <div class="mt-8 flex flex-wrap gap-4">

@@ -4,7 +4,7 @@
             <h2 class="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Development Team</h2>
             <p class="mt-3 text-gray-600 dark:text-gray-400">Building and maintaining the platform.</p>
         </div>
-        <div class="mt-12 grid gap-8 md:grid-cols-3">
+        <div class="mt-12 grid gap-8 md:grid-cols-3 font-google-code">
             @php
                 $team = [
                     [
