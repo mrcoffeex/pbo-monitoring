@@ -87,7 +87,7 @@ class PurchaseRequestControlResource extends Resource
                 TextColumn::make('controlled_date')
                     ->label('PR Controlled')
                     ->badge()
-                    ->color('success')
+                    ->color('warning')
                     ->dateTime()
                     ->sortable()
                     ->searchable(),
@@ -103,6 +103,7 @@ class PurchaseRequestControlResource extends Resource
                 TextColumn::make('user.name')
                     ->label('Created By')
                     ->badge()
+                    ->color('info')
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('created_at')

@@ -66,7 +66,7 @@ class PurchaseRequestResource extends Resource
                             ->default(fn () => Filament::auth()->id())
                             ->dehydrated(fn ($state, $context) => $context === 'create'),
                     ]),
-                
+
             ]);
     }
 
@@ -87,7 +87,7 @@ class PurchaseRequestResource extends Resource
                 TextColumn::make('received_date')
                     ->label('Received Date')
                     ->badge()
-                    ->color('success')
+                    ->color('warning')
                     ->dateTime()
                     ->sortable()
                     ->searchable(),
@@ -98,13 +98,14 @@ class PurchaseRequestResource extends Resource
                 TextColumn::make('forward_twg_date')
                     ->label('Forward to TWG')
                     ->badge()
-                    ->color('success')
+                    ->color('warning')
                     ->dateTime()
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('user.name')
                     ->label('Created By')
                     ->badge()
+                    ->color('info')
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('created_at')

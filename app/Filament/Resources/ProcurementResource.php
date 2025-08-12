@@ -91,7 +91,7 @@ class ProcurementResource extends Resource
                                 ->placeholder('e.g. the document is awesome')
                                 ]),
                     ]),
-                
+
                 Section::make('Notice of Award Details')
                     ->columns(12)
                     ->schema([
@@ -155,45 +155,47 @@ class ProcurementResource extends Resource
                 TextColumn::make('pre_procurement_conference')
                     ->label('Pre-Procurement Conference')
                     ->badge()
-                    ->color('success')
+                    ->color('warning')
                     ->date()
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('pre_bid_conference')
                     ->label('Pre-Bid Conference')
                     ->badge()
-                    ->color('success')
+                    ->color('warning')
                     ->date()
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('bid_opening')
                     ->label('Bid Opening')
                     ->badge()
-                    ->color('success')
+                    ->color('warning')
                     ->date()
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('ber')
                     ->label('BER')
                     ->badge()
-                    ->color('success')
+                    ->color('warning')
                     ->date()
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('post_qua_date')
                     ->label('Post Qualification Date')
                     ->badge()
-                    ->color('success')
+                    ->color('warning')
                     ->date()
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('remarks')
+                    ->limit(30)
+                    ->tooltip(fn ($record) => $record->remarks)
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('noa_date_received')
                     ->label('NOA Date Received')
                     ->badge()
-                    ->color('success')
+                    ->color('warning')
                     ->date()
                     ->sortable()
                     ->searchable(),
@@ -204,6 +206,8 @@ class ProcurementResource extends Resource
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('contractor')
+                    ->limit(30)
+                    ->tooltip(fn ($record) => $record->contractor)
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('ntp_number')
@@ -214,14 +218,14 @@ class ProcurementResource extends Resource
                 TextColumn::make('ntp_date')
                     ->label('NTP Date')
                     ->badge()
-                    ->color('success')
+                    ->color('warning')
                     ->date()
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('contract_duration')
                     ->label('Contract Duration')
                     ->suffix(' days')
-                    ->formatStateUsing(fn ($state) => 
+                    ->formatStateUsing(fn ($state) =>
                         is_numeric($state) ? rtrim(rtrim(number_format($state, 2, '.', ''), '0'), '.') : $state
                     )
                     ->sortable()
@@ -229,6 +233,7 @@ class ProcurementResource extends Resource
                 TextColumn::make('user.name')
                     ->label('Created By')
                     ->badge()
+                    ->color('info')
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('created_at')

@@ -66,7 +66,7 @@ class ImplementationResource extends Resource
                                 ->default(fn () => Filament::auth()->id())
                                 ->dehydrated(fn ($state, $context) => $context === 'create'),
                         ]),
-                    
+
                     ]),
             ]);
     }
@@ -86,13 +86,13 @@ class ImplementationResource extends Resource
                     ->searchable(),
                 TextColumn::make('date')
                     ->badge()
-                    ->color('success')
+                    ->color('warning')
                     ->date()
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('percentage')
                     ->suffix('%')
-                    ->formatStateUsing(fn ($state) => 
+                    ->formatStateUsing(fn ($state) =>
                         is_numeric($state) ? rtrim(rtrim(number_format($state, 2, '.', ''), '0'), '.') : $state
                     )
                     ->sortable()
@@ -100,6 +100,7 @@ class ImplementationResource extends Resource
                 TextColumn::make('user.name')
                     ->label('Created By')
                     ->badge()
+                    ->color('info')
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('created_at')

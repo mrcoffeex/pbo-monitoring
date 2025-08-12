@@ -100,7 +100,7 @@ class TechnicalWorkingGroupResource extends Resource
                 TextColumn::make('review_date')
                     ->label('Review Date')
                     ->badge()
-                    ->color('success')
+                    ->color('warning')
                     ->dateTime()
                     ->sortable()
                     ->searchable(),
@@ -113,7 +113,7 @@ class TechnicalWorkingGroupResource extends Resource
                 TextColumn::make('controlled_date')
                     ->label('Controlled Date')
                     ->badge()
-                    ->color('success')
+                    ->color('warning')
                     ->dateTime()
                     ->sortable()
                     ->searchable(),
@@ -132,6 +132,7 @@ class TechnicalWorkingGroupResource extends Resource
                 TextColumn::make('user.name')
                     ->label('Created By')
                     ->badge()
+                    ->color('info')
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('created_at')
@@ -172,7 +173,7 @@ class TechnicalWorkingGroupResource extends Resource
     {
         return static::getModel()::count() > 0 ? 'primary' : 'danger';
     }
-    
+
     public static function getNavigationGroup(): ?string
     {
         return 'Process';

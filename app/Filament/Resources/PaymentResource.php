@@ -48,7 +48,7 @@ class PaymentResource extends Resource
                                     ->searchable()
                                     ->required()
                                     ->columnSpan(6),
-                            ]), 
+                            ]),
                         Grid::make('')
                             ->columns(12)
                             ->schema([
@@ -74,8 +74,8 @@ class PaymentResource extends Resource
                                 Hidden::make('user_id')
                                     ->default(fn () => Filament::auth()->id())
                                     ->dehydrated(fn ($state, $context) => $context === 'create'),
-                            ]), 
-                        
+                            ]),
+
                     ]),
             ]);
     }
@@ -107,13 +107,14 @@ class PaymentResource extends Resource
                 TextColumn::make('date')
                     ->label('Date of Payment')
                     ->badge()
-                    ->color('success')
+                    ->color('warning')
                     ->date()
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('user.name')
                     ->label('Created By')
                     ->badge()
+                    ->color('info')
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('created_at')
