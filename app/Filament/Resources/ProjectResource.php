@@ -20,6 +20,7 @@ use Filament\Resources\Resource;
 use Filament\Support\RawJs;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 use Illuminate\Database\Eloquent\Builder;
@@ -112,14 +113,10 @@ class ProjectResource extends Resource
             ->defaultSort('center.code', 'asc')
             ->columns([
                 TextColumn::make('id')
-                    ->label('Monitoring')
-                    ->formatStateUsing(fn ($state, $record) =>
-                        '<div class="flex justify-center items-center w-full">
-                            <a href="' . ProjectResource::getUrl('monitoring', ['record' => $record]) . '" class="filament-button bg-pink-600 text-white px-2 py-1 text-sm rounded hover:bg-pink-700 transition">
-                                View
-                            </a>
-                        </div>'
-                    )
+                    ->label('Opt')
+                    ->formatStateUsing(function ($state, $record) {
+                        return view('partials.project-options', compact('record'))->render();
+                    })
                     ->html(),
                 TextColumn::make('status')
                     ->badge()
@@ -182,7 +179,40 @@ class ProjectResource extends Resource
                     ->dateTimeTooltip(),
             ])
             ->filters([
-                //
+                SelectFilter::make('purchase_requests')
+                    ->label('Purchase Requests')
+                    ->options([
+                        'with' => 'With Purchase Requests',
+                        'without' => 'No Purchase Requests',
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query->when(
+                            $data['value'] === 'with',
+                            fn (Builder $query): Builder => $query->whereHas('purchase_requests')
+                        )->when(
+                            $data['value'] === 'without',
+                            fn (Builder $query): Builder => $query->whereDoesntHave('purchase_requests')
+                        );
+                    }),
+                SelectFilter::make('noa_received')
+                    ->label('NOA Status')
+                    ->options([
+                        'received' => 'NOA Received',
+                        'not_received' => 'NOA Not Received',
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query->when(
+                            $data['value'] === 'received',
+                            fn (Builder $query): Builder => $query->whereHas('procurements', function (Builder $query) {
+                                $query->whereNotNull('noa_date_received');
+                            })
+                        )->when(
+                            $data['value'] === 'not_received',
+                            fn (Builder $query): Builder => $query->whereHas('procurements', function (Builder $query) {
+                                $query->whereNull('noa_date_received');
+                            })
+                        );
+                    }),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -223,6 +253,7 @@ class ProjectResource extends Resource
             'create' => Pages\CreateProject::route('/create'),
             'edit' => Pages\EditProject::route('/{record}/edit'),
             'monitoring' => Pages\ProjectMonitoring::route('/{record}/monitoring'),
+            'pdf-viewer' => Pages\ProjectPdfViewer::route('/pdf-viewer'),
         ];
     }
 }

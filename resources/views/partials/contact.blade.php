@@ -41,7 +41,7 @@
             </div>
 
             <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl p-6">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Office Address</h3>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Office</h3>
                 <div class="mt-4 flex items-start gap-3">
                     <span class="mt-0.5 text-primary-600 dark:text-primary-400">
                         <x-heroicon-o-map-pin class="h-5 w-5" />
