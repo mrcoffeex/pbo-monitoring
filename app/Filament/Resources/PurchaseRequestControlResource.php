@@ -37,6 +37,7 @@ class PurchaseRequestControlResource extends Resource
                     ->schema([
                         Select::make('project_id')
                             ->label('Project')
+                            ->unique(ignoreRecord: true)
                             ->options(
                                 Project::with('center')->get()->pluck('center.name', 'id')
                             )

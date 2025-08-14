@@ -40,6 +40,7 @@ class PurchaseRequestResource extends Resource
                                 Project::with('center')->get()->pluck('center.name', 'id')
                             )
                             ->searchable()
+                            ->unique(ignoreRecord: true)
                             ->required()
                             ->columnSpan(6),
                         DateTimePicker::make('received_date')
