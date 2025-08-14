@@ -25,6 +25,6 @@
         </div>
     </div>
     <div class="mt-10 pt-6 text-center text-xs text-gray-500 dark:text-gray-500">
-        © {{ now()->year }} {{ config('app.name', 'PBO Monitoring') }}. All rights reserved.
+        © {{ now()->year }} {{ config('app.name', 'Laravel') }}. All rights reserved.
     </div>
 </footer>

@@ -2,7 +2,7 @@
 <html lang="en" class="h-full scroll-smooth">
 <head>
     <meta charset="UTF-8">
-    <title>{{ config('app.name', 'PBO Monitoring') }}</title>
+    <title>{{ config('app.name', 'Laravel') }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     @vite(['resources/css/app.css','resources/js/app.js'])
     <script>

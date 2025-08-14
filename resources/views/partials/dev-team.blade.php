@@ -10,7 +10,7 @@
                     [
                         'name' => 'Kent John Gocotano',
                         'role' => 'Full Stack Developer',
-                        'bio'  => 'VILT - Filament - MySQL - WSL - Docker',
+                        'bio'  => 'VILT - TALL - MySQL - WSL - Docker',
                         'img'  => 'https://ui-avatars.com/api/?name=KJG&background=6366F1&color=fff',
                         'links' => [
                             'github'   => 'https://github.com/mrcoffeex',
