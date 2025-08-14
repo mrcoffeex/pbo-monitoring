@@ -4,6 +4,7 @@ namespace App\Filament\Widgets;
 
 use App\Filament\Widgets\ImplementationChart;
 use App\Filament\Widgets\PaymentChart;
+use App\Filament\Widgets\ProjectStatusPieChart;
 use App\Models\User;
 use App\Models\Payment;
 use App\Models\Procurement;
@@ -58,17 +59,6 @@ class DashboardStats extends BaseWidget
         $noPurchaseRequestPercent = $totalProjects > 0 ? round(($noPurchaseRequestCount / $totalProjects) * 100, 1) : 0;
 
         return [
-            // Stat::make('Users', number_format($userStats['total']))
-            //     ->description("Up by {$userStats['growth_percent']}% vs last week")
-            //     ->descriptionIcon($userStats['growth'] >= 0 ? 'heroicon-o-chevron-up' : 'heroicon-o-chevron-down')
-            //     ->color($userStats['growth'] >= 0 ? 'primary' : 'primary')
-            //     ->icon('heroicon-o-user-group')
-            //     ->chartColor($userStats['growth'] >= 0 ? 'primary' : 'primary')
-            //     ->chart(array_values($userStats['daily_counts']))
-            //     ->extraAttributes([
-            //         'class' => 'shadow-md ring-1 ring-offset-1 ring-primary-100 transition-all duration-300 hover:scale-[1.02]',
-            //     ]),
-
             Stat::make('Projects', Project::where([
                     'year' => now()->format('Y'),
                     'status' => 'approved',
@@ -116,7 +106,7 @@ class DashboardStats extends BaseWidget
     public static function getCharts(): array
     {
         return [
-            ImplementationChart::class,
+            ProjectStatusPieChart::class,
             PaymentChart::class,
         ];
     }
