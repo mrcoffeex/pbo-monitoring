@@ -43,7 +43,7 @@ class FinancialStatusPieChart extends ChartWidget
                     'data' => [$pObligated, $pNotObligated],         // percentages as dataset values
                     'rawCounts' => [$obligated, $notObligated],      // raw counts for tooltips
                     'backgroundColor' => [
-                        '#1ec55c', // obligated
+                        '#f472b6', // obligated
                         '#dadee6', // not obligated
                     ],
                     'borderColor' => '#ffffff',

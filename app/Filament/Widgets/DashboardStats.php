@@ -56,9 +56,19 @@ class DashboardStats extends BaseWidget
         $totalProjects = Project::count();
         $noPurchaseRequestPercent = $totalProjects > 0 ? round(($noPurchaseRequestCount / $totalProjects) * 100, 1) : 0;
 
-
         $withPurchaseRequests = Project::has('purchase_requests')->count();
         $withPurchaseRequestsPercent = $totalProjects > 0 ? round(($withPurchaseRequests / $totalProjects) * 100, 1) : 0;
+
+        // Added: payment totals (amount) instead of count for Disbursements stat
+        $lastWeekBoundary = now()->copy()->subWeek()->startOfDay();
+        $paymentsTotalAmount = (float) Payment::sum('amount');
+        $paymentsLastWeekAmount = (float) Payment::where('created_at', '<', $lastWeekBoundary)->sum('amount');
+        $paymentsGrowthAmount = $paymentsTotalAmount - $paymentsLastWeekAmount;
+        $paymentsGrowthPercent = $paymentsLastWeekAmount > 0
+            ? round(($paymentsGrowthAmount / $paymentsLastWeekAmount) * 100, 1)
+            : 0.0;
+
+        $currency = fn($v) => '₱ ' . number_format($v, 2);
 
         return [
             Stat::make('Projects', Project::where([
@@ -86,12 +96,14 @@ class DashboardStats extends BaseWidget
                 ->icon('heroicon-o-document-text')
                 ->color('primary'),
 
-            Stat::make('Payments', number_format($paymentStats['total']))
-                ->description("Up by {$paymentStats['growth_percent']}% vs last week")
-                ->descriptionIcon($paymentStats['growth'] >= 0 ? 'heroicon-o-chevron-up' : 'heroicon-o-chevron-down')
-                ->color($paymentStats['growth'] >= 0 ? 'success' : 'primary')
+            // Modified Disbursements stat: show total payment amount (currency) instead of count
+            Stat::make('Disbursements', $currency($paymentsTotalAmount))
+                ->description("Up by {$paymentsGrowthPercent}% vs last week")
+                ->descriptionIcon($paymentsGrowthAmount >= 0 ? 'heroicon-o-chevron-up' : 'heroicon-o-chevron-down')
+                ->color($paymentsGrowthAmount >= 0 ? 'success' : 'primary')
                 ->icon('heroicon-o-currency-dollar')
-                ->chartColor($paymentStats['growth'] >= 0 ? 'success' : 'primary')
+                // Keep mini chart based on daily counts (from $paymentStats) – optional
+                ->chartColor($paymentsGrowthAmount >= 0 ? 'success' : 'primary')
                 ->chart(array_values($paymentStats['daily_counts']))
                 ->extraAttributes([
                     'class' => 'shadow-md ring-1 ring-offset-1 ring-primary-100 transition-all duration-300 hover:scale-[1.02]',

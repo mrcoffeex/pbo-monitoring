@@ -61,8 +61,8 @@ class ProjectStatusPieChart extends ChartWidget
                     'data' => [$pCompleted, $pOngoing, $pNotStarted], // percentages
                     'rawCounts' => [$completed, $ongoing, $notStarted], // counts
                     'backgroundColor' => [
-                        '#16a34a',
-                        '#2563eb',
+                        '#4ade80',
+                        '#4379eeff',
                         '#dadee6',
                     ],
                     'borderColor' => '#ffffff',

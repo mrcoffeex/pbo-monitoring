@@ -55,7 +55,7 @@ class DisbursementStatusPieChart extends ChartWidget
                         $notDisbursedAmount,
                     ],
                     'backgroundColor' => [
-                        '#0d9488', // disbursed
+                        '#4ade80', // disbursed
                         '#dadee6', // not disbursed
                     ],
                     'borderColor' => '#ffffff',
