@@ -5,7 +5,7 @@
     </a>
 
     <a href="{{ route('projects.pdf.single', $record) }}"
-       class="filament-button bg-pink-600 text-white px-2 py-1 text-xs rounded hover:bg-pink-700 transition inline-flex items-center gap-1"
+       class="filament-button bg-green-600 text-white px-2 py-1 text-xs rounded hover:bg-green-700 transition inline-flex items-center gap-1"
        title="Export PDF for this project">
         PDF
     </a>

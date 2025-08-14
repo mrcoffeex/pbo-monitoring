@@ -81,44 +81,99 @@ class UserResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->poll('60s')
+            ->striped()
             ->defaultSort('created_at', 'desc')
             ->columns([
                 TextColumn::make('id')
-                    ->sortable(),
+                    ->label('#')
+                    ->sortable()
+                    ->toggleable()
+                    ->alignCenter(),
                 TextColumn::make('name')
+                    ->badge()
+                    ->color('primary')
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('email')
+                    ->label('Email')
+                    ->icon('heroicon-o-envelope')
                     ->sortable()
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(),
                 TextColumn::make('roles.name')
-                    ->label('Role')
+                    ->label('Roles')
                     ->badge()
+                    ->color('info')
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('email_verified_at')
                     ->label('Verified')
-                    ->sortable()
-                    ->searchable()
+                    ->badge()
+                    ->color(fn ($state) => $state ? 'success' : 'danger')
                     ->since()
-                    ->dateTimeTooltip(),
+                    ->tooltip(fn ($record) => $record->email_verified_at?->format('Y-m-d H:i'))
+                    ->sortable()
+                    ->toggleable(),
                 TextColumn::make('created_at')
-                    ->sortable()
-                    ->searchable()
                     ->since()
-                    ->dateTimeTooltip(),
+                    ->tooltip(fn ($record) => $record->created_at?->format('Y-m-d H:i'))
+                    ->sortable()
+                    ->toggleable(),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('role')
+                    ->label('Role')
+                    ->relationship('roles', 'name')
+                    ->searchable()
+                    ->multiple(),
+                Tables\Filters\Filter::make('verified')
+                    ->label('Verified Only')
+                    ->toggle()
+                    ->query(fn (Builder $q) => $q->whereNotNull('email_verified_at')),
             ])
             ->actions([
+                Tables\Actions\ViewAction::make()->modalHeading('User Details'),
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\BulkAction::make('export_csv')
+                        ->label('Export CSV')
+                        ->icon('heroicon-o-arrow-down-tray')
+                        ->action(function ($records) {
+                            $csv = collect([
+                                ['ID','Name','Email','Roles','Verified'],
+                            ])->merge(
+                                $records->map(fn ($r) => [
+                                    $r->id,
+                                    $r->name,
+                                    $r->email,
+                                    $r->roles->pluck('name')->join('|'),
+                                    $r->email_verified_at,
+                                ])
+                            )->map(fn ($row) => implode(',', array_map(fn ($v) => '"'.str_replace('"','""',$v).'"', $row)))->implode("\n");
+
+                            return response($csv)
+                                ->withHeaders([
+                                    'Content-Type' => 'text/csv',
+                                    'Content-Disposition' => 'attachment; filename=users.csv',
+                                ]);
+                        })
+                        ->requiresConfirmation()
+                        ->color('primary'),
                 ]),
-            ]);
+            ])
+            ->emptyStateIcon('heroicon-o-user-group')
+            ->emptyStateHeading('No Users')
+            ->emptyStateDescription('Create your first user account.')
+            ->emptyStateActions([
+                Tables\Actions\CreateAction::make(),
+            ])
+            ->paginated([25,50,100])
+            ->defaultPaginationPageOption(25);
     }
 
     public static function getNavigationBadge(): ?string

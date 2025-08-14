@@ -86,77 +86,140 @@ class TechnicalWorkingGroupResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->defaultSort('project.center.name', 'asc')
+            ->poll('45s')
+            ->striped()
+            ->defaultSort('review_date', 'desc')
             ->columns([
                 TextColumn::make('id')
-                    ->sortable(),
+                    ->label('#')
+                    ->sortable()
+                    ->toggleable()
+                    ->alignCenter(),
+                TextColumn::make('project.center.code')
+                    ->label('Center Code')
+                    ->badge()
+                    ->color('gray')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('project.center.name')
-                    ->label('Center')
+                    ->label('Project')
                     ->wrap()
-                    ->limit(30)
+                    ->limit(35)
                     ->tooltip(fn ($record) => $record->project?->center?->name)
                     ->sortable()
-                    ->searchable(),
+                    ->searchable()
+                    ->description(fn ($record) => $record->project?->year, position: 'above'),
                 TextColumn::make('review_date')
-                    ->label('Review Date')
+                    ->label('Review')
+                    ->dateTime('Y-m-d H:i')
                     ->badge()
-                    ->color('primary')
-                    ->dateTime()
+                    ->color('info')
                     ->sortable()
-                    ->searchable(),
+                    ->toggleable(),
                 TextColumn::make('review_remarks')
+                    ->label('Review Remarks')
                     ->wrap()
                     ->limit(30)
                     ->tooltip(fn ($record) => $record->review_remarks)
-                    ->sortable()
-                    ->searchable(),
+                    ->toggleable(),
                 TextColumn::make('controlled_date')
-                    ->label('Controlled Date')
+                    ->label('Controlled')
+                    ->dateTime('Y-m-d H:i')
                     ->badge()
-                    ->color('primary')
-                    ->dateTime()
+                    ->color(fn ($state) => $state ? 'success' : 'gray')
                     ->sortable()
-                    ->searchable(),
+                    ->toggleable(),
                 TextColumn::make('abc')
                     ->label('ABC')
-                    ->numeric()
-                    ->prefix('₱ ')
+                    ->numeric(2)
+                    ->money('PHP', true)
                     ->sortable()
-                    ->searchable(),
+                    ->alignEnd()
+                    ->color(fn ($state) => $state > 0 ? 'success' : 'gray'),
                 TextColumn::make('remarks')
+                    ->label('Remarks')
                     ->wrap()
                     ->limit(30)
                     ->tooltip(fn ($record) => $record->remarks)
-                    ->sortable()
-                    ->searchable(),
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('user.name')
                     ->label('Created By')
                     ->badge()
                     ->color('info')
                     ->sortable()
-                    ->searchable(),
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('created_at')
-                    ->sortable()
-                    ->searchable()
                     ->since()
-                    ->dateTimeTooltip(),
+                    ->tooltip(fn ($record) => $record->created_at?->format('Y-m-d H:i'))
+                    ->sortable()
+                    ->toggleable(),
                 TextColumn::make('updated_at')
-                    ->sortable()
-                    ->searchable()
                     ->since()
-                    ->dateTimeTooltip(),
+                    ->tooltip(fn ($record) => $record->updated_at?->format('Y-m-d H:i'))
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('center')
+                    ->label('Project')
+                    ->relationship('project.center', 'name')
+                    ->searchable()
+                    ->preload(),
+                Tables\Filters\Filter::make('date_range')
+                    ->label('Review Range')
+                    ->form([
+                        Forms\Components\DatePicker::make('from')->label('From'),
+                        Forms\Components\DatePicker::make('until')->label('Until'),
+                    ])
+                    ->query(function (Builder $q, array $data) {
+                        return $q
+                            ->when($data['from'] ?? null, fn ($qq, $d) => $qq->whereDate('review_date', '>=', $d))
+                            ->when($data['until'] ?? null, fn ($qq, $d) => $qq->whereDate('review_date', '<=', $d));
+                    }),
             ])
             ->actions([
+                Tables\Actions\ViewAction::make()->modalHeading('TWG Review Details'),
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\BulkAction::make('export_csv')
+                        ->label('Export CSV')
+                        ->icon('heroicon-o-arrow-down-tray')
+                        ->action(function ($records) {
+                            $csv = collect([
+                                ['ID','Center','Review','Controlled','ABC'],
+                            ])->merge(
+                                $records->map(fn ($r) => [
+                                    $r->id,
+                                    optional($r->project?->center)->name,
+                                    $r->review_date,
+                                    $r->controlled_date,
+                                    $r->abc,
+                                ])
+                            )->map(fn ($row) => implode(',', array_map(fn ($v) => '"'.str_replace('"','""',$v).'"', $row)))->implode("\n");
+
+                            return response($csv)
+                                ->withHeaders([
+                                    'Content-Type' => 'text/csv',
+                                    'Content-Disposition' => 'attachment; filename=twg_reviews.csv',
+                                ]);
+                        })
+                        ->requiresConfirmation()
+                        ->color('primary'),
                 ]),
-            ]);
+            ])
+            ->emptyStateIcon('heroicon-o-users')
+            ->emptyStateHeading('No TWG Reviews')
+            ->emptyStateDescription('Create your first TWG review record.')
+            ->emptyStateActions([
+                Tables\Actions\CreateAction::make(),
+            ])
+            ->paginated([25,50,100])
+            ->defaultPaginationPageOption(25);
     }
 
     public static function getLabel(): string

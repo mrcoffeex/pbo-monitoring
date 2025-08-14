@@ -23,9 +23,11 @@ class ListProjects extends ListRecords
 
             Actions\Action::make('export_all_filtered_pdf')
                 ->label('Export All Filtered (PDF)')
-                ->color('primary')
+                ->color('success')
                 ->icon('heroicon-o-arrow-down-tray')
                 ->action('exportAllFilteredPdf'),
+
+            Actions\CreateAction::make(),
         ];
     }
 

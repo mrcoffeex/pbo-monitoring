@@ -48,44 +48,104 @@ class CenterResource extends Resource
                         ->placeholder('e.g. Office of the Universe - Contruction of Galaxy Station')
                         ->columnSpan(12),
                 ]),
-                
+
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
+            ->poll('60s')
+            ->striped()
             ->defaultSort('code', 'asc')
             ->columns([
                 TextColumn::make('id')
-                    ->sortable(),
+                    ->label('#')
+                    ->sortable()
+                    ->toggleable()
+                    ->alignCenter(),
                 TextColumn::make('code')
-                    ->sortable()
-                    ->searchable()
-                    ->badge(),
-                TextColumn::make('funds')
-                    ->sortable()
-                    ->searchable()
+                    ->label('Code')
                     ->badge()
-                    ->formatStateUsing(fn ($state) => CustomOptions::FUNDS[$state] ?? $state),
-                TextColumn::make('name')
-                    ->label('Responsiblity Center')
-                    ->limit(69)
-                    ->tooltip(fn ($record) => $record->project?->center?->name)
+                    ->color('primary')
                     ->sortable()
                     ->searchable(),
+                TextColumn::make('funds')
+                    ->label('Funds')
+                    ->badge()
+                    ->formatStateUsing(fn ($state) => CustomOptions::FUNDS[$state] ?? $state)
+                    ->sortable()
+                    ->searchable(),
+                TextColumn::make('name')
+                    ->label('Responsibility Center')
+                    ->wrap()
+                    ->limit(75)
+                    ->tooltip(fn ($record) => $record->name)
+                    ->sortable()
+                    ->searchable(),
+                TextColumn::make('created_at')
+                    ->since()
+                    ->tooltip(fn ($record) => $record->created_at?->format('Y-m-d H:i'))
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('fund_filter')
+                    ->label('Funds')
+                    ->options(CustomOptions::FUNDS)
+                    ->multiple()
+                    ->searchable()
+                    ->query(function (Builder $q, array $data) {
+                        $values = array_filter($data['values'] ?? []);
+                        if (!$values) return $q;
+                        return $q->where(function ($qq) use ($values) {
+                            foreach ($values as $v) {
+                                $qq->orWhereJsonContains('funds', $v);
+                            }
+                        });
+                    }),
             ])
             ->actions([
+                Tables\Actions\ViewAction::make()->modalHeading('Center Details'),
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\BulkAction::make('export_csv')
+                        ->label('Export CSV')
+                        ->icon('heroicon-o-arrow-down-tray')
+                        ->action(function ($records) {
+                            $csv = collect([
+                                ['ID','Code','Funds','Name'],
+                            ])->merge(
+                                $records->map(fn ($r) => [
+                                    $r->id,
+                                    $r->code,
+                                    is_array($r->funds) ? implode('|', $r->funds) : $r->funds,
+                                    $r->name,
+                                ])
+                            )->map(fn ($row) => implode(',', array_map(fn ($v) => '"'.str_replace('"','""',$v).'"', $row)))->implode("\n");
+
+                            return response($csv)
+                                ->withHeaders([
+                                    'Content-Type' => 'text/csv',
+                                    'Content-Disposition' => 'attachment; filename=centers.csv',
+                                ]);
+                        })
+                        ->requiresConfirmation()
+                        ->color('primary'),
                 ]),
-            ]);
+            ])
+            ->emptyStateIcon('heroicon-o-building-office')
+            ->emptyStateHeading('No Centers')
+            ->emptyStateDescription('Create your first responsibility center record.')
+            ->emptyStateActions([
+                Tables\Actions\CreateAction::make(),
+            ])
+            ->paginated([25,50,100])
+            ->defaultPaginationPageOption(25);
     }
 
     public static function getLabel(): string

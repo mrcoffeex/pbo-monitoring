@@ -91,4 +91,9 @@ class DisbursementStatusPieChart extends ChartWidget
         ];
     }
 
+    public static function getSort(): int
+    {
+        return 4;
+    }
+
 }

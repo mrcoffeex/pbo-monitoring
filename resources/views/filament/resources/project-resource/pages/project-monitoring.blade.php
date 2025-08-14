@@ -18,10 +18,12 @@
         $implementations    = $project->implementations;
         $payments           = $project->payments;
 
+        $appropriation = $project->appropriation;
+        $allotment = $project->allotment;
         $totalPayment = $payments->sum('amount');
-        $abcTotal     = $twgs->sum('abc');
-        $unpaid       = $abcTotal - $totalPayment;
-        $paymentPct   = $abcTotal > 0 ? round(($totalPayment / $abcTotal) * 100, 2) : 0;
+        $contractAmount = $procurements->sum('contract_amount');
+        $unpaid       = $contractAmount - $totalPayment;
+        $paymentPct   = $contractAmount > 0 ? round(($totalPayment / $contractAmount) * 100, 2) : 0;
         $latestImpl   = $implementations->sortByDesc('date')->first();
         $implPct      = ($latestImpl && is_numeric($latestImpl->percentage)) ? (float)$latestImpl->percentage : 0;
 
@@ -31,8 +33,16 @@
 
     <div class="flex flex-col sm:flex-row flex-wrap gap-4 mb-6">
         <div class="flex-1 min-w-[160px] rounded-lg px-4 py-3 bg-white dark:bg-gray-900 ring-1 ring-gray-200 dark:ring-gray-700">
-            <div class="text-[11px] uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-2">ABC Total</div>
-            <div class="text-sm font-semibold">₱ {{ number_format($abcTotal, 2) }}</div>
+            <div class="text-[11px] uppercase tracking-wide text-blue-500 dark:text-blue-400 mb-2">Appropriation</div>
+            <div class="text-sm font-semibold">₱ {{ number_format($appropriation, 2) }}</div>
+        </div>
+        <div class="flex-1 min-w-[160px] rounded-lg px-4 py-3 bg-white dark:bg-gray-900 ring-1 ring-gray-200 dark:ring-gray-700">
+            <div class="text-[11px] uppercase tracking-wide text-blue-500 dark:text-blue-400 mb-2">Allotment</div>
+            <div class="text-sm font-semibold">₱ {{ number_format($allotment, 2) }}</div>
+        </div>
+        <div class="flex-1 min-w-[160px] rounded-lg px-4 py-3 bg-white dark:bg-gray-900 ring-1 ring-gray-200 dark:ring-gray-700">
+            <div class="text-[11px] uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-2">Contract Amount</div>
+            <div class="text-sm font-semibold">₱ {{ number_format($contractAmount, 2) }}</div>
         </div>
         <div class="flex-1 min-w-[160px] rounded-lg px-4 py-3 bg-white dark:bg-gray-900 ring-1 ring-gray-200 dark:ring-gray-700">
             <div class="flex justify-between items-center mb-2">

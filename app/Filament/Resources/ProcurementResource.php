@@ -137,127 +137,215 @@ class ProcurementResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->poll('30s') // auto refresh
+            ->striped()
             ->defaultSort('created_at', 'desc')
             ->columns([
                 TextColumn::make('id')
-                    ->sortable(),
+                    ->label('#')
+                    ->sortable()
+                    ->toggleable()
+                    ->alignCenter(),
+
+                TextColumn::make('project.center.code')
+                    ->label('Center Code')
+                    ->badge()
+                    ->color('gray')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
                 TextColumn::make('project.center.name')
+                    ->label('Project')
                     ->wrap()
-                    ->limit(30)
+                    ->limit(35)
                     ->tooltip(fn ($record) => $record->project?->center?->name)
                     ->sortable()
-                    ->searchable(),
+                    ->searchable()
+                    ->description(fn ($record) => $record->project?->year, position: 'above'),
+
                 TextColumn::make('ib_number')
-                    ->label('IB Number')
+                    ->label('IB')
                     ->badge()
+                    ->color('primary')
                     ->sortable()
                     ->searchable(),
+
                 TextColumn::make('pre_procurement_conference')
-                    ->label('Pre-Procurement Conference')
+                    ->label('Pre-Proc')
+                    ->date('Y-m-d')
                     ->badge()
-                    ->color('primary')
-                    ->date()
+                    ->color('info')
                     ->sortable()
-                    ->searchable(),
+                    ->toggleable(),
+
                 TextColumn::make('pre_bid_conference')
-                    ->label('Pre-Bid Conference')
+                    ->label('Pre-Bid')
+                    ->date('Y-m-d')
                     ->badge()
-                    ->color('primary')
-                    ->date()
+                    ->color('info')
                     ->sortable()
-                    ->searchable(),
+                    ->toggleable(),
+
                 TextColumn::make('bid_opening')
                     ->label('Bid Opening')
+                    ->date('Y-m-d')
                     ->badge()
-                    ->color('primary')
-                    ->date()
+                    ->color('warning')
                     ->sortable()
-                    ->searchable(),
-                TextColumn::make('ber')
-                    ->label('BER')
-                    ->badge()
-                    ->color('primary')
-                    ->date()
-                    ->sortable()
-                    ->searchable(),
-                TextColumn::make('post_qua_date')
-                    ->label('Post Qualification Date')
-                    ->badge()
-                    ->color('primary')
-                    ->date()
-                    ->sortable()
-                    ->searchable(),
-                TextColumn::make('remarks')
-                    ->limit(30)
-                    ->tooltip(fn ($record) => $record->remarks)
-                    ->sortable()
-                    ->searchable(),
+                    ->toggleable(),
+
                 TextColumn::make('noa_date_received')
-                    ->label('NOA Date Received')
+                    ->label('NOA')
+                    ->date('Y-m-d')
                     ->badge()
-                    ->color('primary')
-                    ->date()
+                    ->color(fn ($state) => $state ? 'success' : 'gray')
                     ->sortable()
-                    ->searchable(),
-                TextColumn::make('contract_amount')
-                    ->label('Contract Amount')
-                    ->numeric()
-                    ->prefix('₱ ')
-                    ->sortable()
-                    ->searchable(),
-                TextColumn::make('contractor')
-                    ->limit(30)
-                    ->tooltip(fn ($record) => $record->contractor)
-                    ->sortable()
-                    ->searchable(),
-                TextColumn::make('ntp_number')
-                    ->label('NTP Number')
-                    ->badge()
-                    ->sortable()
-                    ->searchable(),
+                    ->toggleable(),
+
                 TextColumn::make('ntp_date')
                     ->label('NTP Date')
+                    ->date('Y-m-d')
                     ->badge()
-                    ->color('primary')
-                    ->date()
+                    ->color(fn ($state) => $state ? 'success' : 'gray')
                     ->sortable()
-                    ->searchable(),
+                    ->toggleable(),
+
+                TextColumn::make('contract_amount')
+                    ->label('Contract Amount')
+                    ->numeric(2)
+                    ->money('PHP', true)
+                    ->sortable()
+                    ->alignEnd()
+                    ->color(fn ($state) => $state > 0 ? 'success' : 'gray'),
+
+                TextColumn::make('contractor')
+                    ->limit(25)
+                    ->tooltip(fn ($record) => $record->contractor)
+                    ->searchable()
+                    ->toggleable(),
+
                 TextColumn::make('contract_duration')
-                    ->label('Contract Duration')
-                    ->suffix(' days')
-                    ->formatStateUsing(fn ($state) =>
-                        is_numeric($state) ? rtrim(rtrim(number_format($state, 2, '.', ''), '0'), '.') : $state
-                    )
+                    ->label('Duration')
+                    ->suffix('d')
+                    ->alignCenter()
                     ->sortable()
-                    ->searchable(),
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                TextColumn::make('status')
+                    ->label('Progress')
+                    ->state(function ($record) {
+                        if ($record->ntp_date) return 'NTP Issued';
+                        if ($record->noa_date_received) return 'NOA';
+                        if ($record->bid_opening) return 'Bidding';
+                        if ($record->pre_bid_conference) return 'Pre-Bid';
+                        if ($record->pre_procurement_conference) return 'Pre-Proc';
+                        return 'Draft';
+                    })
+                    ->badge()
+                    ->color(fn ($state) => match ($state) {
+                        'NTP Issued' => 'success',
+                        'NOA' => 'success',
+                        'Bidding' => 'warning',
+                        'Pre-Bid' => 'info',
+                        'Pre-Proc' => 'gray',
+                        default => 'gray',
+                    })
+                    ->sortable()
+                    ->toggleable(),
+
                 TextColumn::make('user.name')
                     ->label('Created By')
                     ->badge()
                     ->color('info')
                     ->sortable()
-                    ->searchable(),
+                    ->toggleable(isToggledHiddenByDefault: true),
+
                 TextColumn::make('created_at')
-                    ->sortable()
-                    ->searchable()
                     ->since()
-                    ->dateTimeTooltip(),
+                    ->tooltip(fn ($record) => $record->created_at?->format('Y-m-d H:i'))
+                    ->sortable()
+                    ->toggleable(),
+
                 TextColumn::make('updated_at')
-                    ->sortable()
-                    ->searchable()
                     ->since()
-                    ->dateTimeTooltip(),
+                    ->tooltip(fn ($record) => $record->updated_at?->format('Y-m-d H:i'))
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('center')
+                    ->label('Project')
+                    ->relationship('project.center', 'name')
+                    ->searchable()
+                    ->preload(),
+
+                Tables\Filters\Filter::make('has_ntp')
+                    ->label('With NTP')
+                    ->toggle()
+                    ->query(fn (Builder $q) => $q->whereNotNull('ntp_number')),
+
+                Tables\Filters\Filter::make('date_range')
+                    ->label('NOA Range')
+                    ->form([
+                        Forms\Components\DatePicker::make('from')->label('From'),
+                        Forms\Components\DatePicker::make('until')->label('Until'),
+                    ])
+                    ->query(function (Builder $q, array $data) {
+                        return $q
+                            ->when($data['from'] ?? null, fn ($qq, $d) => $qq->whereDate('noa_date_received', '>=', $d))
+                            ->when($data['until'] ?? null, fn ($qq, $d) => $qq->whereDate('noa_date_received', '<=', $d));
+                    }),
+
+                Tables\Filters\TrashedFilter::make()
+                    ->label('Trashed')
+                    ->visible(fn () => in_array(SoftDeletingScope::class, class_uses_recursive(Procurement::class))),
             ])
             ->actions([
+                Tables\Actions\ViewAction::make()
+                    ->modalHeading('Procurement Details')
+                    ->modalWidth('4xl'),
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\BulkAction::make('export_csv')
+                        ->label('Export CSV')
+                        ->icon('heroicon-o-arrow-down-tray')
+                        ->action(function ($records) {
+                            $csv = collect([
+                                ['ID','Center','IB','NOA','NTP','Contract Amount'],
+                            ])->merge(
+                                $records->map(fn ($r) => [
+                                    $r->id,
+                                    optional($r->project?->center)->name,
+                                    $r->ib_number,
+                                    $r->noa_date_received,
+                                    $r->ntp_date,
+                                    $r->contract_amount,
+                                ])
+                            )->map(fn ($row) => implode(',', array_map(fn ($v) => '"'.str_replace('"','""',$v).'"', $row)))->implode("\n");
+
+                            return response($csv)
+                                ->withHeaders([
+                                    'Content-Type' => 'text/csv',
+                                    'Content-Disposition' => 'attachment; filename=procurements.csv',
+                                ]);
+                        })
+                        ->requiresConfirmation()
+                        ->color('primary'),
                 ]),
-            ]);
+            ])
+            ->emptyStateIcon('heroicon-o-shopping-cart')
+            ->emptyStateHeading('No Procurements')
+            ->emptyStateDescription('Create your first procurement record.')
+            ->emptyStateActions([
+                Tables\Actions\CreateAction::make(),
+            ])
+            ->paginated([25, 50, 100])
+            ->defaultPaginationPageOption(25);
     }
 
     public static function getLabel(): string

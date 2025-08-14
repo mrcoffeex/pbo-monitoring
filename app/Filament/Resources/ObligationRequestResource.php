@@ -82,61 +82,126 @@ class ObligationRequestResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->poll('45s')
+            ->striped()
             ->defaultSort('controlled_date', 'desc')
             ->columns([
                 TextColumn::make('id')
-                    ->sortable(),
+                    ->label('#')
+                    ->sortable()
+                    ->toggleable()
+                    ->alignCenter(),
+                TextColumn::make('project.center.code')
+                    ->label('Center Code')
+                    ->badge()
+                    ->color('gray')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('project.center.name')
+                    ->label('Project')
                     ->wrap()
-                    ->limit(30)
+                    ->limit(35)
                     ->tooltip(fn ($record) => $record->project?->center?->name)
                     ->sortable()
-                    ->searchable(),
+                    ->searchable()
+                    ->description(fn ($record) => $record->project?->year, position: 'above'),
                 TextColumn::make('controlled_date')
                     ->label('OBR Date')
+                    ->date('Y-m-d')
                     ->badge()
-                    ->color('primary')
-                    ->date()
+                    ->color('info')
                     ->sortable()
-                    ->searchable(),
+                    ->toggleable(),
                 TextColumn::make('number')
                     ->label('OBR Number')
                     ->badge()
                     ->sortable()
-                    ->searchable(),
+                    ->toggleable(),
                 TextColumn::make('amount')
-                    ->numeric()
-                    ->prefix('₱ ')
+                    ->label('Amount')
+                    ->numeric(2)
+                    ->money('PHP', true)
                     ->sortable()
-                    ->searchable(),
+                    ->alignEnd()
+                    ->color(fn ($state) => $state > 0 ? 'success' : 'gray'),
                 TextColumn::make('user.name')
                     ->label('Created By')
                     ->badge()
                     ->color('info')
                     ->sortable()
-                    ->searchable(),
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('created_at')
-                    ->sortable()
-                    ->searchable()
                     ->since()
-                    ->dateTimeTooltip(),
+                    ->tooltip(fn ($record) => $record->created_at?->format('Y-m-d H:i'))
+                    ->sortable()
+                    ->toggleable(),
                 TextColumn::make('updated_at')
-                    ->sortable()
-                    ->searchable()
                     ->since()
-                    ->dateTimeTooltip(),
+                    ->tooltip(fn ($record) => $record->updated_at?->format('Y-m-d H:i'))
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('center')
+                    ->label('Project')
+                    ->relationship('project.center', 'name')
+                    ->searchable()
+                    ->preload(),
+                Tables\Filters\Filter::make('date_range')
+                    ->label('OBR Range')
+                    ->form([
+                        Forms\Components\DatePicker::make('from')->label('From'),
+                        Forms\Components\DatePicker::make('until')->label('Until'),
+                    ])
+                    ->query(function (Builder $q, array $data) {
+                        return $q
+                            ->when($data['from'] ?? null, fn ($qq, $d) => $qq->whereDate('controlled_date', '>=', $d))
+                            ->when($data['until'] ?? null, fn ($qq, $d) => $qq->whereDate('controlled_date', '<=', $d));
+                    }),
             ])
             ->actions([
+                Tables\Actions\ViewAction::make()->modalHeading('OBR Details'),
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\BulkAction::make('export_csv')
+                        ->label('Export CSV')
+                        ->icon('heroicon-o-arrow-down-tray')
+                        ->action(function ($records) {
+                            $csv = collect([
+                                ['ID','Center','OBR Date','OBR Number','Amount'],
+                            ])->merge(
+                                $records->map(fn ($r) => [
+                                    $r->id,
+                                    optional($r->project?->center)->name,
+                                    $r->controlled_date,
+                                    $r->number,
+                                    $r->amount,
+                                ])
+                            )->map(fn ($row) => implode(',', array_map(fn ($v) => '"'.str_replace('"','""',$v).'"', $row)))->implode("\n");
+
+                            return response($csv)
+                                ->withHeaders([
+                                    'Content-Type' => 'text/csv',
+                                    'Content-Disposition' => 'attachment; filename=obligation_requests.csv',
+                                ]);
+                        })
+                        ->requiresConfirmation()
+                        ->color('primary'),
                 ]),
-            ]);
+            ])
+            ->emptyStateIcon('heroicon-o-document-currency-dollar')
+            ->emptyStateHeading('No OBRs')
+            ->emptyStateDescription('Create your first obligation request record.')
+            ->emptyStateActions([
+                Tables\Actions\CreateAction::make(),
+            ])
+            ->paginated([25,50,100])
+            ->defaultPaginationPageOption(25);
     }
 
     public static function getLabel(): string

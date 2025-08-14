@@ -47,35 +47,80 @@ class OfficeResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->poll('60s')
+            ->striped()
             ->defaultSort('name', 'asc')
             ->columns([
                 TextColumn::make('id')
-                    ->sortable(),
+                    ->label('#')
+                    ->sortable()
+                    ->toggleable()
+                    ->alignCenter(),
                 TextColumn::make('name')
                     ->label('Office')
+                    ->badge()
+                    ->color('primary')
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('emails')
+                    ->label('Emails')
                     ->badge()
-                    ->sortable()
-                    ->searchable(),
+                    ->wrap()
+                    ->limit(40)
+                    ->tooltip(fn ($record) => $record->emails)
+                    ->toggleable(),
                 TextColumn::make('created_at')
-                    ->sortable()
-                    ->searchable()
                     ->since()
-                    ->dateTimeTooltip(),
+                    ->tooltip(fn ($record) => $record->created_at?->format('Y-m-d H:i'))
+                    ->sortable()
+                    ->toggleable(),
             ])
             ->filters([
-                //
+                Tables\Filters\Filter::make('has_multiple_email')
+                    ->label('Multiple Emails')
+                    ->toggle()
+                    ->query(fn (Builder $q) => $q->whereRaw('JSON_LENGTH(emails) > 1')),
             ])
             ->actions([
+                Tables\Actions\ViewAction::make()->modalHeading('Office Details'),
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\BulkAction::make('export_csv')
+                        ->label('Export CSV')
+                        ->icon('heroicon-o-arrow-down-tray')
+                        ->action(function ($records) {
+                            $csv = collect([
+                                ['ID','Office','Emails'],
+                            ])->merge(
+                                $records->map(fn ($r) => [
+                                    $r->id,
+                                    $r->name,
+                                    is_array($r->emails) ? implode('|', $r->emails) : $r->emails,
+                                ])
+                            )->map(fn ($row) => implode(',', array_map(fn ($v) => '"'.str_replace('"','""',$v).'"', $row)))->implode("\n");
+
+                            return response($csv)
+                                ->withHeaders([
+                                    'Content-Type' => 'text/csv',
+                                    'Content-Disposition' => 'attachment; filename=offices.csv',
+                                ]);
+                        })
+                        ->requiresConfirmation()
+                        ->color('primary'),
                 ]),
-            ]);
+            ])
+            ->emptyStateIcon('heroicon-o-briefcase')
+            ->emptyStateHeading('No Offices')
+            ->emptyStateDescription('Create your first office record.')
+            ->emptyStateActions([
+                Tables\Actions\CreateAction::make(),
+            ])
+            ->paginated([25,50,100])
+            ->defaultPaginationPageOption(25);
     }
 
     public static function getNavigationGroup(): ?string

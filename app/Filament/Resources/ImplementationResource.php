@@ -74,57 +74,124 @@ class ImplementationResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->poll('45s')
+            ->striped()
             ->defaultSort('date', 'desc')
             ->columns([
                 TextColumn::make('id')
-                    ->sortable(),
+                    ->label('#')
+                    ->sortable()
+                    ->toggleable()
+                    ->alignCenter(),
+                TextColumn::make('project.center.code')
+                    ->label('Center Code')
+                    ->badge()
+                    ->color('gray')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('project.center.name')
+                    ->label('Project')
                     ->wrap()
-                    ->limit(30)
+                    ->limit(35)
                     ->tooltip(fn ($record) => $record->project?->center?->name)
                     ->sortable()
-                    ->searchable(),
+                    ->searchable()
+                    ->description(fn ($record) => $record->project?->year, position: 'above'),
                 TextColumn::make('date')
+                    ->label('Date')
+                    ->date('Y-m-d')
                     ->badge()
-                    ->color('primary')
-                    ->date()
+                    ->color('info')
                     ->sortable()
-                    ->searchable(),
+                    ->toggleable(),
                 TextColumn::make('percentage')
+                    ->label('% Complete')
                     ->suffix('%')
-                    ->formatStateUsing(fn ($state) =>
-                        is_numeric($state) ? rtrim(rtrim(number_format($state, 2, '.', ''), '0'), '.') : $state
-                    )
+                    ->formatStateUsing(fn ($state) => is_numeric($state) ? rtrim(rtrim(number_format($state, 2, '.', ''), '0'), '.') : $state)
+                    ->color(fn ($state) => match (true) {
+                        $state >= 90 => 'success',
+                        $state >= 50 => 'warning',
+                        default => 'gray'
+                    })
                     ->sortable()
-                    ->searchable(),
+                    ->toggleable(),
                 TextColumn::make('user.name')
                     ->label('Created By')
                     ->badge()
                     ->color('info')
                     ->sortable()
-                    ->searchable(),
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('created_at')
-                    ->sortable()
-                    ->searchable()
                     ->since()
-                    ->dateTimeTooltip(),
+                    ->tooltip(fn ($record) => $record->created_at?->format('Y-m-d H:i'))
+                    ->sortable()
+                    ->toggleable(),
                 TextColumn::make('updated_at')
-                    ->sortable()
-                    ->searchable()
                     ->since()
-                    ->dateTimeTooltip(),
+                    ->tooltip(fn ($record) => $record->updated_at?->format('Y-m-d H:i'))
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('center')
+                    ->label('Project')
+                    ->relationship('project.center', 'name')
+                    ->searchable()
+                    ->preload(),
+                Tables\Filters\Filter::make('date_range')
+                    ->label('Date Range')
+                    ->form([
+                        Forms\Components\DatePicker::make('from')->label('From'),
+                        Forms\Components\DatePicker::make('until')->label('Until'),
+                    ])
+                    ->query(function (Builder $q, array $data) {
+                        return $q
+                            ->when($data['from'] ?? null, fn ($qq, $d) => $qq->whereDate('date', '>=', $d))
+                            ->when($data['until'] ?? null, fn ($qq, $d) => $qq->whereDate('date', '<=', $d));
+                    }),
             ])
             ->actions([
+                Tables\Actions\ViewAction::make()->modalHeading('Implementation Details'),
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\BulkAction::make('export_csv')
+                        ->label('Export CSV')
+                        ->icon('heroicon-o-arrow-down-tray')
+                        ->action(function ($records) {
+                            $csv = collect([
+                                ['ID','Center','Date','Percentage'],
+                            ])->merge(
+                                $records->map(fn ($r) => [
+                                    $r->id,
+                                    optional($r->project?->center)->name,
+                                    $r->date,
+                                    $r->percentage,
+                                ])
+                            )->map(fn ($row) => implode(',', array_map(fn ($v) => '"'.str_replace('"','""',$v).'"', $row)))->implode("\n");
+
+                            return response($csv)
+                                ->withHeaders([
+                                    'Content-Type' => 'text/csv',
+                                    'Content-Disposition' => 'attachment; filename=implementations.csv',
+                                ]);
+                        })
+                        ->requiresConfirmation()
+                        ->color('primary'),
                 ]),
-            ]);
+            ])
+            ->emptyStateIcon('heroicon-o-arrow-right-end-on-rectangle')
+            ->emptyStateHeading('No Implementations')
+            ->emptyStateDescription('Create your first implementation record.')
+            ->emptyStateActions([
+                Tables\Actions\CreateAction::make(),
+            ])
+            ->paginated([25,50,100])
+            ->defaultPaginationPageOption(25);
     }
 
     public static function getLabel(): string

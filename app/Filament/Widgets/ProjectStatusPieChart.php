@@ -98,4 +98,9 @@ class ProjectStatusPieChart extends ChartWidget
             ],
         ];
     }
+
+    public static function getSort(): int
+    {
+        return 2;
+    }
 }

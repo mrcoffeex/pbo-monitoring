@@ -83,62 +83,137 @@ class PaymentResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->poll('45s')
+            ->striped()
             ->defaultSort('date', 'desc')
             ->columns([
                 TextColumn::make('id')
-                    ->sortable(),
+                    ->label('#')
+                    ->sortable()
+                    ->toggleable()
+                    ->alignCenter(),
+                TextColumn::make('project.center.code')
+                    ->label('Center Code')
+                    ->badge()
+                    ->color('gray')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('project.center.name')
+                    ->label('Project')
                     ->wrap()
-                    ->limit(30)
+                    ->limit(35)
                     ->tooltip(fn ($record) => $record->project?->center?->name)
                     ->sortable()
-                    ->searchable(),
+                    ->searchable()
+                    ->description(fn ($record) => $record->project?->year, position: 'above'),
                 TextColumn::make('type')
-                    ->label('Type of Payment')
+                    ->label('Type')
                     ->badge()
                     ->sortable()
                     ->searchable()
-                    ->formatStateUsing(fn ($state) => CustomOptions::PAYMENTS[$state] ?? $state),
-                TextColumn::make('amount')
-                    ->numeric()
-                    ->prefix('₱ ')
-                    ->sortable()
-                    ->searchable(),
-                TextColumn::make('date')
-                    ->label('Date of Payment')
-                    ->badge()
+                    ->formatStateUsing(fn ($state) => CustomOptions::PAYMENTS[$state] ?? $state)
                     ->color('primary')
-                    ->date()
+                    ->toggleable(),
+                TextColumn::make('amount')
+                    ->label('Amount')
+                    ->numeric(2)
+                    ->money('PHP', true)
                     ->sortable()
-                    ->searchable(),
+                    ->alignEnd()
+                    ->color(fn ($state) => $state > 0 ? 'success' : 'gray'),
+                TextColumn::make('date')
+                    ->label('Date')
+                    ->date('Y-m-d')
+                    ->badge()
+                    ->color('info')
+                    ->sortable()
+                    ->toggleable(),
                 TextColumn::make('user.name')
                     ->label('Created By')
                     ->badge()
                     ->color('info')
                     ->sortable()
-                    ->searchable(),
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('created_at')
-                    ->sortable()
-                    ->searchable()
                     ->since()
-                    ->dateTimeTooltip(),
+                    ->tooltip(fn ($record) => $record->created_at?->format('Y-m-d H:i'))
+                    ->sortable()
+                    ->toggleable(),
                 TextColumn::make('updated_at')
-                    ->sortable()
-                    ->searchable()
                     ->since()
-                    ->dateTimeTooltip(),
+                    ->tooltip(fn ($record) => $record->updated_at?->format('Y-m-d H:i'))
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('center')
+                    ->label('Project')
+                    ->relationship('project.center', 'name')
+                    ->searchable()
+                    ->preload(),
+                Tables\Filters\Filter::make('type_filter')
+                    ->label('Type')
+                    ->form([
+                        Forms\Components\Select::make('type')
+                            ->options(CustomOptions::PAYMENTS)
+                            ->label('Payment Type'),
+                    ])
+                    ->query(fn (Builder $q, array $data) => $q->when($data['type'] ?? null, fn ($qq,$v) => $qq->where('type', $v))),
+                Tables\Filters\Filter::make('date_range')
+                    ->label('Date Range')
+                    ->form([
+                        Forms\Components\DatePicker::make('from')->label('From'),
+                        Forms\Components\DatePicker::make('until')->label('Until'),
+                    ])
+                    ->query(function (Builder $q, array $data) {
+                        return $q
+                            ->when($data['from'] ?? null, fn ($qq, $d) => $qq->whereDate('date', '>=', $d))
+                            ->when($data['until'] ?? null, fn ($qq, $d) => $qq->whereDate('date', '<=', $d));
+                    }),
             ])
             ->actions([
+                Tables\Actions\ViewAction::make()->modalHeading('Payment Details'),
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\BulkAction::make('export_csv')
+                        ->label('Export CSV')
+                        ->icon('heroicon-o-arrow-down-tray')
+                        ->action(function ($records) {
+                            $csv = collect([
+                                ['ID','Center','Type','Amount','Date'],
+                            ])->merge(
+                                $records->map(fn ($r) => [
+                                    $r->id,
+                                    optional($r->project?->center)->name,
+                                    CustomOptions::PAYMENTS[$r->type] ?? $r->type,
+                                    $r->amount,
+                                    $r->date,
+                                ])
+                            )->map(fn ($row) => implode(',', array_map(fn ($v) => '"'.str_replace('"','""',$v).'"', $row)))->implode("\n");
+
+                            return response($csv)
+                                ->withHeaders([
+                                    'Content-Type' => 'text/csv',
+                                    'Content-Disposition' => 'attachment; filename=payments.csv',
+                                ]);
+                        })
+                        ->requiresConfirmation()
+                        ->color('primary'),
                 ]),
-            ]);
+            ])
+            ->emptyStateIcon('heroicon-o-currency-dollar')
+            ->emptyStateHeading('No Payments')
+            ->emptyStateDescription('Create your first payment record.')
+            ->emptyStateActions([
+                Tables\Actions\CreateAction::make(),
+            ])
+            ->paginated([25,50,100])
+            ->defaultPaginationPageOption(25);
     }
 
     public static function getLabel(): string

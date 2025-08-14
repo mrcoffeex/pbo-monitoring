@@ -12,7 +12,6 @@ use Illuminate\Support\HtmlString;
 
 class DashboardStats extends BaseWidget
 {
-    // Make the stats card row span full width; charts will handle their own spans.
 
     protected function getStats(): array
     {
@@ -60,7 +59,6 @@ class DashboardStats extends BaseWidget
         $withPurchaseRequests = Project::has('purchase_requests')->count();
         $withPurchaseRequestsPercent = $totalProjects > 0 ? round(($withPurchaseRequests / $totalProjects) * 100, 1) : 0;
 
-        // Added: payment totals (amount) instead of count for Disbursements stat
         $lastWeekBoundary = now()->copy()->subWeek()->startOfDay();
         $paymentsTotalAmount = (float) Payment::sum('amount');
         $paymentsLastWeekAmount = (float) Payment::where('created_at', '<', $lastWeekBoundary)->sum('amount');

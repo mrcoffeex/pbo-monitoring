@@ -132,18 +132,14 @@ class ProjectResource extends Resource
                 TextColumn::make('center.name')
                     ->label('Project')
                     ->wrap()
-                    ->limit(30)
+                    ->limit(35)
                     ->tooltip(fn ($record) => $record->center?->name)
                     ->sortable()
-                    ->searchable(),
+                    ->searchable()
+                    ->description(fn ($record) => $record->year, position: 'above'),
                 TextColumn::make('center.code')
                     ->label('Res. Center')
                     ->badge()
-                    ->sortable()
-                    ->searchable(),
-                TextColumn::make('year')
-                    ->badge()
-                    ->color('primary')
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('center.funds')
@@ -171,19 +167,21 @@ class ProjectResource extends Resource
                     ->sortable()
                     ->searchable()
                     ->since()
-                    ->dateTimeTooltip(),
+                    ->dateTimeTooltip()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
                     ->sortable()
                     ->searchable()
                     ->since()
-                    ->dateTimeTooltip(),
+                    ->dateTimeTooltip()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 SelectFilter::make('purchase_requests')
                     ->label('Purchase Requests')
                     ->options([
-                        'with' => 'With Purchase Requests',
-                        'without' => 'No Purchase Requests',
+                        'with' => 'With PRs',
+                        'without' => 'No PRs',
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query->when(
@@ -215,13 +213,48 @@ class ProjectResource extends Resource
                     }),
             ])
             ->actions([
+                Tables\Actions\ViewAction::make()->modalHeading('Project Details'),
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\BulkAction::make('export_csv')
+                        ->label('Export CSV')
+                        ->icon('heroicon-o-arrow-down-tray')
+                        ->action(function ($records) {
+                            $csv = collect([
+                                ['ID','Status','Center Code','Project','Appropriation','Allotment'],
+                            ])->merge(
+                                $records->map(fn ($r) => [
+                                    $r->id,
+                                    $r->status,
+                                    $r->center?->code,
+                                    $r->center?->name,
+                                    $r->appropriation,
+                                    $r->allotment,
+                                ])
+                            )->map(fn ($row) => implode(',', array_map(fn ($v) => '"'.str_replace('"','""',$v).'"', $row)))->implode("\n");
+
+                            return response($csv)
+                                ->withHeaders([
+                                    'Content-Type' => 'text/csv',
+                                    'Content-Disposition' => 'attachment; filename=projects.csv',
+                                ]);
+                        })
+                        ->requiresConfirmation()
+                        ->color('primary'),
                 ]),
-            ]);
+            ])
+            ->emptyStateIcon('heroicon-o-folder-open')
+            ->emptyStateHeading('No Projects')
+            ->emptyStateDescription('Create your first project record.')
+            ->emptyStateActions([
+                Tables\Actions\CreateAction::make(),
+            ])
+            ->paginated([25,50,100])
+            ->defaultPaginationPageOption(25);
     }
 
     public static function getNavigationBadge(): ?string
