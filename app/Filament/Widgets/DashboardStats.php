@@ -8,6 +8,7 @@ use App\Models\Procurement;
 use App\Models\Project;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
+use Illuminate\Support\HtmlString;
 
 class DashboardStats extends BaseWidget
 {
@@ -96,13 +97,11 @@ class DashboardStats extends BaseWidget
                 ->icon('heroicon-o-document-text')
                 ->color('primary'),
 
-            // Modified Disbursements stat: show total payment amount (currency) instead of count
             Stat::make('Disbursements', $currency($paymentsTotalAmount))
                 ->description("Up by {$paymentsGrowthPercent}% vs last week")
                 ->descriptionIcon($paymentsGrowthAmount >= 0 ? 'heroicon-o-chevron-up' : 'heroicon-o-chevron-down')
                 ->color($paymentsGrowthAmount >= 0 ? 'success' : 'primary')
                 ->icon('heroicon-o-currency-dollar')
-                // Keep mini chart based on daily counts (from $paymentStats) – optional
                 ->chartColor($paymentsGrowthAmount >= 0 ? 'success' : 'primary')
                 ->chart(array_values($paymentStats['daily_counts']))
                 ->extraAttributes([
@@ -110,14 +109,38 @@ class DashboardStats extends BaseWidget
                 ]),
 
             Stat::make('With Purchase Requests', $withPurchaseRequests)
-                ->description("Projects with Purchase Request - {$withPurchaseRequestsPercent}%")
+                ->description(new HtmlString("
+                    <div class='space-y-1 text-xs'>
+                        <div class='flex justify-between'>
+                            <span>{$withPurchaseRequestsPercent}% with purchase requests out of {$totalProjects} of Registered Projects</span>
+                        </div>
+                        <div class='h-2 w-full rounded bg-gray-200/70 dark:bg-gray-800'>
+                            <div class='h-2 rounded bg-blue-500' style='width: {$withPurchaseRequestsPercent}%;'></div>
+                        </div>
+                    </div>
+                "))
                 ->icon('heroicon-o-check')
-                ->color('info'),
+                ->color('info')
+                ->extraAttributes([
+                    'class' => 'shadow-md ring-1 ring-offset-1 ring-primary-100',
+                ]),
 
             Stat::make('No Purchase Request', $noPurchaseRequestCount)
-                ->description("Projects without Purchase Request - {$noPurchaseRequestPercent}%")
+                ->description(new HtmlString("
+                    <div class='space-y-1 text-xs'>
+                        <div class='flex justify-between'>
+                            <span>{$noPurchaseRequestPercent}% without purchase requests out of {$totalProjects} of Registered Projects</span>
+                        </div>
+                        <div class='h-2 w-full rounded bg-gray-200/70 dark:bg-gray-800'>
+                            <div class='h-2 rounded bg-red-500' style='width: {$noPurchaseRequestPercent}%;'></div>
+                        </div>
+                    </div>
+                "))
                 ->icon('heroicon-o-x-mark')
-                ->color('danger'),
+                ->color('danger')
+                ->extraAttributes([
+                    'class' => 'shadow-md ring-1 ring-offset-1 ring-primary-100',
+                ]),
         ];
     }
 }
