@@ -77,23 +77,35 @@ class DashboardStats extends BaseWidget
                 ->label('Projects')
                 ->description('Approved Projects')
                 ->icon('heroicon-o-folder-open')
-                ->color('info'),
+                ->color('info')
+                ->extraAttributes([
+                    'class' => 'shadow-md ring-1 ring-offset-1 ring-primary-100 transition-all duration-300 hover:scale-[1.02]',
+                ]),
 
             Stat::make('Procurements', Procurement::count())
                 ->label('Procurements')
                 ->description('Projects with On-Going Procurements')
                 ->icon('heroicon-o-shopping-cart')
-                ->color('primary'),
+                ->color('primary')
+                ->extraAttributes([
+                    'class' => 'shadow-md ring-1 ring-offset-1 ring-primary-100 transition-all duration-300 hover:scale-[1.02]',
+                ]),
 
             Stat::make('Issued NOA', Procurement::whereNotNull('noa_date_received')->count())
                 ->description('Projects with Issued NOA')
                 ->icon('heroicon-o-document-text')
-                ->color('primary'),
+                ->color('primary')
+                ->extraAttributes([
+                    'class' => 'shadow-md ring-1 ring-offset-1 ring-primary-100 transition-all duration-300 hover:scale-[1.02]',
+                ]),
 
             Stat::make('Issued NTP', Procurement::whereNotNull('ntp_number')->count())
                 ->description('Projects with Issued NTP')
                 ->icon('heroicon-o-document-text')
-                ->color('primary'),
+                ->color('primary')
+                ->extraAttributes([
+                    'class' => 'shadow-md ring-1 ring-offset-1 ring-primary-100 transition-all duration-300 hover:scale-[1.02]',
+                ]),
 
             Stat::make('Disbursements', $currency($paymentsTotalAmount))
                 ->description("Up by {$paymentsGrowthPercent}% vs last week")
@@ -120,7 +132,7 @@ class DashboardStats extends BaseWidget
                 ->icon('heroicon-o-check')
                 ->color('info')
                 ->extraAttributes([
-                    'class' => 'shadow-md ring-1 ring-offset-1 ring-primary-100',
+                    'class' => 'shadow-md ring-1 ring-offset-1 ring-primary-100 transition-all duration-300 hover:scale-[1.02]',
                 ]),
 
             Stat::make('No Purchase Request', $noPurchaseRequestCount)
@@ -137,7 +149,7 @@ class DashboardStats extends BaseWidget
                 ->icon('heroicon-o-x-mark')
                 ->color('danger')
                 ->extraAttributes([
-                    'class' => 'shadow-md ring-1 ring-offset-1 ring-primary-100',
+                    'class' => 'shadow-md ring-1 ring-offset-1 ring-primary-100 transition-all duration-300 hover:scale-[1.02]',
                 ]),
         ];
     }
