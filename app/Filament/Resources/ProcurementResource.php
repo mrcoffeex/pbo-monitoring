@@ -120,7 +120,7 @@ class ProcurementResource extends Resource
                             ->placeholder('e.g. 0000')
                             ->columnSpan(4),
                         DatePicker::make('ntp_date')
-                            ->label('Notice of Award Date')
+                            ->label('NTP Date')
                             ->columnSpan(4),
                         TextInput::make('contract_duration')
                             ->label('Contract Duration - Days')
@@ -201,6 +201,13 @@ class ProcurementResource extends Resource
                     ->date('Y-m-d')
                     ->badge()
                     ->color(fn ($state) => $state ? 'success' : 'gray')
+                    ->sortable()
+                    ->toggleable(),
+
+                TextColumn::make('ntp_number')
+                    ->label('NTP No.')
+                    ->badge()
+                    ->color('info')
                     ->sortable()
                     ->toggleable(),
 

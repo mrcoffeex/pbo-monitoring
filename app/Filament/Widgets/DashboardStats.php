@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Payment;
 use App\Models\Procurement;
 use App\Models\Project;
+use Illuminate\Support\Facades\DB;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\HtmlString;
@@ -69,7 +70,24 @@ class DashboardStats extends BaseWidget
 
         $currency = fn($v) => '₱ ' . number_format($v, 2);
 
+        // Online users (active within last 10 minutes via sessions table)
+        $onlineWindowMinutes = 10;
+        $onlineUsers = DB::table('sessions')
+            ->whereNotNull('user_id')
+            ->where('last_activity', '>=', now()->subMinutes($onlineWindowMinutes)->getTimestamp())
+            ->distinct()
+            ->count('user_id');
+        $totalUsers = User::count();
+        $onlinePercent = $totalUsers > 0 ? round(($onlineUsers / max($totalUsers,1)) * 100, 1) : 0;
+
         return [
+            Stat::make('Users Online', $onlineUsers)
+                ->description(new HtmlString("<span class='text-xs'>{$onlinePercent}% of {$totalUsers} users active (last {$onlineWindowMinutes}m)</span>"))
+                ->icon('heroicon-o-signal')
+                ->color($onlineUsers > 0 ? 'success' : 'gray')
+                ->extraAttributes([
+                    'class' => 'shadow-md ring-1 ring-offset-1 ring-primary-100 transition-all duration-300 hover:scale-[1.02]',
+                ]),
             Stat::make('Projects', Project::where([
                     'year' => now()->format('Y'),
                     'status' => 'approved',
@@ -78,6 +96,17 @@ class DashboardStats extends BaseWidget
                 ->description('Approved Projects')
                 ->icon('heroicon-o-folder-open')
                 ->color('info')
+                ->extraAttributes([
+                    'class' => 'shadow-md ring-1 ring-offset-1 ring-primary-100 transition-all duration-300 hover:scale-[1.02]',
+                ]),
+
+            Stat::make('Disbursements', $currency($paymentsTotalAmount))
+                ->description("Up by {$paymentsGrowthPercent}% vs last week")
+                ->descriptionIcon($paymentsGrowthAmount >= 0 ? 'heroicon-o-chevron-up' : 'heroicon-o-chevron-down')
+                ->color($paymentsGrowthAmount >= 0 ? 'success' : 'primary')
+                ->icon('heroicon-o-currency-dollar')
+                ->chartColor($paymentsGrowthAmount >= 0 ? 'success' : 'primary')
+                ->chart(array_values($paymentStats['daily_counts']))
                 ->extraAttributes([
                     'class' => 'shadow-md ring-1 ring-offset-1 ring-primary-100 transition-all duration-300 hover:scale-[1.02]',
                 ]),
@@ -103,17 +132,6 @@ class DashboardStats extends BaseWidget
                 ->description('Projects with Issued NTP')
                 ->icon('heroicon-o-document-text')
                 ->color('primary')
-                ->extraAttributes([
-                    'class' => 'shadow-md ring-1 ring-offset-1 ring-primary-100 transition-all duration-300 hover:scale-[1.02]',
-                ]),
-
-            Stat::make('Disbursements', $currency($paymentsTotalAmount))
-                ->description("Up by {$paymentsGrowthPercent}% vs last week")
-                ->descriptionIcon($paymentsGrowthAmount >= 0 ? 'heroicon-o-chevron-up' : 'heroicon-o-chevron-down')
-                ->color($paymentsGrowthAmount >= 0 ? 'success' : 'primary')
-                ->icon('heroicon-o-currency-dollar')
-                ->chartColor($paymentsGrowthAmount >= 0 ? 'success' : 'primary')
-                ->chart(array_values($paymentStats['daily_counts']))
                 ->extraAttributes([
                     'class' => 'shadow-md ring-1 ring-offset-1 ring-primary-100 transition-all duration-300 hover:scale-[1.02]',
                 ]),
