@@ -51,9 +51,4 @@ class PaymentChart extends ChartWidget
     {
         return 'line';
     }
-
-    public function getColumns(): int
-    {
-        return 1;
-    }
 }

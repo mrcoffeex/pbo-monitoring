@@ -2,9 +2,6 @@
 
 namespace App\Filament\Widgets;
 
-use App\Filament\Widgets\ImplementationChart;
-use App\Filament\Widgets\PaymentChart;
-use App\Filament\Widgets\ProjectStatusPieChart;
 use App\Models\User;
 use App\Models\Payment;
 use App\Models\Procurement;
@@ -14,6 +11,7 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class DashboardStats extends BaseWidget
 {
+    // Make the stats card row span full width; charts will handle their own spans.
 
     protected function getStats(): array
     {
@@ -58,6 +56,10 @@ class DashboardStats extends BaseWidget
         $totalProjects = Project::count();
         $noPurchaseRequestPercent = $totalProjects > 0 ? round(($noPurchaseRequestCount / $totalProjects) * 100, 1) : 0;
 
+
+        $withPurchaseRequests = Project::has('purchase_requests')->count();
+        $withPurchaseRequestsPercent = $totalProjects > 0 ? round(($withPurchaseRequests / $totalProjects) * 100, 1) : 0;
+
         return [
             Stat::make('Projects', Project::where([
                     'year' => now()->format('Y'),
@@ -74,6 +76,16 @@ class DashboardStats extends BaseWidget
                 ->icon('heroicon-o-shopping-cart')
                 ->color('primary'),
 
+            Stat::make('Issued NOA', Procurement::whereNotNull('noa_date_received')->count())
+                ->description('Projects with Issued NOA')
+                ->icon('heroicon-o-document-text')
+                ->color('primary'),
+
+            Stat::make('Issued NTP', Procurement::whereNotNull('ntp_number')->count())
+                ->description('Projects with Issued NTP')
+                ->icon('heroicon-o-document-text')
+                ->color('primary'),
+
             Stat::make('Payments', number_format($paymentStats['total']))
                 ->description("Up by {$paymentStats['growth_percent']}% vs last week")
                 ->descriptionIcon($paymentStats['growth'] >= 0 ? 'heroicon-o-chevron-up' : 'heroicon-o-chevron-down')
@@ -85,30 +97,15 @@ class DashboardStats extends BaseWidget
                     'class' => 'shadow-md ring-1 ring-offset-1 ring-primary-100 transition-all duration-300 hover:scale-[1.02]',
                 ]),
 
-            Stat::make('Issued NOA', Procurement::whereNotNull('noa_date_received')->count())
-                ->description('Projects with Issued NOA')
-                ->icon('heroicon-o-document-text')
-                ->color('primary'),
-
-            Stat::make('Issued NTP', Procurement::whereNotNull('ntp_number')->count())
-                ->description('Projects with Issued NTP')
-                ->icon('heroicon-o-document-text')
-                ->color('primary'),
+            Stat::make('With Purchase Requests', $withPurchaseRequests)
+                ->description("Projects with Purchase Request - {$withPurchaseRequestsPercent}%")
+                ->icon('heroicon-o-check')
+                ->color('info'),
 
             Stat::make('No Purchase Request', $noPurchaseRequestCount)
                 ->description("Projects without Purchase Request - {$noPurchaseRequestPercent}%")
-                ->icon('heroicon-o-clipboard-document')
-                ->color('primary'),
+                ->icon('heroicon-o-x-mark')
+                ->color('danger'),
         ];
     }
-
-
-    public static function getCharts(): array
-    {
-        return [
-            ProjectStatusPieChart::class,
-            PaymentChart::class,
-        ];
-    }
-
 }

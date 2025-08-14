@@ -3,19 +3,23 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Project;
+use Filament\Support\RawJs;
 use Filament\Widgets\ChartWidget;
-use Illuminate\Support\Collection;
+use Illuminate\Support\Js;
 
 class ProjectStatusPieChart extends ChartWidget
 {
     protected static ?string $heading = 'Project Status Distribution';
 
+    protected static ?string $maxHeight = '250px';
+
+    private array $statusCounts = [];
+
     protected function getData(): array
     {
-        // Load needed relations once
         $projects = Project::with([
             'purchase_requests:id,project_id',
-            'technical_working_groups:id,project_id,abc',
+            'procurements:id,project_id,contract_amount',
             'payments:id,project_id,amount',
         ])->get();
 
@@ -25,44 +29,50 @@ class ProjectStatusPieChart extends ChartWidget
 
         $projects->each(function ($project) use (&$completed, &$ongoing, &$notStarted) {
             $hasPR = $project->purchase_requests->isNotEmpty();
-
-            $abcTotal = $project->technical_working_groups->sum('abc');
+            $contractAmount = $project->procurements->sum('contract_amount');
             $paidTotal = $project->payments->sum('amount');
+            $isCompleted = $contractAmount > 0 && $paidTotal >= $contractAmount;
 
-            $isCompleted = $abcTotal > 0 && $paidTotal >= $abcTotal;
-
-            if ($isCompleted) {
-                $completed++;
-                return;
-            }
-
-            if ($hasPR) {
-                $ongoing++;
-                return;
-            }
-
-            // No purchase requests and not completed
+            if ($isCompleted) { $completed++; return; }
+            if ($hasPR) { $ongoing++; return; }
             $notStarted++;
         });
+
+        $total = max($completed + $ongoing + $notStarted, 1);
+
+        $pCompleted  = round(($completed / $total) * 100, 1);
+        $pOngoing    = round(($ongoing / $total) * 100, 1);
+        $pNotStarted = round(($notStarted / $total) * 100, 1);
+
+        $this->statusCounts = [
+            'completed'   => $completed,
+            'ongoing'     => $ongoing,
+            'notStarted'  => $notStarted,
+            'pCompleted'  => $pCompleted,
+            'pOngoing'    => $pOngoing,
+            'pNotStarted' => $pNotStarted,
+            'total'       => $total,
+        ];
 
         return [
             'datasets' => [
                 [
-                    'label' => 'Projects',
-                    'data' => [$completed, $ongoing, $notStarted],
+                    'label' => 'Projects (%)',
+                    'data' => [$pCompleted, $pOngoing, $pNotStarted], // percentages
+                    'rawCounts' => [$completed, $ongoing, $notStarted], // counts
                     'backgroundColor' => [
-                        '#16a34a', // completed
-                        '#2563eb', // ongoing
-                        '#dadee6ff', // not started
+                        '#16a34a',
+                        '#2563eb',
+                        '#dadee6',
                     ],
                     'borderColor' => '#ffffff',
                     'borderWidth' => 1,
                 ],
             ],
             'labels' => [
-                "Completed ($completed)",
-                "Ongoing ($ongoing)",
-                "Not Started ($notStarted)",
+                "Completed ($completed / $total = {$pCompleted}%)",
+                "Ongoing ($ongoing / $total = {$pOngoing}%)",
+                "Not Started ($notStarted / $total = {$pNotStarted}%)",
             ],
         ];
     }
@@ -70,5 +80,22 @@ class ProjectStatusPieChart extends ChartWidget
     protected function getType(): string
     {
         return 'pie';
+    }
+
+    protected function getOptions(): array|RawJs|null
+    {
+        return [
+            'plugins' => [
+                'legend' => [
+                    'labels' => [
+                        'padding' => 20, // space between legend items and chart
+                    ],
+                ],
+            ],
+            'scales' => [
+                'x' => ['display' => false],
+                'y' => ['display' => false],
+            ],
+        ];
     }
 }
