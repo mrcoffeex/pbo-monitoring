@@ -8,6 +8,6 @@ Route::get('/', function () {
 });
 
 Route::middleware(['web', 'auth'])->group(function () {
-    Route::get('/admin/projects/pdf-download', [ProjectPdfController::class, 'download'])
-        ->name('projects.pdf.download');
+    Route::get('/admin/projects/{project}/pdf', [ProjectPdfController::class, 'single'])
+        ->name('projects.pdf.single');
 });

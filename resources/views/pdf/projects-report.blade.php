@@ -2,289 +2,282 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Projects Report</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'DejaVu Sans', Arial, sans-serif;
-            font-size: 12px;
-            line-height: 1.4;
-            color: #374151;
-            background: white;
-            margin-bottom: 24mm; /* match footer height + spacing */
-        }
-
-        @page {
-            size: A4 landscape;
-            margin: 15mm 12mm 22mm 12mm;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-            border-bottom: 3px solid #ec4899;
-            padding-bottom: 15px;
-        }
-
-        .header h1 {
-            font-size: 24px;
-            font-weight: 700;
-            color: #1f2937;
-            margin-bottom: 5px;
-        }
-
-        .header p {
-            font-size: 14px;
-            color: #6b7280;
-        }
-
-        .date-generated {
-            text-align: right;
-            margin-bottom: 15px;
-            font-size: 11px;
-            color: #9ca3af;
-        }
-
-        .projects-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-            font-size: 10px;
-        }
-
-        .projects-table th {
-            background: #ec4899;
-            color: white;
-            padding: 8px 6px;
-            text-align: left;
-            font-weight: 600;
-            border: 1px solid #e5e7eb;
-            font-size: 9px;
-        }
-
-        .projects-table td {
-            padding: 6px;
-            border: 1px solid #e5e7eb;
-            vertical-align: top;
-            word-wrap: break-word;
-            max-width: 120px;
-        }
-
-        .projects-table tbody tr:nth-child(even) {
-            background-color: #f9fafb;
-        }
-
-        .amount {
-            font-weight: 600;
-            color: #059669;
-        }
-
-        .date-text {
-            font-size: 9px;
-            color: #6b7280;
-        }
-
-        .related-items {
-            font-size: 8px;
-            color: #4b5563;
-            max-height: 60px;
-            overflow: hidden;
-        }
-
-        .related-items ul {
-            margin: 0;
-            padding-left: 12px;
-        }
-
-        .related-items li {
-            margin: 1px 0;
-        }
-
-        .section-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: #1f2937;
-            margin: 20px 0 10px 0;
-            padding-bottom: 5px;
-            border-bottom: 2px solid #ec4899;
-        }
-
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .summary-card {
-            background: #f9fafb;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 12px;
-            text-align: center;
-        }
-
-        .summary-card h3 {
-            font-size: 11px;
-            color: #6b7280;
-            margin-bottom: 5px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .summary-card .value {
-            font-size: 18px;
-            font-weight: 700;
-            color: #1f2937;
-        }
-
-        .footer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            text-align: center;
-            font-size: 10px;
-            color: #9ca3af;
-            border-top: 1px solid #e5e7eb;
-            padding: 10px;
-            background: white;
-            height: 16mm; /* approximate height for spacing */
-        }
+        @page { size: 8.5in 13in landscape; margin: 14mm 12mm 18mm 12mm; }
+        * { box-sizing: border-box; }
+        body { margin:0; font-family: Arial, Helvetica, sans-serif; font-size:11px; color:#1f2933; line-height:1.35; }
+        h1 { font-size:18px; margin:0 0 2px 0; font-weight:600; letter-spacing:.5px; }
+        .subtitle { font-size:11px; color:#555; margin-bottom:10px; }
+        .header-bar { padding-bottom:6px; margin-bottom:12px; border-bottom:2px solid #d0d5da; }
+        .meta { text-align:right; font-size:9px; color:#555; margin-bottom:8px; }
+        table { width:100%; border-collapse:collapse; table-layout:fixed; }
+        th,td { border:1px solid #d9e0e6; padding:4px 5px; vertical-align:top; word-break:break-word; }
+        th { background:#f3f5f7; font-weight:600; font-size:9px; text-transform:uppercase; letter-spacing:.5px; color:#374151; }
+        tbody tr:nth-child(even){ background:#fafbfc; }
+        .amount { font-weight:600; color:#0b735a; font-size:10px; }
+        .muted { color:#9aa2aa; font-style:italic; font-size:8px; }
+        .value { color: #276CF5!important; }
+        .small { font-size:8px; }
+        .inner-table { width:100%; border-collapse:collapse; table-layout:fixed; }
+        .inner-table th, .inner-table td { border:0; padding:1px 2px; font-size:7px; line-height:1.15; }
+        .inner-table thead th { background:#eef1f3; font-weight:600; font-size:7px; text-transform:none; letter-spacing:0; }
+        .inner-wrap { max-height:82px; overflow:hidden; }
+        .center { text-align:center; }
+        .right { text-align:right; }
+        .col-center{width:7%}.col-project{width:11%}.col-app{width:8%}.col-allot{width:8%}.col-pr{width:10%}.col-twg{width:10%}.col-prc{width:9%}.col-proc{width:10%}.col-obr{width:9%}.col-impl{width:9%}.col-pay{width:9%}
+        .status-badge { display:inline-block; padding:1px 4px; background:#e5e7eb; border-radius:3px; font-size:7px; font-weight:600; }
+        .footer { position:fixed; left:0; right:0; bottom:0; text-align:center; font-size:9px; color:#6b7279; border-top:1px solid #d0d5da; padding:4px 0 2px; }
     </style>
 </head>
 <body>
-    @php
-        $sanitize = function ($v): string {
-            if ($v === null) return '';
-            if (! is_string($v)) $v = (string) $v;
+@php
+    $sanitize = function ($v): string {
+        if ($v === null) return '';
+        if (!is_string($v)) $v = (string)$v;
+        $v = preg_replace('/\x{00A0}/u',' ',$v) ?? $v;
+        $v = preg_replace('/[\x{200B}-\x{200D}\x{FEFF}]/u','',$v) ?? $v;
+        if (function_exists('mb_check_encoding') && !mb_check_encoding($v,'UTF-8')) {
+            $v = @mb_convert_encoding($v,'UTF-8','auto, ISO-8859-1, Windows-1252') ?: $v;
+        }
+        $c = @iconv('UTF-8','UTF-8//IGNORE',$v);
+        return $c !== false ? $c : $v;
+    };
+    $money = fn($n) => number_format(is_numeric($n)? (float)$n : 0, 2);
+    $date = function ($d, $fmt='M-d-Y') {
+        if (empty($d)) return '';
+        try { return \Illuminate\Support\Carbon::parse($d)->format($fmt); } catch (\Throwable) { return ''; }
+    };
+@endphp
 
-            // Replace NBSP and remove zero-width/byte order marks
-            $v = preg_replace('/\x{00A0}/u', ' ', $v) ?? $v;                   // NBSP → space
-            $v = preg_replace('/[\x{200B}-\x{200D}\x{FEFF}]/u', '', $v) ?? $v; // zero-width chars
+<div class="header-bar">
+    <h1>Infrastructure Projects Report</h1>
+    <div class="subtitle">Compiled listing with related transactional data (field headers reflect model attributes)</div>
+    <div class="meta">Generated: {{ now()->format('Y-m-d H:i') }}</div>
+</div>
 
-            if (function_exists('mb_check_encoding') && ! mb_check_encoding($v, 'UTF-8')) {
-                $v = @mb_convert_encoding($v, 'UTF-8', 'auto, ISO-8859-1, Windows-1252') ?: $v;
-            }
+<table>
+    <thead>
+    <tr>
+        <th class="col-center">Center</th>
+        <th class="col-app">Appropriation</th>
+        <th class="col-allot">Allotment</th>
+        <th class="col-pr">PurchaseRequests</th>
+        <th class="col-twg">TechnicalWorkingGroups</th>
+        <th class="col-prc">PurchaseRequestControls</th>
+        <th class="col-proc">Procurements</th>
+        <th class="col-obr">ObligationRequests</th>
+        <th class="col-impl">Implementations</th>
+        <th class="col-pay">Payments</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach($projects as $project)
+        <tr>
+            <!-- Center -->
+            <td>
+                <div class="small" style="font-weight:600">{{ $sanitize($project->center->code ?? 'N/A') }}</div>
+                <div class="small">{{ $sanitize($project->center->name ?? '') }}</div>
+            </td>
 
-            $converted = @iconv('UTF-8', 'UTF-8//IGNORE', $v);
-            return $converted !== false ? $converted : $v;
-        };
+            <!-- Appropriation -->
+            <td class="right">
+                <div class="amount">{{ $money($project->appropriation ?? 0) }}</div>
+            </td>
 
-        $money = function ($n): string {
-            $n = is_numeric($n) ? (float) $n : 0;
-            return 'PHP ' . number_format($n, 2);
-        };
+            <!-- Allotment -->
+            <td class="right">
+                <div class="amount">{{ $money($project->allotment ?? 0) }}</div>
+            </td>
 
-        $date = function ($d, string $fmt = 'M d, Y'): string {
-            if (empty($d)) return 'N/A';
-            try { return \Illuminate\Support\Carbon::parse($d)->format($fmt); }
-            catch (\Throwable) { return 'N/A'; }
-        };
-    @endphp
+            <!-- Purchase Requests (horizontal) -->
+            <td class="small">
+                @if($project->purchase_requests?->count())
+                    @foreach($project->purchase_requests as $pr)
+                        <li>
+                            <span>
+                                Received Date: <span class="value">{{ $date($pr->received_date) }}</span>
+                            </span><br>
+                            <strong>
+                                PR No.: <span class="value">{{ $sanitize($pr->pr_number) }}</span>
+                            </strong><br>
+                            <span>
+                                Forwarded to TWG: <span class="value">{{ $date($pr->forward_twg_date) }}</span>
+                            </span><br>
+                        </li>
+                    @endforeach
+                @else
+                    <span class="muted">None</span>
+                @endif
+            </td>
 
-    <div class="header">
-        <h1>Infrastructure Projects Comprehensive Report</h1>
-        <p>Complete overview of all projects with related data</p>
-    </div>
+            <!-- TWGs horizontal -->
+            <td class="small">
+                @if($project->technical_working_groups?->count())
+                    @foreach($project->technical_working_groups as $twg)
+                        <li>
+                            <span>
+                                Review Date: <span class="value">{{ $date($twg->review_date) }}</span>
+                            </span><br>
+                            <span>
+                                Review Remarks: <span class="value">{{ $sanitize($twg->review_remarks) }}</span>
+                            </span><br>
+                            <span>
+                                Controlled Date: <span class="value">{{ $date($twg->controlled_date) }}</span>
+                            </span><br>
+                            <strong>
+                                ABC: <span class="value">{{ $money($twg->abc) }}</span>
+                            </strong><br>
+                            <span>
+                                Remarks: <span class="value">{{ $sanitize($twg->forward_twg_date) }}</span>
+                            </span><br>
+                        </li>
+                    @endforeach
+                @else
+                    <span class="muted">None</span>
+                @endif
+            </td>
 
-    <div class="section-title">Projects Details</div>
-    <table class="projects-table">
-        <thead>
-            <tr>
-                <th style="width: 7%;">Res. Center</th>
-                <th style="width: 11%;">Project</th>
-                <th style="width: 8%;">Appropriation</th>
-                <th style="width: 8%;">Allotment</th>
-                <th style="width: 10%;">Purchase Requests</th>
-                <th style="width: 10%;">Technical Working Groups</th>
-                <th style="width: 9%;">PR Controls</th>
-                <th style="width: 10%;">Procurements</th>
-                <th style="width: 9%;">Obligation Requests</th>
-                <th style="width: 9%;">Implementations</th>
-                <th style="width: 9%;">Payments</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($projects as $project)
-            <tr>
-                <td>
-                    <div style="font-weight: 600; margin-bottom: 2px;">
-                        {{ $sanitize($project->center->code ?? 'N/A') }}
-                    </div>
-                </td>
-                <td>
-                    <div style="font-weight: 600; margin-bottom: 2px;">
-                        {{ $sanitize($project->center->name ?? 'N/A') }}
-                    </div>
-                </td>
-                <td><span class="amount">{{ $money($project->appropriation ?? 0) }}</span></td>
-                <td><span class="amount">{{ $money($project->allotment ?? 0) }}</span></td>
-                <td>
-                    <div class="related-items">
-                        @if($project->purchase_requests && $project->purchase_requests->count() > 0)
-                            <ul>
-                                @foreach($project->purchase_requests as $pr)
-                                    <li>
-                                        <span class="date-text">{{ $date($pr->received_date) }}</span><br>
-                                        <strong>{{ $sanitize($pr->pr_number ?? 'N/A') }}</strong><br>
-                                        <span class="date-text">{{ $date($pr->forward_twg_date) }}</span><br>
-                                        <span class="date-text">{{ $sanitize(optional($pr->user)->name ?? 'N/A') }}</span>
-                                    </li>
-                                @endforeach
-                            </ul>
-                        @else
-                            <span style="color: #9ca3af;">No purchase requests</span>
-                        @endif
-                    </div>
-                </td>
-                <td>
-                    <div class="related-items">
-                        @if($project->technical_working_groups->count() > 0)
-                            <ul>
-                                @foreach($project->technical_working_groups as $twg)
-                                    <li>
-                                        <span class="date-text">{{ $date($twg->review_date) }}</span><br>
-                                        <span style="font-size: 7px;">{{ $sanitize($twg->review_remarks ?? '') }}</span><br>
-                                        <span class="date-text">{{ $date($twg->controlled_date) }}</span>
-                                    </li>
-                                @endforeach
-                            </ul>
-                        @else
-                            <span style="color: #9ca3af;">No TWGs</span>
-                        @endif
-                    </div>
-                </td>
-                <td>
-                    <div class="related-items">
-                        @if($project->purchase_request_controls->count() > 0)
-                            <ul>
-                                @foreach($project->purchase_request_controls as $prc)
-                                    <li>
-                                        <span class="date-text">{{ $date($prc->controlled_date) }}</span><br>
-                                        <span style="font-size: 7px;">{{ $sanitize($prc->control_number ?? '') }}</span><br>
-                                        <span class="date-text">{{ number_format((float) $prc->amount, 2) }}</span>
-                                    </li>
-                                @endforeach
-                            </ul>
-                        @else
-                            <span style="color: #9ca3af;">No PR controls</span>
-                        @endif
-                    </div>
-                </td>
-            </tr>
-            @endforeach
-        </tbody>
-    </table>
+            <!-- PR Controls horizontal -->
+            <td class="small">
+                @if($project->purchase_request_controls?->count())
+                    @foreach($project->purchase_request_controls as $prc)
+                        <li>
+                            <span>
+                                Controlled Date: <span class="value">{{ $date($prc->controlled_date) }}</span>
+                            </span><br>
+                            <span>
+                                Control Number: <span class="value">{{ $sanitize($prc->control_number) }}</span>
+                            </span><br>
+                            <strong>
+                                Amount: <span class="value">{{ $money($prc->amount) }}</span>
+                            </strong><br>
+                        </li>
+                    @endforeach
+                @else
+                    <span class="muted">None</span>
+                @endif
+            </td>
 
-    <div class="footer">
-        <p>Projects Report - Generated by {{ $sanitize(config('app.name', 'PBO Monitoring')) }} - {{ now()->format('Y') }}</p>
-    </div>
+            <!-- Procurements horizontal -->
+            <td class="small">
+                @if($project->procurements?->count())
+                    @foreach($project->procurements as $proc)
+                        <li>
+                            <span>
+                                IB No.: <span class="value">{{ $sanitize($proc->ib_number) }}</span>
+                            </span><br>
+                            <span>
+                                Pre-Proc. Conf.: <span class="value">{{ $date($proc->pre_procurement_conference) }}</span>
+                            </span><br>
+                            <span>
+                                Pre-Bid Conf.: <span class="value">{{ $date($proc->pre_bid_conference) }}</span>
+                            </span><br>
+                            <span>
+                                Bid Opening: <span class="value">{{ $date($proc->bid_opening) }}</span>
+                            </span><br>
+                            <span>
+                                BER: <span class="value">{{ $date($proc->ber) }}</span>
+                            </span><br>
+                            <span>
+                                Post Qua.: <span class="value">{{ $date($proc->post_qua_date) }}</span>
+                            </span><br>
+                            <span>
+                                Remarks: <span class="value">{{ $sanitize($proc->remarks) }}</span>
+                            </span><br>
+                            <span>
+                                NOA: <span class="value">{{ $date($proc->noa_date_received) }}</span>
+                            </span><br>
+                            <strong>
+                                Contract Amount: <span class="value">{{ $money($proc->contract_amount) }}</span>
+                            </strong><br>
+                            <span>
+                                Contractor: <span class="value">{{ $sanitize($proc->contractor) }}</span>
+                            </span><br>
+                            <span>
+                                NTP No.: <span class="value">{{ $sanitize($proc->ntp_number) }}</span>
+                            </span><br>
+                            <span>
+                                NTP Date: <span class="value">{{ $date($proc->ntp_date) }}</span>
+                            </span><br>
+                            <span>
+                                Contract Duration: <span class="value">{{ $sanitize($proc->contract_duration) . ' days' }}</span>
+                            </span><br>
+                        </li>
+                    @endforeach
+                @else
+                    <span class="muted">None</span>
+                @endif
+            </td>
+
+            <!-- Obligation Requests horizontal -->
+            <td class="small">
+                @if($project->obligation_requests?->count())
+                    @foreach($project->obligation_requests as $obr)
+                        <li>
+                            <span>
+                                Controlled Date: <span class="value">{{ $date($obr->controlled_date) }}</span>
+                            </span><br>
+                            <span>
+                                Control Number: <span class="value">{{ $sanitize($obr->number) }}</span>
+                            </span><br>
+                            <strong>
+                                Amount: <span class="value">{{ $money($obr->amount) }}</span>
+                            </strong><br>
+                        </li>
+                    @endforeach
+                @else
+                    <span class="muted">None</span>
+                @endif
+            </td>
+
+            <!-- Implementations horizontal -->
+            <td class="small">
+                @if($project->implementations?->count())
+                    @foreach($project->implementations as $prc)
+                        <li>
+                            <span>
+                                Date: <span class="value">{{ $date($prc->date) }}</span>
+                            </span><br>
+                            <strong>
+                                Percentage: <span class="value">{{ $sanitize($prc->percentage) . ' %' }}</span>
+                            </strong><br>
+                        </li>
+                    @endforeach
+                @else
+                    <span class="muted">None</span>
+                @endif
+            </td>
+
+            <!-- Payments horizontal -->
+            <td class="small">
+                @if($project->payments?->count())
+                    @foreach($project->payments as $pay)
+                        <li>
+                            @php
+                                $paymentType = \App\Enums\CustomOptions::PAYMENTS[$pay->type] ?? $pay->type;
+                            @endphp
+                            <span>
+                                Type: <span class="value">{{ $sanitize($paymentType) }}</span>
+                            </span><br>
+                            <span>
+                                Date: <span class="value">{{ $date($pay->date) }}</span>
+                            </span><br>
+                            <strong>
+                                Amount: <span class="value">{{ $money($pay->amount) }}</span>
+                            </strong><br>
+                        </li>
+                    @endforeach
+                @else
+                    <span class="muted">None</span>
+                @endif
+            </td>
+        </tr>
+    @endforeach
+    </tbody>
+</table>
+
+<div class="footer">
+    Projects Report • {{ $sanitize(config('app.name','PBO Monitoring')) }} • {{ now()->format('Y') }}
+</div>
 </body>
-</html>
