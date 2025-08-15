@@ -45,7 +45,9 @@ class ProcurementResource extends Resource
                                     ->label('Project')
                                     ->unique(ignoreRecord: true)
                                     ->options(
-                                Project::with('center')->get()->pluck('center.name', 'id')
+                                Project::with('center')->get()->mapWithKeys(fn ($project) => [
+                                    $project->id => ($project->center?->code ? $project->center->code . ' - ' : '') . ($project->center?->name ?? 'Unnamed Center')
+                                ])
                             )
                                     ->searchable()
                                     ->required()

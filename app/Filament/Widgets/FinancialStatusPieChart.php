@@ -9,7 +9,7 @@ use Illuminate\Support\Js;
 
 class FinancialStatusPieChart extends ChartWidget
 {
-    protected static ?string $heading = 'Financial Status (Obligated vs Not Obligated)';
+    protected static ?string $heading = 'Project Status (Obligated vs Not Obligated)';
 
     protected static ?string $maxHeight = '250px';
 

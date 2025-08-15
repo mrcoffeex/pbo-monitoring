@@ -41,7 +41,9 @@ class ImplementationResource extends Resource
                             Select::make('project_id')
                                 ->label('Project')
                                 ->options(
-                                Project::with('center')->get()->pluck('center.name', 'id')
+                                Project::with('center')->get()->mapWithKeys(fn ($project) => [
+                                    $project->id => ($project->center?->code ? $project->center->code . ' - ' : '') . ($project->center?->name ?? 'Unnamed Center')
+                                ])
                             )
                                 ->searchable()
                                 ->required()
