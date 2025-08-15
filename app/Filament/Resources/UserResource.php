@@ -83,7 +83,7 @@ class UserResource extends Resource
         return $table
             ->poll('60s')
             ->striped()
-            ->defaultSort('created_at', 'desc')
+            ->defaultSort('updated_at', 'desc')
             ->columns([
                 TextColumn::make('id')
                     ->label('#')

@@ -49,7 +49,7 @@ class OfficeResource extends Resource
         return $table
             ->poll('60s')
             ->striped()
-            ->defaultSort('name', 'asc')
+            ->defaultSort('updated_at', 'desc')
             ->columns([
                 TextColumn::make('id')
                     ->label('#')

@@ -91,7 +91,7 @@ class TechnicalWorkingGroupResource extends Resource
         return $table
             ->poll('45s')
             ->striped()
-            ->defaultSort('review_date', 'desc')
+            ->defaultSort('updated_at', 'desc')
             ->columns([
                 TextColumn::make('id')
                     ->label('#')

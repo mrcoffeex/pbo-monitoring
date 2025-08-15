@@ -142,7 +142,7 @@ class ProcurementResource extends Resource
         return $table
             ->poll('30s') // auto refresh
             ->striped()
-            ->defaultSort('created_at', 'desc')
+            ->defaultSort('updated_at', 'desc')
             ->columns([
                 TextColumn::make('id')
                     ->label('#')

@@ -57,7 +57,7 @@ class CenterResource extends Resource
         return $table
             ->poll('60s')
             ->striped()
-            ->defaultSort('code', 'asc')
+            ->defaultSort('updated_at', 'desc')
             ->columns([
                 TextColumn::make('id')
                     ->label('#')

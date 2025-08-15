@@ -110,13 +110,14 @@ class ProjectResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->defaultSort('center.code', 'asc')
+            ->defaultSort('updated_at', 'desc')
             ->columns([
                 TextColumn::make('id')
                     ->label('Opt')
                     ->formatStateUsing(function ($state, $record) {
                         return view('partials.project-options', compact('record'))->render();
                     })
+                    ->alignCenter()
                     ->html(),
                 TextColumn::make('status')
                     ->badge()
