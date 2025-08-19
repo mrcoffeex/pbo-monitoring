@@ -43,15 +43,15 @@ class ProcurementResource extends Resource
                             ->schema([
                                 Select::make('project_id')
                                     ->label('Project')
-                                    ->unique(ignoreRecord: true)
                                     ->options(
-                                Project::with('center')->get()->mapWithKeys(fn ($project) => [
-                                    $project->id => ($project->center?->code ? $project->center->code . ' - ' : '') . ($project->center?->name ?? 'Unnamed Center')
-                                ])
-                            )
+                                        Project::get()->mapWithKeys(fn ($project) => [
+                                            $project->id => ($project->code) . (' - ' . $project->name ?? 'no projects')
+                                        ])
+                                    )
                                     ->searchable()
+                                    ->unique(ignoreRecord: true)
                                     ->required()
-                                    ->columnSpan(6),
+                                    ->columnSpan(9),
                                 TextInput::make('ib_number')
                                     ->label('IB Number')
                                     ->autofocus()
@@ -59,7 +59,7 @@ class ProcurementResource extends Resource
                                     ->minLength(1)
                                     ->maxLength(50)
                                     ->placeholder('e.g. 0000')
-                                    ->columnSpan(4),
+                                    ->columnSpan(3),
                             ]),
                         Grid::make('')
                             ->columns(12)
@@ -150,22 +150,22 @@ class ProcurementResource extends Resource
                     ->toggleable()
                     ->alignCenter(),
 
-                TextColumn::make('project.center.code')
-                    ->label('Center Code')
+                TextColumn::make('project.code')
+                    ->label('Res. Center')
                     ->badge()
-                    ->color('gray')
+                    ->color('primary')
                     ->sortable()
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                TextColumn::make('project.center.name')
+                TextColumn::make('project.name')
                     ->label('Project')
                     ->wrap()
                     ->limit(35)
-                    ->tooltip(fn ($record) => $record->project?->center?->name)
+                    ->tooltip(fn ($record) => $record->project?->name)
                     ->sortable()
                     ->searchable()
-                    ->description(fn ($record) => $record->project?->year, position: 'above'),
+                    ->description(fn ($record) => $record->project?->year . ' - ' . $record->project?->code, position: 'above'),
 
                 TextColumn::make('ib_number')
                     ->label('IB')
@@ -176,7 +176,7 @@ class ProcurementResource extends Resource
 
                 TextColumn::make('pre_procurement_conference')
                     ->label('Pre-Proc')
-                    ->date('Y-m-d')
+                    ->date('M d, Y')
                     ->badge()
                     ->color('info')
                     ->sortable()
@@ -184,7 +184,7 @@ class ProcurementResource extends Resource
 
                 TextColumn::make('pre_bid_conference')
                     ->label('Pre-Bid')
-                    ->date('Y-m-d')
+                    ->date('M d, Y')
                     ->badge()
                     ->color('info')
                     ->sortable()
@@ -192,7 +192,7 @@ class ProcurementResource extends Resource
 
                 TextColumn::make('bid_opening')
                     ->label('Bid Opening')
-                    ->date('Y-m-d')
+                    ->date('M d, Y')
                     ->badge()
                     ->color('warning')
                     ->sortable()
@@ -200,7 +200,7 @@ class ProcurementResource extends Resource
 
                 TextColumn::make('noa_date_received')
                     ->label('NOA')
-                    ->date('Y-m-d')
+                    ->date('M d, Y')
                     ->badge()
                     ->color(fn ($state) => $state ? 'success' : 'gray')
                     ->sortable()
@@ -215,7 +215,7 @@ class ProcurementResource extends Resource
 
                 TextColumn::make('ntp_date')
                     ->label('NTP Date')
-                    ->date('Y-m-d')
+                    ->date('M d, Y')
                     ->badge()
                     ->color(fn ($state) => $state ? 'success' : 'gray')
                     ->sortable()
@@ -284,9 +284,9 @@ class ProcurementResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('center')
+                Tables\Filters\SelectFilter::make('project')
                     ->label('Project')
-                    ->relationship('project.center', 'name')
+                    ->relationship('project', 'name')
                     ->searchable()
                     ->preload(),
 
@@ -326,11 +326,11 @@ class ProcurementResource extends Resource
                         ->icon('heroicon-o-arrow-down-tray')
                         ->action(function ($records) {
                             $csv = collect([
-                                ['ID','Center','IB','NOA','NTP','Contract Amount'],
+                                ['ID','Project','IB','NOA','NTP','Contract Amount'],
                             ])->merge(
                                 $records->map(fn ($r) => [
                                     $r->id,
-                                    optional($r->project?->center)->name,
+                                    optional($r->project)->name,
                                     $r->ib_number,
                                     $r->noa_date_received,
                                     $r->ntp_date,

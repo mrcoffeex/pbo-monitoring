@@ -41,15 +41,19 @@ class PaymentResource extends Resource
                             ->columns(12)
                             ->schema([
                                 Select::make('project_id')
-                                    ->label('Project')
-                                    ->options(
-                                Project::with('center')->get()->mapWithKeys(fn ($project) => [
-                                    $project->id => ($project->center?->code ? $project->center->code . ' - ' : '') . ($project->center?->name ?? 'Unnamed Center')
-                                ])
-                            )
-                                    ->searchable()
+                                ->label('Project')
+                                ->options(
+                                    Project::get()->mapWithKeys(fn ($project) => [
+                                        $project->id => ($project->code) . (' - ' . $project->name ?? 'no projects')
+                                    ])
+                                )
+                                ->searchable()
+                                ->required()
+                                ->columnSpan(9),
+                                DatePicker::make('date')
+                                    ->label('Date of Payment')
                                     ->required()
-                                    ->columnSpan(6),
+                                    ->columnSpan(3),
                             ]),
                         Grid::make('')
                             ->columns(12)
@@ -68,10 +72,6 @@ class PaymentResource extends Resource
                                     ->placeholder('0.00')
                                     ->mask(RawJs::make('$money($input)'))
                                     ->stripCharacters(',')
-                                    ->columnSpan(4),
-                                DatePicker::make('date')
-                                    ->label('Date of Payment')
-                                    ->required()
                                     ->columnSpan(4),
                                 Hidden::make('user_id')
                                     ->default(fn () => Filament::auth()->id())
@@ -94,21 +94,21 @@ class PaymentResource extends Resource
                     ->sortable()
                     ->toggleable()
                     ->alignCenter(),
-                TextColumn::make('project.center.code')
-                    ->label('Center Code')
+                TextColumn::make('project.code')
+                    ->label('Res. Center')
                     ->badge()
                     ->color('gray')
                     ->sortable()
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('project.center.name')
+                TextColumn::make('project.name')
                     ->label('Project')
                     ->wrap()
                     ->limit(35)
-                    ->tooltip(fn ($record) => $record->project?->center?->name)
+                    ->tooltip(fn ($record) => $record->project?->name)
                     ->sortable()
                     ->searchable()
-                    ->description(fn ($record) => $record->project?->year, position: 'above'),
+                    ->description(fn ($record) => $record->project?->year . ' - ' . $record->project?->code, position: 'above'),
                 TextColumn::make('type')
                     ->label('Type')
                     ->badge()
@@ -149,9 +149,9 @@ class PaymentResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('center')
+                Tables\Filters\SelectFilter::make('project')
                     ->label('Project')
-                    ->relationship('project.center', 'name')
+                    ->relationship('project', 'name')
                     ->searchable()
                     ->preload(),
                 Tables\Filters\Filter::make('type_filter')
@@ -187,11 +187,11 @@ class PaymentResource extends Resource
                         ->icon('heroicon-o-arrow-down-tray')
                         ->action(function ($records) {
                             $csv = collect([
-                                ['ID','Center','Type','Amount','Date'],
+                                ['ID','Project','Type','Amount','Date'],
                             ])->merge(
                                 $records->map(fn ($r) => [
                                     $r->id,
-                                    optional($r->project?->center)->name,
+                                    optional($r->project)->name,
                                     CustomOptions::PAYMENTS[$r->type] ?? $r->type,
                                     $r->amount,
                                     $r->date,

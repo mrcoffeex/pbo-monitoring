@@ -14,6 +14,7 @@ use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -42,17 +43,18 @@ class ProjectResource extends Resource
                         Grid::make()
                             ->columns(12)
                             ->schema([
-                                Select::make('center_id')
+                                TextInput::make('code')
                                     ->label('Responsibility Center')
-                                    ->options(
-                                        Center::all()->mapWithKeys(function ($center) {
-                                            return [$center->id => "{$center->code} - {$center->name}"];
-                                        })->toArray()
-                                    )
-                                    ->searchable()
-                                    ->unique(ignoreRecord: true)
+                                    ->maxLength(12)
                                     ->required()
-                                    ->columnSpan(6),
+                                    ->autofocus()
+                                    ->columnSpan(3),
+                                Select::make('funds')
+                                    ->label('Source of Funds')
+                                    ->options(CustomOptions::FUNDS)
+                                    ->multiple()
+                                    ->required()
+                                    ->columnSpan(3),
                                 Select::make('year')
                                     ->label('Calendar Year')
                                     ->options(
@@ -67,13 +69,16 @@ class ProjectResource extends Resource
                                     ->columnSpan(3),
                                 Select::make('status')
                                     ->label('Project Status')
-                                    ->options([
-                                        'approved' => 'approved',
-                                        'pending' => 'pending',
-                                        'canceled' => 'canceled'
-                                    ])
+                                    ->options(CustomOptions::PROJECT_STATUS)
+                                    ->default('approved')
                                     ->required()
                                     ->columnSpan(3),
+                                Textarea::make('name')
+                                    ->label('Project Name')
+                                    ->required()
+                                    ->unique(ignoreRecord: true)
+                                    ->maxLength(255)
+                                    ->columnSpan(12),
                             ]),
                     ]),
                 Section::make('Amounts')
@@ -130,20 +135,20 @@ class ProjectResource extends Resource
                     ->extraAttributes(['style' => 'text-transform: uppercase;'])
                     ->sortable()
                     ->searchable(),
-                TextColumn::make('center.name')
+                TextColumn::make('name')
                     ->label('Project')
                     ->wrap()
                     ->limit(35)
-                    ->tooltip(fn ($record) => $record->center?->name)
+                    ->tooltip(fn ($record) => $record->name)
                     ->sortable()
                     ->searchable()
                     ->description(fn ($record) => $record->year, position: 'above'),
-                TextColumn::make('center.code')
+                TextColumn::make('code')
                     ->label('Res. Center')
                     ->badge()
                     ->sortable()
                     ->searchable(),
-                TextColumn::make('center.funds')
+                TextColumn::make('funds')
                     ->sortable()
                     ->searchable()
                     ->badge()
@@ -226,13 +231,13 @@ class ProjectResource extends Resource
                         ->icon('heroicon-o-arrow-down-tray')
                         ->action(function ($records) {
                             $csv = collect([
-                                ['ID','Status','Center Code','Project','Appropriation','Allotment'],
+                                ['ID','Status','Res. Center','Project','Appropriation','Allotment'],
                             ])->merge(
                                 $records->map(fn ($r) => [
                                     $r->id,
                                     $r->status,
-                                    $r->center?->code,
-                                    $r->center?->name,
+                                    $r->code,
+                                    $r->name,
                                     $r->appropriation,
                                     $r->allotment,
                                 ])

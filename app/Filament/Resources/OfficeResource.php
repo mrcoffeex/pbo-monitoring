@@ -123,6 +123,11 @@ class OfficeResource extends Resource
             ->defaultPaginationPageOption(25);
     }
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
+
     public static function getNavigationGroup(): ?string
     {
         return 'System';

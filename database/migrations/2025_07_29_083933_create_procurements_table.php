@@ -17,7 +17,7 @@ return new class extends Migration
             $table->date('pre_procurement_conference')->nullable();
             $table->date('pre_bid_conference')->nullable();
             $table->date('bid_opening')->nullable();
-            $table->string('ber')->nullable();
+            $table->date('ber')->nullable();
             $table->date('post_qua_date')->nullable();
             $table->text('remarks')->nullable();
             $table->date('noa_date_received')->nullable();
@@ -25,7 +25,7 @@ return new class extends Migration
             $table->string('contractor')->nullable();
             $table->string('ntp_number')->nullable();
             $table->date('ntp_date')->nullable();
-            $table->string('contract_duration')->nullable();
+            $table->bigInteger('contract_duration')->nullable();
             $table->foreignId('user_id')
                 ->nullable()
                 ->constrained()

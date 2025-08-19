@@ -8,6 +8,7 @@ use App\Models\Project;
 use App\Models\TechnicalWorkingGroup;
 use Filament\Facades\Filament;
 use Filament\Forms;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Section;
@@ -38,21 +39,19 @@ class TechnicalWorkingGroupResource extends Resource
                     ->schema([
                         Select::make('project_id')
                             ->label('Project')
-                            ->unique(ignoreRecord: true)
                             ->options(
-                                Project::with('center')->get()->mapWithKeys(fn ($project) => [
-                                    $project->id => ($project->center?->code ? $project->center->code . ' - ' : '') . ($project->center?->name ?? 'Unnamed Center')
+                                Project::get()->mapWithKeys(fn ($project) => [
+                                    $project->id => ($project->code) . (' - ' . $project->name ?? 'no projects')
                                 ])
                             )
                             ->searchable()
+                            ->unique(ignoreRecord: true)
                             ->required()
-                            ->columnSpan(6),
-                        DateTimePicker::make('review_date')
-                            ->label('Review Date & Time')
+                            ->columnSpan(9),
+                        DatePicker::make('review_date')
+                            ->label('Review Date')
                             ->required()
-                            ->timezone('Asia/Manila')
-                            ->default(now())
-                            ->columnSpan(6),
+                            ->columnSpan(3),
                         Textarea::make('review_remarks')
                             ->label('Review Remarks')
                             ->rows(3)
@@ -62,10 +61,9 @@ class TechnicalWorkingGroupResource extends Resource
                 Section::make('TWG Control & Other Details')
                     ->columns(12)
                     ->schema([
-                        DateTimePicker::make('controlled_date')
-                            ->label('Controlled Date & Time')
-                            ->timezone('Asia/Manila')
-                            ->columnSpan(6),
+                        DatePicker::make('controlled_date')
+                            ->label('Controlled Date')
+                            ->columnSpan(3),
                         TextInput::make('abc')
                             ->label('Approved Budget Contract (ABC)')
                             ->numeric()
@@ -98,24 +96,24 @@ class TechnicalWorkingGroupResource extends Resource
                     ->sortable()
                     ->toggleable()
                     ->alignCenter(),
-                TextColumn::make('project.center.code')
-                    ->label('Center Code')
+                TextColumn::make('project.code')
+                    ->label('Res. Center')
                     ->badge()
-                    ->color('gray')
+                    ->color('primary')
                     ->sortable()
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('project.center.name')
+                TextColumn::make('project.name')
                     ->label('Project')
                     ->wrap()
                     ->limit(35)
-                    ->tooltip(fn ($record) => $record->project?->center?->name)
+                    ->tooltip(fn ($record) => $record->project?->name)
                     ->sortable()
                     ->searchable()
-                    ->description(fn ($record) => $record->project?->year, position: 'above'),
+                    ->description(fn ($record) => $record->project?->year . ' - ' . $record->project?->code, position: 'above'),
                 TextColumn::make('review_date')
                     ->label('Review')
-                    ->dateTime('Y-m-d H:i')
+                    ->dateTime('M d, Y')
                     ->badge()
                     ->color('info')
                     ->sortable()
@@ -128,7 +126,7 @@ class TechnicalWorkingGroupResource extends Resource
                     ->toggleable(),
                 TextColumn::make('controlled_date')
                     ->label('Controlled')
-                    ->dateTime('Y-m-d H:i')
+                    ->dateTime('M d, Y')
                     ->badge()
                     ->color(fn ($state) => $state ? 'success' : 'gray')
                     ->sortable()
@@ -166,7 +164,7 @@ class TechnicalWorkingGroupResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('center')
                     ->label('Project')
-                    ->relationship('project.center', 'name')
+                    ->relationship('project', 'name')
                     ->searchable()
                     ->preload(),
                 Tables\Filters\Filter::make('date_range')
@@ -194,11 +192,11 @@ class TechnicalWorkingGroupResource extends Resource
                         ->icon('heroicon-o-arrow-down-tray')
                         ->action(function ($records) {
                             $csv = collect([
-                                ['ID','Center','Review','Controlled','ABC'],
+                                ['ID','Project','Review','Controlled','ABC'],
                             ])->merge(
                                 $records->map(fn ($r) => [
                                     $r->id,
-                                    optional($r->project?->center)->name,
+                                    optional($r->project)->name,
                                     $r->review_date,
                                     $r->controlled_date,
                                     $r->abc,

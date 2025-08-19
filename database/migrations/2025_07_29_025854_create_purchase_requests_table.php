@@ -13,6 +13,13 @@ return new class extends Migration
     {
         Schema::create('purchase_requests', function (Blueprint $table) {
             $table->id();
+            $table->dateTime('received_date')->nullable();
+            $table->string('pr_number')->nullable();
+            $table->dateTime('forward_twg_date')->nullable();
+            $table->unsignedBigInteger('user_id')->nullable();
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
+            $table->unsignedBigInteger('project_id')->nullable();
+            $table->foreign('project_id')->references('id')->on('projects')->onDelete('set null');
             $table->timestamps();
         });
     }

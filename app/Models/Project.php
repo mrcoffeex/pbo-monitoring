@@ -7,7 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 class Project extends Model
 {
     protected $fillable = [
-        'center_id',
+        'code',
+        'name',
         'year',
         'funds',
         'appropriation',
@@ -19,11 +20,6 @@ class Project extends Model
     protected $casts = [
         'funds' => 'array',
     ];
-
-    public function center()
-    {
-        return $this->belongsTo(Center::class);
-    }
 
     public function user()
     {

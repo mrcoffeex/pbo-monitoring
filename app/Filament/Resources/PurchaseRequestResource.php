@@ -18,6 +18,7 @@ use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Facades\Filament;
+use Filament\Forms\Components\DatePicker;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
@@ -37,20 +38,18 @@ class PurchaseRequestResource extends Resource
                         Select::make('project_id')
                             ->label('Project')
                             ->options(
-                                Project::with('center')->get()->mapWithKeys(fn ($project) => [
-                                    $project->id => ($project->center?->code ? $project->center->code . ' - ' : '') . ($project->center?->name ?? 'Unnamed Center')
+                                Project::get()->mapWithKeys(fn ($project) => [
+                                    $project->id => ($project->code) . (' - ' . $project->name ?? 'no projects')
                                 ])
                             )
                             ->searchable()
                             ->unique(ignoreRecord: true)
                             ->required()
-                            ->columnSpan(6),
-                        DateTimePicker::make('received_date')
+                            ->columnSpan(9),
+                        DatePicker::make('received_date')
                             ->label('Received Date & Time')
                             ->required()
-                            ->timezone('Asia/Manila')
-                            ->default(now())
-                            ->columnSpan(6),
+                            ->columnSpan(3),
                         TextInput::make('pr_number')
                             ->label('PR Number')
                             ->minLength(2)
@@ -61,9 +60,9 @@ class PurchaseRequestResource extends Resource
                 Section::make('TWG - Technical Working Group')
                     ->columns(12)
                     ->schema([
-                        DateTimePicker::make('forward_twg_date')
+                        DatePicker::make('forward_twg_date')
                             ->label('Forwarded to TWG')
-                            ->columnSpan(6),
+                            ->columnSpan(3),
                         Hidden::make('user_id')
                             ->default(fn () => Filament::auth()->id())
                             ->dehydrated(fn ($state, $context) => $context === 'create'),
@@ -84,24 +83,24 @@ class PurchaseRequestResource extends Resource
                     ->sortable()
                     ->toggleable()
                     ->alignCenter(),
-                TextColumn::make('project.center.code')
-                    ->label('Center Code')
+                TextColumn::make('project.code')
+                    ->label('Res. Center')
                     ->badge()
-                    ->color('gray')
+                    ->color('primary')
                     ->sortable()
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('project.center.name')
+                TextColumn::make('project.name')
                     ->label('Project')
                     ->wrap()
                     ->limit(35)
-                    ->tooltip(fn ($record) => $record->project?->center?->name)
+                    ->tooltip(fn ($record) => $record->project?->name)
                     ->sortable()
                     ->searchable()
-                    ->description(fn ($record) => $record->project?->year, position: 'above'),
+                    ->description(fn ($record) => $record->project?->year . ' - ' . $record->project?->code, position: 'above'),
                 TextColumn::make('received_date')
                     ->label('Received')
-                    ->dateTime('Y-m-d H:i')
+                    ->dateTime('M d, Y')
                     ->badge()
                     ->color('info')
                     ->sortable()
@@ -113,7 +112,7 @@ class PurchaseRequestResource extends Resource
                     ->toggleable(),
                 TextColumn::make('forward_twg_date')
                     ->label('Fwd TWG')
-                    ->dateTime('Y-m-d H:i')
+                    ->dateTime('M d, Y')
                     ->badge()
                     ->color(fn ($state) => $state ? 'success' : 'gray')
                     ->sortable()
@@ -138,7 +137,7 @@ class PurchaseRequestResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('center')
                     ->label('Project')
-                    ->relationship('project.center', 'name')
+                    ->relationship('project', 'name')
                     ->searchable()
                     ->preload(),
                 Tables\Filters\Filter::make('date_range')
@@ -170,11 +169,11 @@ class PurchaseRequestResource extends Resource
                         ->icon('heroicon-o-arrow-down-tray')
                         ->action(function ($records) {
                             $csv = collect([
-                                ['ID','Center','Received','PR Number','Forwarded TWG'],
+                                ['ID','Project','Received','PR Number','Forwarded TWG'],
                             ])->merge(
                                 $records->map(fn ($r) => [
                                     $r->id,
-                                    optional($r->project?->center)->name,
+                                    optional($r->project)->name,
                                     $r->received_date,
                                     $r->pr_number,
                                     $r->forward_twg_date,

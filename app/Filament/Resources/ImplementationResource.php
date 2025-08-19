@@ -41,20 +41,20 @@ class ImplementationResource extends Resource
                             Select::make('project_id')
                                 ->label('Project')
                                 ->options(
-                                Project::with('center')->get()->mapWithKeys(fn ($project) => [
-                                    $project->id => ($project->center?->code ? $project->center->code . ' - ' : '') . ($project->center?->name ?? 'Unnamed Center')
-                                ])
-                            )
+                                    Project::get()->mapWithKeys(fn ($project) => [
+                                        $project->id => ($project->code) . (' - ' . $project->name ?? 'no projects')
+                                    ])
+                                )
                                 ->searchable()
                                 ->required()
-                                ->columnSpan(6),
-                        ]),
+                                ->columnSpan(9),
+                            DatePicker::make('date')
+                                ->required()
+                                ->columnSpan(3),
+                    ]),
                     Grid::make('')
                         ->columns(12)
                         ->schema([
-                            DatePicker::make('date')
-                                ->required()
-                                ->columnSpan(4),
                             TextInput::make('percentage')
                                 ->required()
                                 ->numeric()
@@ -85,21 +85,21 @@ class ImplementationResource extends Resource
                     ->sortable()
                     ->toggleable()
                     ->alignCenter(),
-                TextColumn::make('project.center.code')
-                    ->label('Center Code')
+                TextColumn::make('project.code')
+                    ->label('Res. Center')
                     ->badge()
-                    ->color('gray')
+                    ->color('primary')
                     ->sortable()
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('project.center.name')
+                TextColumn::make('project.name')
                     ->label('Project')
                     ->wrap()
                     ->limit(35)
-                    ->tooltip(fn ($record) => $record->project?->center?->name)
+                    ->tooltip(fn ($record) => $record->project?->name)
                     ->sortable()
                     ->searchable()
-                    ->description(fn ($record) => $record->project?->year, position: 'above'),
+                    ->description(fn ($record) => $record->project?->year . ' - ' . $record->project?->code, position: 'above'),
                 TextColumn::make('date')
                     ->label('Date')
                     ->date('Y-m-d')
@@ -136,9 +136,9 @@ class ImplementationResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('center')
+                Tables\Filters\SelectFilter::make('project')
                     ->label('Project')
-                    ->relationship('project.center', 'name')
+                    ->relationship('project', 'name')
                     ->searchable()
                     ->preload(),
                 Tables\Filters\Filter::make('date_range')
@@ -166,11 +166,11 @@ class ImplementationResource extends Resource
                         ->icon('heroicon-o-arrow-down-tray')
                         ->action(function ($records) {
                             $csv = collect([
-                                ['ID','Center','Date','Percentage'],
+                                ['ID','Project','Date','Percentage'],
                             ])->merge(
                                 $records->map(fn ($r) => [
                                     $r->id,
-                                    optional($r->project?->center)->name,
+                                    optional($r->project)->name,
                                     $r->date,
                                     $r->percentage,
                                 ])

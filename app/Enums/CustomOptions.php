@@ -1,8 +1,8 @@
-<?php 
+<?php
 
 namespace App\Enums;
 
-class CustomOptions 
+class CustomOptions
 {
     public const FUNDS = [
         'GEN_FUND' => 'General Funds',
@@ -10,6 +10,12 @@ class CustomOptions
         'SE_FUND' => 'Special Education Fund',
         '20_FUND' => '20% Development Fund',
         'SH_FUND' => 'Special Health Fund',
+    ];
+
+    public const PROJECT_STATUS = [
+        'approved' => 'Approved',
+        'pending' => 'Pending',
+        'canceled' => 'Canceled',
     ];
 
     public const PAYMENTS = [
