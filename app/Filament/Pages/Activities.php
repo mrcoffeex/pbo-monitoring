@@ -28,14 +28,14 @@ class Activities extends ListActivities
 
     public static function getNavigationGroup(): ?string
     {
-        return 'System';
+        return 'Menu';
     }
 
     public static function getNavigationSort(): int
     {
         return 3;
     }
-    
+
     public function getViewData(): array
     {
         return [

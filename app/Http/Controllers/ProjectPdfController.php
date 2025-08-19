@@ -10,7 +10,7 @@ class ProjectPdfController extends Controller
     public function download()
     {
         $projects = Project::with([
-            'center','user',
+            'user',
             'purchase_requests.user',
             'technical_working_groups.user',
             'purchase_request_controls.user',
@@ -43,7 +43,7 @@ class ProjectPdfController extends Controller
     public function single(Project $project)
     {
         $project->load([
-            'center','user',
+            'user',
             'purchase_requests.user',
             'technical_working_groups.user',
             'purchase_request_controls.user',

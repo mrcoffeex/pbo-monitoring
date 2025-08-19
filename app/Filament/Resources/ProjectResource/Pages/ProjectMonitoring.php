@@ -19,18 +19,18 @@ class ProjectMonitoring extends Page
     public function mount(Project $record): void
     {
         $this->project = $record->load([
-            'purchase_requests', 
+            'purchase_requests',
             'technical_working_groups',
-            'purchase_request_controls', 
-            'procurements', 
-            'obligation_requests', 
-            'implementations', 
-            'payments', 
+            'purchase_request_controls',
+            'procurements',
+            'obligation_requests',
+            'implementations',
+            'payments',
         ]);
     }
 
     public function getTitle(): string
     {
-        return 'Project Monitoring: ' . $this->project->center->name;
+        return 'Project Monitoring: ' . $this->project->name;
     }
 }

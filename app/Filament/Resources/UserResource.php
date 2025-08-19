@@ -188,12 +188,12 @@ class UserResource extends Resource
 
     public static function getNavigationGroup(): ?string
     {
-        return 'System';
+        return 'Menu';
     }
 
     public static function getNavigationSort(): int
     {
-        return 1;
+        return 2;
     }
 
     public static function getRelations(): array

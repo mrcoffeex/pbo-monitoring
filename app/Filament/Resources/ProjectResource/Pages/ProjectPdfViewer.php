@@ -17,7 +17,7 @@ class ProjectPdfViewer extends Page
     public function viewProjectsPdf()
     {
         $projects = Project::with([
-            'center','user',
+            'user',
             'purchase_requests.user',
             'technical_working_groups.user',
             'purchase_request_controls.user',
@@ -43,7 +43,7 @@ class ProjectPdfViewer extends Page
     public function downloadProjectsPdf()
     {
         $projects = Project::with([
-            'center','user',
+            'user',
             'purchase_requests.user',
             'technical_working_groups.user',
             'purchase_request_controls.user',

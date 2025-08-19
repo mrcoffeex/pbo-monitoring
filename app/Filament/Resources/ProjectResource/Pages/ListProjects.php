@@ -69,7 +69,7 @@ class ListProjects extends ListRecords
         $order = implode(',', $ids);
 
         $projects = Project::with([
-                'center','user',
+                'user',
                 'purchase_requests.user',
                 'technical_working_groups.user',
                 'purchase_request_controls.user',

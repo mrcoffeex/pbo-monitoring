@@ -59,7 +59,7 @@
 <table>
     <thead>
     <tr>
-        <th class="col-center">Center</th>
+        <th class="col-center">Res. Center</th>
         <th class="col-app">Appropriation</th>
         <th class="col-allot">Allotment</th>
         <th class="col-pr">PurchaseRequests</th>
@@ -76,8 +76,8 @@
         <tr>
             <!-- Center -->
             <td>
-                <div class="small" style="font-weight:600">{{ $sanitize($project->center->code ?? 'N/A') }}</div>
-                <div class="small">{{ $sanitize($project->center->name ?? '') }}</div>
+                <div class="small" style="font-weight:600">{{ $sanitize($project->code ?? 'N/A') }}</div>
+                <div class="small">{{ $sanitize($project->name ?? '') }}</div>
             </td>
 
             <!-- Appropriation -->
