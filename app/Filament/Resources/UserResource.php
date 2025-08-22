@@ -91,8 +91,6 @@ class UserResource extends Resource
                     ->toggleable()
                     ->alignCenter(),
                 TextColumn::make('name')
-                    ->badge()
-                    ->color('primary')
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('email')
@@ -104,7 +102,7 @@ class UserResource extends Resource
                 TextColumn::make('roles.name')
                     ->label('Roles')
                     ->badge()
-                    ->color('info')
+                    ->color('primary')
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('email_verified_at')

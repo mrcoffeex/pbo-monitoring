@@ -22,6 +22,9 @@
         $allotment = $project->allotment;
         $totalPayment = $payments->sum('amount');
         $contractAmount = $procurements->sum('contract_amount');
+
+        $contractors = $procurements->pluck('contractor')->filter()->unique()->values();
+        $contractor = $contractors->count() ? ($contractors->count() === 1 ? $contractors->first() : $contractors->implode(', ')) : 'No Contractor';
         $unpaid       = $contractAmount - $totalPayment;
         $paymentPct   = $contractAmount > 0 ? round(($totalPayment / $contractAmount) * 100, 2) : 0;
         $latestImpl   = $implementations->sortByDesc('date')->first();
@@ -31,7 +34,7 @@
         $sectionBody = 'text-sm whitespace-normal leading-6 text-gray-950 dark:text-white space-y-4';
     @endphp
 
-    <div class="flex flex-col sm:flex-row flex-wrap gap-4 mb-6">
+    <div class="flex flex-col sm:flex-row flex-wrap gap-4 mb-2">
         <div class="flex-1 min-w-[160px] rounded-lg px-4 py-3 bg-white dark:bg-gray-900 ring-1 ring-gray-200 dark:ring-gray-700">
             <div class="text-[11px] uppercase tracking-wide text-blue-500 dark:text-blue-400 mb-2">Appropriation</div>
             <div class="text-sm font-semibold">₱ {{ number_format($appropriation, 2) }}</div>
@@ -43,6 +46,7 @@
         <div class="flex-1 min-w-[160px] rounded-lg px-4 py-3 bg-white dark:bg-gray-900 ring-1 ring-gray-200 dark:ring-gray-700">
             <div class="text-[11px] uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-2">Contract Amount</div>
             <div class="text-sm font-semibold">₱ {{ number_format($contractAmount, 2) }}</div>
+            <div class="text-[10px] uppercase tracking-wide mb-2">{{ $contractor ?? 'No Contractor' }}</div>
         </div>
         <div class="flex-1 min-w-[160px] rounded-lg px-4 py-3 bg-white dark:bg-gray-900 ring-1 ring-gray-200 dark:ring-gray-700">
             <div class="flex justify-between items-center mb-2">
