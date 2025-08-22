@@ -74,9 +74,6 @@ class ObligationRequestResource extends Resource
                                     ->mask(RawJs::make('$money($input)'))
                                     ->stripCharacters(',')
                                     ->columnSpan(6),
-                                Hidden::make('user_id')
-                                    ->default(fn () => Filament::auth()->id())
-                                    ->dehydrated(fn ($state, $context) => $context === 'create'),
                             ])
                     ]),
             ]);

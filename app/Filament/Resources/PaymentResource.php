@@ -73,9 +73,6 @@ class PaymentResource extends Resource
                                     ->mask(RawJs::make('$money($input)'))
                                     ->stripCharacters(',')
                                     ->columnSpan(4),
-                                Hidden::make('user_id')
-                                    ->default(fn () => Filament::auth()->id())
-                                    ->dehydrated(fn ($state, $context) => $context === 'create'),
                             ]),
 
                     ]),
@@ -126,7 +123,7 @@ class PaymentResource extends Resource
                     ->color(fn ($state) => $state > 0 ? 'success' : 'gray'),
                 TextColumn::make('date')
                     ->label('Date')
-                    ->date('Y-m-d')
+                    ->date('M d, Y')
                     ->badge()
                     ->color('info')
                     ->sortable()

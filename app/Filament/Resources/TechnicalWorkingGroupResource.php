@@ -77,9 +77,6 @@ class TechnicalWorkingGroupResource extends Resource
                             ->rows(3)
                             ->columnSpan(12)
                             ->placeholder('e.g. the document is awesome'),
-                        Hidden::make('user_id')
-                            ->default(fn () => Filament::auth()->id())
-                            ->dehydrated(fn ($state, $context) => $context === 'create'),
                     ]),
             ]);
     }

@@ -130,9 +130,6 @@ class ProcurementResource extends Resource
                             ->minValue(1)
                             ->placeholder('e.g. 100')
                             ->columnSpan(4),
-                        Hidden::make('user_id')
-                            ->default(fn () => Filament::auth()->id())
-                            ->dehydrated(fn ($state, $context) => $context === 'create'),
                     ]),
             ]);
     }

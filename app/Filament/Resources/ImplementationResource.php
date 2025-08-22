@@ -64,9 +64,6 @@ class ImplementationResource extends Resource
                                 ->suffix('%')
                                 ->placeholder('e.g. 50')
                                 ->columnSpan(4),
-                            Hidden::make('user_id')
-                                ->default(fn () => Filament::auth()->id())
-                                ->dehydrated(fn ($state, $context) => $context === 'create'),
                         ]),
 
                     ]),
@@ -102,7 +99,7 @@ class ImplementationResource extends Resource
                     ->description(fn ($record) => $record->project?->year . ' - ' . $record->project?->code, position: 'above'),
                 TextColumn::make('date')
                     ->label('Date')
-                    ->date('Y-m-d')
+                    ->date('M d, Y')
                     ->badge()
                     ->color('info')
                     ->sortable()

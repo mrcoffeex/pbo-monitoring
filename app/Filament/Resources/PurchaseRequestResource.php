@@ -63,9 +63,6 @@ class PurchaseRequestResource extends Resource
                         DatePicker::make('forward_twg_date')
                             ->label('Forwarded to TWG')
                             ->columnSpan(3),
-                        Hidden::make('user_id')
-                            ->default(fn () => Filament::auth()->id())
-                            ->dehydrated(fn ($state, $context) => $context === 'create'),
                     ]),
 
             ]);
