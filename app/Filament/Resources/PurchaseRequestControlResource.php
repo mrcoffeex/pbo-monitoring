@@ -43,6 +43,20 @@ class PurchaseRequestControlResource extends Resource
                                     $project->id => ($project->code) . (' - ' . $project->name ?? 'no projects')
                                 ])
                             )
+                            ->reactive()
+                            ->afterStateUpdated(function ($state, callable $set) {
+                                if (! $state) {
+                                    $set('amount', null);
+                                    return;
+                                }
+
+                                $project = Project::find($state);
+                                $allotment = $project?->allotment;
+
+                                $value = is_numeric($allotment) ? (float) $allotment : (float) preg_replace('/[^0-9\.\-]/', '', (string) $allotment ?: 0);
+
+                                $set('amount', $value);
+                            })
                             ->searchable()
                             ->unique(ignoreRecord: true)
                             ->required()
