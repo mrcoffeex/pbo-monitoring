@@ -55,7 +55,7 @@ class PurchaseRequestControlResource extends Resource
 
                                 $value = is_numeric($allotment) ? (float) $allotment : (float) preg_replace('/[^0-9\.\-]/', '', (string) $allotment ?: 0);
 
-                                $set('amount', $value);
+                                $set('amount', number_format($value, 2));
                             })
                             ->searchable()
                             ->unique(ignoreRecord: true)

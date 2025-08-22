@@ -47,6 +47,20 @@ class ImplementationResource extends Resource
                                 )
                                 ->searchable()
                                 ->required()
+                                ->reactive()
+                                ->afterStateUpdated(function ($state, callable $set) {
+                                    if (! $state) {
+                                        $set('current_percentage', null);
+                                        return;
+                                    }
+
+                                    $latest = Implementation::where('project_id', $state)
+                                        ->orderBy('date', 'desc')
+                                        ->orderBy('id', 'desc')
+                                        ->first();
+
+                                    $set('current_percentage', $latest?->percentage ?? 0);
+                                })
                                 ->columnSpan(9),
                             DatePicker::make('date')
                                 ->required()
@@ -56,6 +70,7 @@ class ImplementationResource extends Resource
                         ->columns(12)
                         ->schema([
                             TextInput::make('percentage')
+                                ->label('% Complete')
                                 ->required()
                                 ->numeric()
                                 ->minValue(1)
@@ -63,7 +78,13 @@ class ImplementationResource extends Resource
                                 ->rules(['nullable', 'numeric', 'between:1,100'])
                                 ->suffix('%')
                                 ->placeholder('e.g. 50')
-                                ->columnSpan(4),
+                                ->columnSpan(3),
+                            TextInput::make('current_percentage')
+                                ->label('Current % Complete')
+                                ->disabled()
+                                ->dehydrated(false)
+                                ->suffix('%')
+                                ->columnSpan(3),
                         ]),
 
                     ]),

@@ -6,6 +6,7 @@ use App\Enums\CustomOptions;
 use App\Filament\Resources\PaymentResource\Pages;
 use App\Filament\Resources\PaymentResource\RelationManagers;
 use App\Models\Payment;
+use App\Models\Procurement;
 use App\Models\Project;
 use Filament\Facades\Filament;
 use Filament\Forms;
@@ -49,6 +50,24 @@ class PaymentResource extends Resource
                                 )
                                 ->searchable()
                                 ->required()
+                                ->reactive()
+                                ->afterStateUpdated(function ($state, callable $set) {
+                                    if (! $state) {
+                                        $set('current_payments', 0);
+                                        return;
+                                    }
+
+                                    $total = Payment::where('project_id', $state)->sum('amount');
+                                    $contract_amount = Procurement::where('project_id', $state)->value('contract_amount');
+
+                                    $total = (float) $total;
+                                    $contract_amount = (float) $contract_amount;
+
+                                    $balance = $contract_amount - $total;
+
+                                    $set('current_payments', number_format($total, 2));
+                                    $set('balance', number_format($balance, 2));
+                                })
                                 ->columnSpan(9),
                                 DatePicker::make('date')
                                     ->label('Date of Payment')
@@ -62,7 +81,7 @@ class PaymentResource extends Resource
                                     ->label('Type of Payment')
                                     ->options(CustomOptions::PAYMENTS)
                                     ->required()
-                                    ->columnSpan(4),
+                                    ->columnSpan(3),
                                 TextInput::make('amount')
                                     ->label('Amount')
                                     ->required()
@@ -72,7 +91,27 @@ class PaymentResource extends Resource
                                     ->placeholder('0.00')
                                     ->mask(RawJs::make('$money($input)'))
                                     ->stripCharacters(',')
-                                    ->columnSpan(4),
+                                    ->columnSpan(3),
+                                TextInput::make('current_payments')
+                                    ->label('Current Total Payments')
+                                    ->disabled()
+                                    ->dehydrated(false)
+                                    ->prefix('₱')
+                                    ->numeric()
+                                    ->mask(RawJs::make('$money($input)'))
+                                    ->stripCharacters(',')
+                                    ->minValue(0)
+                                    ->columnSpan(3),
+                                TextInput::make('balance')
+                                    ->label('Total Balance')
+                                    ->disabled()
+                                    ->dehydrated(false)
+                                    ->prefix('₱')
+                                    ->numeric()
+                                    ->mask(RawJs::make('$money($input)'))
+                                    ->stripCharacters(',')
+                                    ->minValue(0)
+                                    ->columnSpan(3),
                             ]),
 
                     ]),
