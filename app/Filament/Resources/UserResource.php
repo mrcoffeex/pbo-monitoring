@@ -37,7 +37,7 @@ class UserResource extends Resource
                         ->autofocus()
                         ->required()
                         ->minLength(4)
-                        ->maxLength(17)
+                        ->maxLength(125)
                         ->columnSpan(6),
                     TextInput::make('email')
                         ->required()
