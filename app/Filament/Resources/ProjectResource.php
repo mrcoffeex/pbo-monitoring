@@ -46,6 +46,7 @@ class ProjectResource extends Resource
                                 TextInput::make('code')
                                     ->label('Responsibility Center')
                                     ->maxLength(12)
+                                    ->unique(ignoreRecord: true)
                                     ->required()
                                     ->autofocus()
                                     ->columnSpan(3),
