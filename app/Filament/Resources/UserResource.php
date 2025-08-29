@@ -64,12 +64,14 @@ class UserResource extends Resource
                         ->same('passwordConfirmation') // must match confirmation field
                         ->dehydrateStateUsing(fn ($state) => filled($state) ? Hash::make($state) : null)
                         ->dehydrated(fn ($state) => filled($state))
+                        ->revealable()
                         ->columnSpan(6),
                     TextInput::make('passwordConfirmation')
                         ->password()
                         ->label('Confirm Password')
                         ->required(fn (string $context) => $context === 'create')
                         ->dehydrated(false)
+                        ->revealable()
                         ->columnSpan(6),
                 ]),
                 Hidden::make('email_verified_at')
