@@ -13,8 +13,8 @@ class CustomOptions
     ];
 
     public const PROJECT_STATUS = [
-        'approved' => 'Approved',
-        'pending' => 'Pending',
+        'released' => 'Released',
+        'unreleased' => 'Unreleased',
         'canceled' => 'Canceled',
     ];
 

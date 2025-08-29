@@ -125,8 +125,8 @@ class ProjectResource extends Resource
                 TextColumn::make('status')
                     ->badge()
                     ->color(fn ($state) => match ($state) {
-                        'approved' => 'success',
-                        'pending' => 'primary',
+                        'released' => 'success',
+                        'unreleased' => 'primary',
                         'canceled' => 'danger',
                         default => 'secondary',
                     })
