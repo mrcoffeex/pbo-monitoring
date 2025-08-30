@@ -90,10 +90,10 @@ class DashboardStats extends BaseWidget
                 ]),
             Stat::make('Projects', Project::where([
                     'year' => now()->format('Y'),
-                    'status' => 'approved',
+                    'status' => 'released',
                 ])->count())
                 ->label('Projects')
-                ->description('Approved Projects')
+                ->description('Released Projects')
                 ->icon('heroicon-o-folder-open')
                 ->color('info')
                 ->extraAttributes([
