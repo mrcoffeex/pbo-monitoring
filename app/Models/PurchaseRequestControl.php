@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PurchaseRequestControl extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'controlled_date',
         'control_number',

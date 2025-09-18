@@ -13,6 +13,7 @@ class CustomOptions
         'TRUST_FUND' => 'Trust Fund',
         'CAL_FUND' => 'Calamity Fund',
         'SFNW_FUND' => 'Share from National Wealth Fund',
+        'SP_FUND' => 'Special Purpose Fund',
     ];
 
     public const PROJECT_STATUS = [

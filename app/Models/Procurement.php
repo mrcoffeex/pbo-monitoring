@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Procurement extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'ib_number',
         'pre_procurement_conference',
