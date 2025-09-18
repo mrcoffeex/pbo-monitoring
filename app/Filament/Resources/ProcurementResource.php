@@ -261,6 +261,12 @@ class ProcurementResource extends Resource
                     ->sortable()
                     ->toggleable(),
 
+                TextColumn::make('remarks')
+                    ->label('Remarks')
+                    ->limit(30)
+                    ->tooltip(fn ($record) => $record->remarks)
+                    ->toggleable(isToggledHiddenByDefault: true),
+
                 TextColumn::make('user.name')
                     ->label('Created By')
                     ->badge()
@@ -377,7 +383,7 @@ class ProcurementResource extends Resource
 
     public static function getNavigationSort(): int
     {
-        return 4;
+        return 5;
     }
 
     public static function getRelations(): array

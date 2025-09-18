@@ -65,6 +65,11 @@ class User extends Authenticatable
         return $this->hasMany(TechnicalWorkingGroup::class);
     }
 
+    public function procurement_controls()
+    {
+        return $this->hasMany(ProcurementControl::class);
+    }
+
     public function purchase_request_controls()
     {
         return $this->hasMany(PurchaseRequestControl::class);

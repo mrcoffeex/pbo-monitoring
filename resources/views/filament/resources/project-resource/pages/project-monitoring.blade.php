@@ -12,6 +12,7 @@
 
         $purchaseRequests   = $project->purchase_requests;
         $twgs               = $project->technical_working_groups;
+        $pmoControls        = $project->procurement_controls;
         $prControls         = $project->purchase_request_controls;
         $procurements       = $project->procurements;
         $obrs               = $project->obligation_requests;
@@ -119,25 +120,43 @@
 
                             :tooltip="$twg->review_remarks"
                         />
+                        <x-item-badge label="Created By" :value="$twg->user->name" :isCreator="true" />
+                    </div>
+                @empty
+                    <div class="text-gray-500 italic">No purchase requests found.</div>
+                @endforelse
+            </div>
+        </x-filament::section>
+
+
+
+        <x-filament::section
+            :collapsible="true"
+            :collapsed="false"
+        >
+            <x-slot name="heading">PMO Control</x-slot>
+            <div class="{{ $sectionBody }}">
+                @forelse ($pmoControls as $pmoControl)
+                    <div class="{{ $cardWrap }}">
                         <x-item-badge
                             label="Controlled Date"
-                            :value="$twg->controlled_date"
+                            :value="$pmoControl->controlled_date"
                             :isDay="true"
 
                         />
                         <x-item-badge
                             label="ABC"
-                            :value="$twg->abc"
+                            :value="$pmoControl->abc"
 
                             :isMoney="true"
                         />
                         <x-item-badge
                             label="Remarks"
-                            :value="Str::limit($twg->remarks, 20, '...')"
+                            :value="Str::limit($pmoControl->remarks, 20, '...')"
 
-                            :tooltip="$twg->remarks"
+                            :tooltip="$pmoControl->remarks"
                         />
-                        <x-item-badge label="Created By" :value="$twg->user->name" :isCreator="true" />
+                        <x-item-badge label="Created By" :value="$pmoControl->user->name" :isCreator="true" />
                     </div>
                 @empty
                     <div class="text-gray-500 italic">No purchase requests found.</div>
@@ -322,6 +341,12 @@
                             ? rtrim(rtrim(number_format($imp->percentage, 2, '.', ''), '0'), '.') . ' %'
                             : $imp->percentage"
 
+                        />
+                        <x-item-badge
+                            label="Remarks"
+                            :value="Str::limit($imp->remarks, 30, '...')"
+
+                            :tooltip="$imp->remarks"
                         />
                         <x-item-badge label="Created By" :value="$imp->user->name" :isCreator="true" />
                     </div>

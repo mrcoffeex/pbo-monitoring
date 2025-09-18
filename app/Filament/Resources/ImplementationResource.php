@@ -13,6 +13,7 @@ use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -85,6 +86,11 @@ class ImplementationResource extends Resource
                                 ->dehydrated(false)
                                 ->suffix('%')
                                 ->columnSpan(3),
+                            Textarea::make('remarks')
+                                ->label('Remarks')
+                                ->rows(3)
+                                ->columnSpan(6)
+                                ->placeholder('e.g. the document is awesome'),
                         ]),
 
                     ]),
@@ -135,6 +141,12 @@ class ImplementationResource extends Resource
                         default => 'gray'
                     })
                     ->sortable()
+                    ->toggleable(),
+                TextColumn::make('remarks')
+                    ->label('Remarks')
+                    ->wrap()
+                    ->limit(30)
+                    ->tooltip(fn ($record) => $record->remarks)
                     ->toggleable(),
                 TextColumn::make('user.name')
                     ->label('Created By')
@@ -236,7 +248,7 @@ class ImplementationResource extends Resource
 
     public static function getNavigationSort(): int
     {
-        return 6;
+        return 7;
     }
 
     public static function getRelations(): array

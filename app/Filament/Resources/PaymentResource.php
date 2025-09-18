@@ -276,7 +276,7 @@ class PaymentResource extends Resource
 
     public static function getNavigationSort(): int
     {
-        return 7;
+        return 8;
     }
 
     public static function getRelations(): array

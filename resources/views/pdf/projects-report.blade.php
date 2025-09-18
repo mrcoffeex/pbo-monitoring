@@ -64,6 +64,7 @@
         <th class="col-allot">Allotment</th>
         <th class="col-pr">PurchaseRequests</th>
         <th class="col-twg">TechnicalWorkingGroups</th>
+        <th class="col-twg">PmoControls</th>
         <th class="col-prc">PurchaseRequestControls</th>
         <th class="col-proc">Procurements</th>
         <th class="col-obr">ObligationRequests</th>
@@ -122,14 +123,26 @@
                             <span>
                                 Review Remarks: <span class="value">{{ $sanitize($twg->review_remarks) }}</span>
                             </span><br>
+                        </li>
+                    @endforeach
+                @else
+                    <span class="muted">None</span>
+                @endif
+            </td>
+
+            <!-- PMO Control horizontal -->
+            <td class="small">
+                @if($project->procurement_controls?->count())
+                    @foreach($project->procurement_controls as $pmoControl)
+                        <li>
                             <span>
-                                Controlled Date: <span class="value">{{ $date($twg->controlled_date) }}</span>
+                                Controlled Date: <span class="value">{{ $date($pmoControl->controlled_date) }}</span>
                             </span><br>
                             <strong>
-                                ABC: <span class="value">{{ $money($twg->abc) }}</span>
+                                ABC: <span class="value">{{ $money($pmoControl->abc) }}</span>
                             </strong><br>
                             <span>
-                                Remarks: <span class="value">{{ $sanitize($twg->forward_twg_date) }}</span>
+                                Remarks: <span class="value">{{ $sanitize($pmoControl->forward_twg_date) }}</span>
                             </span><br>
                         </li>
                     @endforeach
@@ -234,14 +247,17 @@
             <!-- Implementations horizontal -->
             <td class="small">
                 @if($project->implementations?->count())
-                    @foreach($project->implementations as $prc)
+                    @foreach($project->implementations as $imp)
                         <li>
                             <span>
-                                Date: <span class="value">{{ $date($prc->date) }}</span>
+                                Date: <span class="value">{{ $date($imp->date) }}</span>
                             </span><br>
                             <strong>
-                                Percentage: <span class="value">{{ $sanitize($prc->percentage) . ' %' }}</span>
+                                Percentage: <span class="value">{{ $sanitize($imp->percentage) . ' %' }}</span>
                             </strong><br>
+                            <span>
+                                Remarks: <span class="value">{{ $sanitize($imp->remarks) }}</span>
+                            </span><br>
                         </li>
                     @endforeach
                 @else

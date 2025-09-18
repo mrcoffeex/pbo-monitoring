@@ -10,6 +10,9 @@ class CustomOptions
         'SE_FUND' => 'Special Education Fund',
         '20_FUND' => '20% Development Fund',
         'SH_FUND' => 'Special Health Fund',
+        'TRUST_FUND' => 'Trust Fund',
+        'CAL_FUND' => 'Calamity Fund',
+        'SFNW_FUND' => 'Share from National Wealth Fund',
     ];
 
     public const PROJECT_STATUS = [

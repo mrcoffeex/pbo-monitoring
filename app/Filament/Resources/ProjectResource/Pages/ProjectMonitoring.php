@@ -21,6 +21,7 @@ class ProjectMonitoring extends Page
         $this->project = $record->load([
             'purchase_requests',
             'technical_working_groups',
+            'procurement_controls',
             'purchase_request_controls',
             'procurements',
             'obligation_requests',

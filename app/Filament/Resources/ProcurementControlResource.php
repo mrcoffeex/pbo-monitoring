@@ -2,17 +2,15 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\PurchaseRequestControlResource\Pages;
-use App\Filament\Resources\PurchaseRequestControlResource\RelationManagers;
+use App\Filament\Resources\ProcurementControlResource\Pages;
+use App\Filament\Resources\ProcurementControlResource\RelationManagers;
+use App\Models\ProcurementControl;
 use App\Models\Project;
-use App\Models\PurchaseRequestControl;
-use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\DateTimePicker;
-use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -23,17 +21,17 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class PurchaseRequestControlResource extends Resource
+class ProcurementControlResource extends Resource
 {
-    protected static ?string $model = PurchaseRequestControl::class;
+    protected static ?string $model = ProcurementControl::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-check';
+    protected static ?string $navigationIcon = 'heroicon-o-document-check';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Section::make('PR Control Details')
+                Section::make('TWG Control & Other Details')
                     ->columns(12)
                     ->schema([
                         Select::make('project_id')
@@ -43,45 +41,26 @@ class PurchaseRequestControlResource extends Resource
                                     $project->id => ($project->code) . (' - ' . $project->name ?? 'no projects')
                                 ])
                             )
-                            ->reactive()
-                            ->afterStateUpdated(function ($state, callable $set) {
-                                if (! $state) {
-                                    $set('amount', null);
-                                    return;
-                                }
-
-                                $project = Project::find($state);
-                                $allotment = $project?->allotment;
-
-                                $value = is_numeric($allotment) ? (float) $allotment : (float) preg_replace('/[^0-9\.\-]/', '', (string) $allotment ?: 0);
-
-                                $set('amount', number_format($value, 2));
-                            })
                             ->searchable()
                             ->unique(ignoreRecord: true)
                             ->required()
                             ->columnSpan(9),
                         DatePicker::make('controlled_date')
                             ->label('Controlled Date')
-                            ->required()
                             ->columnSpan(3),
-                        TextInput::make('control_number')
-                            ->label('PR Control Number')
-                            ->minLength(2)
-                            ->maxlength(50)
-                            ->required()
-                            ->placeholder('e.g. 0000')
-                            ->columnSpan(6),
-                        TextInput::make('amount')
-                            ->label('PR Amount')
-                            ->required()
+                        TextInput::make('abc')
+                            ->label('Approved Budget Contract (ABC)')
                             ->numeric()
                             ->prefix('₱')
                             ->minValue(0)
                             ->placeholder('0.00')
                             ->mask(RawJs::make('$money($input)'))
                             ->stripCharacters(',')
-                            ->columnSpan(6),
+                            ->columnSpan(4),
+                        Textarea::make('remarks')
+                            ->rows(3)
+                            ->columnSpan(8)
+                            ->placeholder('e.g. the document is awesome'),
                     ]),
             ]);
     }
@@ -89,8 +68,6 @@ class PurchaseRequestControlResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->poll('45s')
-            ->striped()
             ->defaultSort('updated_at', 'desc')
             ->columns([
                 TextColumn::make('id')
@@ -101,7 +78,7 @@ class PurchaseRequestControlResource extends Resource
                 TextColumn::make('project.code')
                     ->label('Res. Center')
                     ->badge()
-                    ->color('gray')
+                    ->color('primary')
                     ->sortable()
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -117,21 +94,22 @@ class PurchaseRequestControlResource extends Resource
                     ->label('Controlled')
                     ->dateTime('M d, Y')
                     ->badge()
-                    ->color('info')
+                    ->color(fn ($state) => $state ? 'success' : 'gray')
                     ->sortable()
                     ->toggleable(),
-                TextColumn::make('control_number')
-                    ->label('Control #')
-                    ->badge()
-                    ->sortable()
-                    ->toggleable(),
-                TextColumn::make('amount')
-                    ->label('Amount')
+                TextColumn::make('abc')
+                    ->label('ABC')
                     ->numeric(2)
                     ->money('PHP', true)
                     ->sortable()
                     ->alignEnd()
                     ->color(fn ($state) => $state > 0 ? 'success' : 'gray'),
+                TextColumn::make('remarks')
+                    ->label('Remarks')
+                    ->wrap()
+                    ->limit(30)
+                    ->tooltip(fn ($record) => $record->remarks)
+                    ->toggleable(),
                 TextColumn::make('user.name')
                     ->label('Created By')
                     ->badge()
@@ -150,60 +128,19 @@ class PurchaseRequestControlResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('project')
-                    ->label('Project')
-                    ->relationship('project', 'name')
-                    ->searchable()
-                    ->preload(),
-                Tables\Filters\Filter::make('date_range')
-                    ->label('Controlled Range')
-                    ->form([
-                        Forms\Components\DatePicker::make('from')->label('From'),
-                        Forms\Components\DatePicker::make('until')->label('Until'),
-                    ])
-                    ->query(function (Builder $q, array $data) {
-                        return $q
-                            ->when($data['from'] ?? null, fn ($qq, $d) => $qq->whereDate('controlled_date', '>=', $d))
-                            ->when($data['until'] ?? null, fn ($qq, $d) => $qq->whereDate('controlled_date', '<=', $d));
-                    }),
+                //
             ])
             ->actions([
-                Tables\Actions\ViewAction::make()->modalHeading('PR Control Details'),
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\BulkAction::make('export_csv')
-                        ->label('Export CSV')
-                        ->icon('heroicon-o-arrow-down-tray')
-                        ->action(function ($records) {
-                            $csv = collect([
-                                ['ID','Project','Controlled','Control #','Amount'],
-                            ])->merge(
-                                $records->map(fn ($r) => [
-                                    $r->id,
-                                    optional($r->project)->name,
-                                    $r->controlled_date,
-                                    $r->control_number,
-                                    $r->amount,
-                                ])
-                            )->map(fn ($row) => implode(',', array_map(fn ($v) => '"'.str_replace('"','""',$v).'"', $row)))->implode("\n");
-
-                            return response($csv)
-                                ->withHeaders([
-                                    'Content-Type' => 'text/csv',
-                                    'Content-Disposition' => 'attachment; filename=purchase_request_controls.csv',
-                                ]);
-                        })
-                        ->requiresConfirmation()
-                        ->color('primary'),
                 ]),
             ])
-            ->emptyStateIcon('heroicon-o-clipboard-document-check')
-            ->emptyStateHeading('No PR Controls')
-            ->emptyStateDescription('Create your first purchase request control record.')
+            ->emptyStateIcon('heroicon-o-document-check')
+            ->emptyStateHeading('No PMO Controls')
+            ->emptyStateDescription('Create your first PMO Control record.')
             ->emptyStateActions([
                 Tables\Actions\CreateAction::make(),
             ])
@@ -213,7 +150,7 @@ class PurchaseRequestControlResource extends Resource
 
     public static function getLabel(): string
     {
-        return 'Purchase Request Control';
+        return 'PMO Control';
     }
 
     public static function getNavigationBadge(): ?string
@@ -233,7 +170,7 @@ class PurchaseRequestControlResource extends Resource
 
     public static function getNavigationSort(): int
     {
-        return 4;
+        return 3;
     }
 
     public static function getRelations(): array
@@ -246,9 +183,9 @@ class PurchaseRequestControlResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListPurchaseRequestControls::route('/'),
-            'create' => Pages\CreatePurchaseRequestControl::route('/create'),
-            'edit' => Pages\EditPurchaseRequestControl::route('/{record}/edit'),
+            'index' => Pages\ListProcurementControls::route('/'),
+            'create' => Pages\CreateProcurementControl::route('/create'),
+            'edit' => Pages\EditProcurementControl::route('/{record}/edit'),
         ];
     }
 }

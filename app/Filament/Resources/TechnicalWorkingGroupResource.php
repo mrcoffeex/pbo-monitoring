@@ -58,26 +58,6 @@ class TechnicalWorkingGroupResource extends Resource
                             ->placeholder('e.g. the document is awesome')
                             ->columnSpan(12),
                     ]),
-                Section::make('TWG Control & Other Details')
-                    ->columns(12)
-                    ->schema([
-                        DatePicker::make('controlled_date')
-                            ->label('Controlled Date')
-                            ->columnSpan(3),
-                        TextInput::make('abc')
-                            ->label('Approved Budget Contract (ABC)')
-                            ->numeric()
-                            ->prefix('₱')
-                            ->minValue(0)
-                            ->placeholder('0.00')
-                            ->mask(RawJs::make('$money($input)'))
-                            ->stripCharacters(',')
-                            ->columnSpan(6),
-                        Textarea::make('remarks')
-                            ->rows(3)
-                            ->columnSpan(12)
-                            ->placeholder('e.g. the document is awesome'),
-                    ]),
             ]);
     }
 
@@ -121,26 +101,6 @@ class TechnicalWorkingGroupResource extends Resource
                     ->limit(30)
                     ->tooltip(fn ($record) => $record->review_remarks)
                     ->toggleable(),
-                TextColumn::make('controlled_date')
-                    ->label('Controlled')
-                    ->dateTime('M d, Y')
-                    ->badge()
-                    ->color(fn ($state) => $state ? 'success' : 'gray')
-                    ->sortable()
-                    ->toggleable(),
-                TextColumn::make('abc')
-                    ->label('ABC')
-                    ->numeric(2)
-                    ->money('PHP', true)
-                    ->sortable()
-                    ->alignEnd()
-                    ->color(fn ($state) => $state > 0 ? 'success' : 'gray'),
-                TextColumn::make('remarks')
-                    ->label('Remarks')
-                    ->wrap()
-                    ->limit(30)
-                    ->tooltip(fn ($record) => $record->remarks)
-                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('user.name')
                     ->label('Created By')
                     ->badge()

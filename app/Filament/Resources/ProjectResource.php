@@ -215,6 +215,35 @@ class ProjectResource extends Resource
                             })
                         );
                     }),
+                SelectFilter::make('ntp')
+                    ->label('NTP Status')
+                    ->options([
+                        'issued' => 'NTP Issued',
+                        'not_issued' => 'NTP Not Issued',
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query->when(
+                            $data['value'] === 'issued',
+                            fn (Builder $query): Builder => $query->whereHas('procurements', function (Builder $query) {
+                                $query->whereNotNull('ntp_number');
+                            })
+                        )->when(
+                            $data['value'] === 'not_issued',
+                            fn (Builder $query): Builder => $query->whereHas('procurements', function (Builder $query) {
+                                $query->whereNull('ntp_number');
+                            })
+                        );
+                    }),
+                SelectFilter::make('year')
+                    ->label('Calendar Year')
+                    ->options(
+                        collect(range(now()->year, now()->year - 5))
+                            ->mapWithKeys(fn ($year) => [
+                                $year => $year
+                            ])
+                            ->toArray()
+                    )
+                    ->default(now()->year),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make()->modalHeading('Project Details'),

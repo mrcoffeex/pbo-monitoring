@@ -9,6 +9,7 @@ class Implementation extends Model
     protected $fillable = [
         'date',
         'percentage',
+        'remarks',
         'user_id',
         'project_id',
     ];
