@@ -45,16 +45,16 @@ class AdminPanelProvider extends PanelProvider
             ->navigationGroups([
                 NavigationGroup::make()
                     ->label('Menu')
-                    ->collapsed(),
+                    ->collapsible(true),
                 NavigationGroup::make()
                     ->label('Process')
-                    ->collapsed(),
+                    ->collapsible(true),
                 NavigationGroup::make()
                     ->label('System')
-                    ->collapsed(),
+                    ->collapsible(true),
                 NavigationGroup::make()
                     ->label('Filament Shield')
-                    ->collapsed(),
+                    ->collapsible(true),
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')

@@ -9,7 +9,7 @@ use Illuminate\Support\Js;
 
 class FinancialStatusPieChart extends ChartWidget
 {
-    protected static ?string $heading = 'Project Status (Obligated vs Not Obligated)';
+    protected static ?string $heading = 'Obligation vs Allotment Status';
 
     protected static ?string $maxHeight = '250px';
 
@@ -19,40 +19,38 @@ class FinancialStatusPieChart extends ChartWidget
             'obligation_requests:id,project_id,amount',
         ])->get();
 
-        $obligated = 0;
-        $notObligated = 0;
-
-        $projects->each(function ($project) use (&$obligated, &$notObligated) {
-            $totalObligated = (float) $project->obligation_requests->sum('amount');
-            if ($totalObligated > 0) {
-                $obligated++;
-            } else {
-                $notObligated++;
-            }
+        $totalAllotment = (float) $projects->sum('allotment');
+        $totalObligated = (float) $projects->sum(function ($project) {
+            return $project->obligation_requests->sum('amount');
         });
 
-        $total = max($obligated + $notObligated, 1);
+        // Prevent division by zero
+        if ($totalAllotment <= 0) {
+            $totalAllotment = 1;
+        }
 
-        $pObligated     = round(($obligated / $total) * 100, 1);
-        $pNotObligated  = round(($notObligated / $total) * 100, 1);
+        $obligatedAmount = min($totalObligated, $totalAllotment); // Cap at allotment
+        $remainingAllotment = max($totalAllotment - $totalObligated, 0);
+
+        $percentageObligated = round(($obligatedAmount / $totalAllotment) * 100, 1);
+        $percentageRemaining = round(($remainingAllotment / $totalAllotment) * 100, 1);
 
         return [
             'datasets' => [
                 [
-                    'label' => 'Projects (%)',
-                    'data' => [$pObligated, $pNotObligated],         // percentages as dataset values
-                    'rawCounts' => [$obligated, $notObligated],      // raw counts for tooltips
+                    'label' => 'Amount (%)',
+                    'data' => [$percentageObligated, $percentageRemaining],
                     'backgroundColor' => [
                         '#f472b6', // obligated
-                        '#dadee6', // not obligated
+                        '#dadee6', // remaining
                     ],
                     'borderColor' => '#ffffff',
                     'borderWidth' => 1,
                 ],
             ],
             'labels' => [
-                "Obligated ($obligated / $total = {$pObligated}%)",
-                "Not Obligated ($notObligated / $total = {$pNotObligated}%)",
+                "Obligated (₱" . number_format($obligatedAmount, 2) . " - {$percentageObligated}%)",
+                "Remaining (₱" . number_format($remainingAllotment, 2) . " - {$percentageRemaining}%)",
             ],
         ];
     }
