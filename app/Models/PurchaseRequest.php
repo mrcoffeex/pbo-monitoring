@@ -12,6 +12,7 @@ class PurchaseRequest extends Model
     protected $fillable = [
         'received_date',
         'pr_number',
+        'remarks',
         'forward_twg_date',
         'user_id',
         'project_id'

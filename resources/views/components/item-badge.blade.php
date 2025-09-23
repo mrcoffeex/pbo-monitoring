@@ -29,7 +29,7 @@
     } elseif ($isDay && is_numeric($value)) {
         $display = number_format($value, 0) . ' day' . ((int)$value === 1 ? '' : 's');
     } elseif (!empty($value) && \Carbon\Carbon::hasFormat($value, 'Y-m-d H:i:s')) {
-        $display = \Carbon\Carbon::parse($value)->format('F d, Y | g:i A');
+        $display = \Carbon\Carbon::parse($value)->format('F d, Y');
     } elseif (!empty($value) && \Carbon\Carbon::hasFormat($value, 'Y-m-d')) {
         $display = \Carbon\Carbon::parse($value)->format('F d, Y');
     } elseif (!$hasValue) {

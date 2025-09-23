@@ -19,6 +19,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Textarea;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
@@ -54,7 +55,12 @@ class PurchaseRequestResource extends Resource
                             ->minLength(2)
                             ->maxlength(50)
                             ->placeholder('e.g. PR00000000')
-                            ->columnSpan(6),
+                            ->columnSpan(4),
+                        Textarea::make('remarks')
+                            ->label('Remarks')
+                            ->rows(3)
+                            ->columnSpan(8)
+                            ->placeholder('e.g. the document is awesome'),
                     ]),
                 Section::make('TWG - Technical Working Group')
                     ->columns(12)
@@ -106,6 +112,12 @@ class PurchaseRequestResource extends Resource
                     ->badge()
                     ->sortable()
                     ->toggleable(),
+                TextColumn::make('remarks')
+                    ->label('Remarks')
+                    ->wrap()
+                    ->limit(30)
+                    ->tooltip(fn ($record) => $record->remarks)
+                    ->toggleable(),
                 TextColumn::make('forward_twg_date')
                     ->label('Fwd TWG')
                     ->dateTime('M d, Y')
@@ -153,9 +165,15 @@ class PurchaseRequestResource extends Resource
                     ->query(fn (Builder $q) => $q->whereNotNull('forward_twg_date')),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make()->modalHeading('Purchase Request Details'),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\ViewAction::make()
+                    ->modalHeading('Purchase Request Details')
+                    ->button()
+                    ->color('gray'),
+                Tables\Actions\EditAction::make()
+                    ->button()
+                    ->color('info'),
+                Tables\Actions\DeleteAction::make()
+                    ->button(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

@@ -87,6 +87,12 @@
 
                         />
                         <x-item-badge
+                            label="Remarks"
+                            :value="Str::limit($pr->remarks, 20, '...')"
+
+                            :tooltip="$pr->remarks"
+                        />
+                        <x-item-badge
                             label="Forwarded To TWG"
                             :value="$pr->forward_twg_date"
                             :isDay="true"

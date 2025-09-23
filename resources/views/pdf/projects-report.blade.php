@@ -103,6 +103,9 @@
                                 PR No.: <span class="value">{{ $sanitize($pr->pr_number) }}</span>
                             </strong><br>
                             <span>
+                                Remarks: <span class="value">{{ $sanitize($pr->remarks) }}</span>
+                            </span><br>
+                            <span>
                                 Forwarded to TWG: <span class="value">{{ $date($pr->forward_twg_date) }}</span>
                             </span><br>
                         </li>
