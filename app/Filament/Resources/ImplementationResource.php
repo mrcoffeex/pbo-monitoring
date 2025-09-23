@@ -6,6 +6,7 @@ use App\Filament\Resources\ImplementationResource\Pages;
 use App\Filament\Resources\ImplementationResource\RelationManagers;
 use App\Models\Implementation;
 use App\Models\Project;
+use Carbon\Carbon;
 use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
@@ -50,8 +51,11 @@ class ImplementationResource extends Resource
                                 ->required()
                                 ->reactive()
                                 ->afterStateUpdated(function ($state, callable $set) {
-                                    if (! $state) {
+
+                                    if (!$state) {
                                         $set('current_percentage', null);
+                                        $set('start_date', null);
+                                        $set('end_date', null);
                                         return;
                                     }
 
@@ -61,15 +65,36 @@ class ImplementationResource extends Resource
                                         ->first();
 
                                     $set('current_percentage', $latest?->percentage ?? 0);
+
+                                    if ($latest?->start_date) {
+                                        $set('start_date', Carbon::parse($latest->start_date)->toDateString());
+                                    } else {
+                                        $set('start_date', null);
+                                    }
+
+                                    if ($latest?->end_date) {
+                                        $set('end_date', Carbon::parse($latest->end_date)->toDateString());
+                                    } else {
+                                        $set('end_date', null);
+                                    }
                                 })
-                                ->columnSpan(9),
-                            DatePicker::make('date')
+                                ->columnSpan(6),
+                            DatePicker::make('start_date')
+                                ->label('Start Date')
+                                ->required()
+                                ->columnSpan(3),
+                            DatePicker::make('end_date')
+                                ->label('End Date')
                                 ->required()
                                 ->columnSpan(3),
                     ]),
                     Grid::make('')
                         ->columns(12)
                         ->schema([
+                            DatePicker::make('date')
+                                ->label('Date')
+                                ->required()
+                                ->columnSpan(3),
                             TextInput::make('percentage')
                                 ->label('% Complete')
                                 ->required()
@@ -89,7 +114,7 @@ class ImplementationResource extends Resource
                             Textarea::make('remarks')
                                 ->label('Remarks')
                                 ->rows(3)
-                                ->columnSpan(6)
+                                ->columnSpan(12)
                                 ->placeholder('e.g. the document is awesome'),
                         ]),
 
@@ -124,6 +149,20 @@ class ImplementationResource extends Resource
                     ->sortable()
                     ->searchable()
                     ->description(fn ($record) => $record->project?->year . ' - ' . $record->project?->code, position: 'above'),
+                TextColumn::make('start_date')
+                    ->label('Start Date')
+                    ->date('M d, Y')
+                    ->badge()
+                    ->color('warning')
+                    ->sortable()
+                    ->toggleable(),
+                TextColumn::make('end_date')
+                    ->label('End Date')
+                    ->date('M d, Y')
+                    ->badge()
+                    ->color('warning')
+                    ->sortable()
+                    ->toggleable(),
                 TextColumn::make('date')
                     ->label('Date')
                     ->date('M d, Y')
@@ -171,17 +210,6 @@ class ImplementationResource extends Resource
                     ->relationship('project', 'name')
                     ->searchable()
                     ->preload(),
-                Tables\Filters\Filter::make('date_range')
-                    ->label('Date Range')
-                    ->form([
-                        Forms\Components\DatePicker::make('from')->label('From'),
-                        Forms\Components\DatePicker::make('until')->label('Until'),
-                    ])
-                    ->query(function (Builder $q, array $data) {
-                        return $q
-                            ->when($data['from'] ?? null, fn ($qq, $d) => $qq->whereDate('date', '>=', $d))
-                            ->when($data['until'] ?? null, fn ($qq, $d) => $qq->whereDate('date', '<=', $d));
-                    }),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make()->modalHeading('Implementation Details'),

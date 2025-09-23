@@ -10,6 +10,8 @@ class Implementation extends Model
     use SoftDeletes;
 
     protected $fillable = [
+        'start_date',
+        'end_date',
         'date',
         'percentage',
         'remarks',

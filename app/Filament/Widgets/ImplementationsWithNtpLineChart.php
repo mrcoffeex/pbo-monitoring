@@ -35,7 +35,7 @@ class ImplementationsWithNtpLineChart extends ChartWidget
                 $query->whereNotNull('ntp_number')
                       ->where('ntp_number', '!=', '');
             })
-            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+            ->whereBetween('end_date', [$startOfMonth, $endOfMonth])
             ->count();
 
             $implementationsData[] = $monthlyCount;

@@ -334,6 +334,19 @@
             <x-slot name="heading">Implementation</x-slot>
             <div class="{{ $sectionBody }}">
                 @forelse ($implementations as $imp)
+                    @if ($loop->first)
+                        <x-item-badge
+                            label="start date"
+                            :value="$imp->start_date"
+                            :isDay="true"
+                        />
+                        <x-item-badge
+                            label="end date"
+                            :value="$imp->end_date"
+                            :isDay="true"
+                            class="mb-2"
+                        />
+                    @endif
                     <div class="{{ $cardWrap }}">
                         <x-item-badge
                             label="Date"

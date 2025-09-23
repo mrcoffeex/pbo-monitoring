@@ -251,6 +251,14 @@
             <td class="small">
                 @if($project->implementations?->count())
                     @foreach($project->implementations as $imp)
+                        @if ($loop->first)
+                            <span>
+                                Start Date: <span class="value">{{ $date($imp->start_date) }}</span>
+                            </span><br>
+                            <span>
+                                End Date: <span class="value">{{ $date($imp->end_date) }}</span>
+                            </span><br>
+                        @endif
                         <li>
                             <span>
                                 Date: <span class="value">{{ $date($imp->date) }}</span>

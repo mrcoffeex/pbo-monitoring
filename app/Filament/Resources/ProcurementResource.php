@@ -53,11 +53,9 @@ class ProcurementResource extends Resource
                                     ->columnSpan(9),
                                 TextInput::make('ib_number')
                                     ->label('IB Number')
-                                    ->autofocus()
                                     ->required()
-                                    ->minLength(1)
                                     ->maxLength(50)
-                                    ->placeholder('e.g. 0000')
+                                    ->default('C-')
                                     ->columnSpan(3),
                             ]),
                         Grid::make('')
