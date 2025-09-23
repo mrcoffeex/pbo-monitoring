@@ -246,38 +246,15 @@ class ProjectResource extends Resource
                     ->default(now()->year),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make()->modalHeading('Project Details'),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->button()
+                    ->color('info'),
+                Tables\Actions\DeleteAction::make()
+                    ->button(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\BulkAction::make('export_csv')
-                        ->label('Export CSV')
-                        ->icon('heroicon-o-arrow-down-tray')
-                        ->action(function ($records) {
-                            $csv = collect([
-                                ['ID','Status','Res. Center','Project','Appropriation','Allotment'],
-                            ])->merge(
-                                $records->map(fn ($r) => [
-                                    $r->id,
-                                    $r->status,
-                                    $r->code,
-                                    $r->name,
-                                    $r->appropriation,
-                                    $r->allotment,
-                                ])
-                            )->map(fn ($row) => implode(',', array_map(fn ($v) => '"'.str_replace('"','""',$v).'"', $row)))->implode("\n");
-
-                            return response($csv)
-                                ->withHeaders([
-                                    'Content-Type' => 'text/csv',
-                                    'Content-Disposition' => 'attachment; filename=projects.csv',
-                                ]);
-                        })
-                        ->requiresConfirmation()
-                        ->color('primary'),
                 ]),
             ])
             ->emptyStateIcon('heroicon-o-folder-open')
