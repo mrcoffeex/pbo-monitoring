@@ -58,7 +58,6 @@ class PurchaseRequestControlResource extends Resource
                                 $set('amount', number_format($value, 2));
                             })
                             ->searchable()
-                            ->unique(ignoreRecord: true)
                             ->required()
                             ->columnSpan(9),
                         DatePicker::make('controlled_date')

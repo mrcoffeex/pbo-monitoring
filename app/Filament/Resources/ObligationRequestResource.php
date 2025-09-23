@@ -61,7 +61,6 @@ class ObligationRequestResource extends Resource
                                         $set('amount', number_format($value, 2));
                                     })
                                     ->searchable()
-                                    ->unique(ignoreRecord: true)
                                     ->required()
                                     ->columnSpan(9),
                                 DatePicker::make('controlled_date')
@@ -220,7 +219,7 @@ class ObligationRequestResource extends Resource
 
     public static function getLabel(): string
     {
-        return 'Obligation Request';
+        return 'OBR / FURS';
     }
 
     public static function getNavigationBadge(): ?string

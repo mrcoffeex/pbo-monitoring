@@ -42,7 +42,6 @@ class ProcurementControlResource extends Resource
                                 ])
                             )
                             ->searchable()
-                            ->unique(ignoreRecord: true)
                             ->required()
                             ->columnSpan(9),
                         DatePicker::make('controlled_date')

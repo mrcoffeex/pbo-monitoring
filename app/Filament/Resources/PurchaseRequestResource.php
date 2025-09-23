@@ -43,7 +43,6 @@ class PurchaseRequestResource extends Resource
                                 ])
                             )
                             ->searchable()
-                            ->unique(ignoreRecord: true)
                             ->required()
                             ->columnSpan(9),
                         DatePicker::make('received_date')

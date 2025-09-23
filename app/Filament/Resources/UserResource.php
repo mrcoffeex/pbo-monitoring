@@ -49,8 +49,8 @@ class UserResource extends Resource
                     Select::make('roles')
                         ->relationship('roles', 'name')
                         ->required()
-                        ->multiple()
                         ->preload()
+                        ->multiple()
                         ->searchable()
                         ->columnSpan(6),
                 ]),

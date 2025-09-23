@@ -49,7 +49,6 @@ class ProcurementResource extends Resource
                                         ])
                                     )
                                     ->searchable()
-                                    ->unique(ignoreRecord: true)
                                     ->required()
                                     ->columnSpan(9),
                                 TextInput::make('ib_number')
