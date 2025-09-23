@@ -69,6 +69,7 @@ class PaymentResource extends Resource
                                     $set('balance', number_format($balance, 2));
                                 })
                                 ->columnSpan(9),
+
                                 DatePicker::make('date')
                                     ->label('Date of Payment')
                                     ->required()
@@ -82,6 +83,7 @@ class PaymentResource extends Resource
                                     ->options(CustomOptions::PAYMENTS)
                                     ->required()
                                     ->columnSpan(3),
+
                                 TextInput::make('amount')
                                     ->label('Amount')
                                     ->required()
@@ -92,6 +94,7 @@ class PaymentResource extends Resource
                                     ->mask(RawJs::make('$money($input)'))
                                     ->stripCharacters(',')
                                     ->columnSpan(3),
+
                                 TextInput::make('current_payments')
                                     ->label('Current Total Payments')
                                     ->disabled()
@@ -102,6 +105,7 @@ class PaymentResource extends Resource
                                     ->stripCharacters(',')
                                     ->minValue(0)
                                     ->columnSpan(3),
+
                                 TextInput::make('balance')
                                     ->label('Total Balance')
                                     ->disabled()
@@ -111,6 +115,25 @@ class PaymentResource extends Resource
                                     ->mask(RawJs::make('$money($input)'))
                                     ->stripCharacters(',')
                                     ->minValue(0)
+                                    ->columnSpan(3),
+
+                                TextInput::make('payable_reference')
+                                    ->label('Payable Reference')
+                                    ->placeholder('Enter payable reference')
+                                    ->columnSpan(3),
+
+                                TextInput::make('payment_reference')
+                                    ->label('Payment Reference')
+                                    ->placeholder('Enter payment reference')
+                                    ->columnSpan(3),
+
+                                TextInput::make('check_number')
+                                    ->label('Check Number')
+                                    ->placeholder('Enter check number (if applicable)')
+                                    ->columnSpan(3),
+
+                                DatePicker::make('check_date')
+                                    ->label('Check Date')
                                     ->columnSpan(3),
                             ]),
 
@@ -167,6 +190,37 @@ class PaymentResource extends Resource
                     ->color('info')
                     ->sortable()
                     ->toggleable(),
+                TextColumn::make('payable_reference')
+                    ->label('Payable Ref.')
+                    ->wrap()
+                    ->limit(20)
+                    ->tooltip(fn ($record) => $record->payable_reference)
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
+                TextColumn::make('payment_reference')
+                    ->label('Payment Ref.')
+                    ->wrap()
+                    ->limit(20)
+                    ->tooltip(fn ($record) => $record->payment_reference)
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
+                TextColumn::make('check_number')
+                    ->label('Check No.')
+                    ->wrap()
+                    ->limit(15)
+                    ->tooltip(fn ($record) => $record->check_number)
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
+                TextColumn::make('check_date')
+                    ->label('Check Date')
+                    ->date('M d, Y')
+                    ->badge()
+                    ->color('info')
+                    ->sortable()
+                    ->toggleable(),
                 TextColumn::make('user.name')
                     ->label('Created By')
                     ->badge()
@@ -211,9 +265,11 @@ class PaymentResource extends Resource
                     }),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make()->modalHeading('Payment Details'),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->button()
+                    ->color('info'),
+                Tables\Actions\DeleteAction::make()
+                    ->button(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

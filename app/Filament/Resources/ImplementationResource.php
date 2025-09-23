@@ -84,7 +84,7 @@ class ImplementationResource extends Resource
                                 ->required()
                                 ->columnSpan(3),
                             DatePicker::make('end_date')
-                                ->label('End Date')
+                                ->label('Completion Date')
                                 ->required()
                                 ->columnSpan(3),
                     ]),
@@ -157,7 +157,7 @@ class ImplementationResource extends Resource
                     ->sortable()
                     ->toggleable(),
                 TextColumn::make('end_date')
-                    ->label('End Date')
+                    ->label('Completion Date')
                     ->date('M d, Y')
                     ->badge()
                     ->color('warning')

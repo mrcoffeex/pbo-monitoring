@@ -28,6 +28,8 @@ class CustomOptions
         'second_partial' => 'Second Partial Payment',
         'third_partial' => 'Third Partial Payment',
         'fourth_partial' => 'Fourth Partial Payment',
+        'fifth_partial' => 'Fifth Partial Payment',
+        'sixth_partial' => 'Sixth Partial Payment',
         'final_payment' => 'Final Payment',
     ];
 }

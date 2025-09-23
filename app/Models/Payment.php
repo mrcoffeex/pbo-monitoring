@@ -13,6 +13,10 @@ class Payment extends Model
         'type',
         'date',
         'amount',
+        'payable_reference',
+        'payment_reference',
+        'check_number',
+        'check_date',
         'user_id',
         'project_id',
     ];

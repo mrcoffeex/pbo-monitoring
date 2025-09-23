@@ -336,12 +336,12 @@
                 @forelse ($implementations as $imp)
                     @if ($loop->first)
                         <x-item-badge
-                            label="start date"
+                            label="Start date"
                             :value="$imp->start_date"
                             :isDay="true"
                         />
                         <x-item-badge
-                            label="end date"
+                            label="Completion date"
                             :value="$imp->end_date"
                             :isDay="true"
                             class="mb-2"
@@ -397,6 +397,23 @@
                             label="Amount"
                             :value="$pay->amount"
                             :isMoney="true"
+                        />
+                        <x-item-badge
+                            label="Payable Ref."
+                            :value="$pay->payable_reference"
+                        />
+                        <x-item-badge
+                            label="Payment Ref."
+                            :value="$pay->payment_reference"
+                        />
+                        <x-item-badge
+                            label="Check Number"
+                            :value="$pay->check_number"
+                        />
+                        <x-item-badge
+                            label="Check Date"
+                            :value="$pay->check_date"
+                            :isDay="true"
                         />
                         <x-item-badge label="Created By" :value="$pay->user->name" :isCreator="true" />
                     </div>

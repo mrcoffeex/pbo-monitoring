@@ -256,7 +256,7 @@
                                 Start Date: <span class="value">{{ $date($imp->start_date) }}</span>
                             </span><br>
                             <span>
-                                End Date: <span class="value">{{ $date($imp->end_date) }}</span>
+                                Completion Date: <span class="value">{{ $date($imp->end_date) }}</span>
                             </span><br>
                         @endif
                         <li>
@@ -293,6 +293,18 @@
                             <strong>
                                 Amount: <span class="value">{{ $money($pay->amount) }}</span>
                             </strong><br>
+                            <span>
+                                Payable Ref.: <span class="value">{{ $sanitize($pay->payable_reference) }}</span>
+                            </span><br>
+                            <span>
+                                Payment Ref.: <span class="value">{{ $sanitize($pay->payment_reference) }}</span>
+                            </span><br>
+                            <span>
+                                Check Number: <span class="value">{{ $sanitize($pay->check_number) }}</span>
+                            </span><br>
+                            <span>
+                                Check Date: <span class="value">{{ $date($pay->check_date) }}</span>
+                            </span><br>
                         </li>
                     @endforeach
                 @else
