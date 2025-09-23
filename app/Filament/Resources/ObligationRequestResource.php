@@ -174,9 +174,11 @@ class ObligationRequestResource extends Resource
                     }),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make()->modalHeading('OBR Details'),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->button()
+                    ->color('info'),
+                Tables\Actions\DeleteAction::make()
+                    ->button(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

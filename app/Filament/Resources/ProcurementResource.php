@@ -312,11 +312,11 @@ class ProcurementResource extends Resource
                     ->visible(fn () => in_array(SoftDeletingScope::class, class_uses_recursive(Procurement::class))),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make()
-                    ->modalHeading('Procurement Details')
-                    ->modalWidth('4xl'),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->button()
+                    ->color('info'),
+                Tables\Actions\DeleteAction::make()
+                    ->button(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

@@ -212,9 +212,11 @@ class ImplementationResource extends Resource
                     ->preload(),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make()->modalHeading('Implementation Details'),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->button()
+                    ->color('info'),
+                Tables\Actions\DeleteAction::make()
+                    ->button(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
