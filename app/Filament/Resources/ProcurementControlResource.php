@@ -144,8 +144,8 @@ class ProcurementControlResource extends Resource
             ->emptyStateActions([
                 Tables\Actions\CreateAction::make(),
             ])
-            ->paginated([25,50,100])
-            ->defaultPaginationPageOption(25);
+            ->paginated([15,25,50,100])
+            ->defaultPaginationPageOption(15);
     }
 
     public static function getLabel(): string
