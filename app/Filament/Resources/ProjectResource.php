@@ -242,8 +242,7 @@ class ProjectResource extends Resource
                                 $year => $year
                             ])
                             ->toArray()
-                    )
-                    ->default(now()->year),
+                    ),
             ])
             ->actions([
                 Tables\Actions\EditAction::make()
