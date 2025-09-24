@@ -344,7 +344,10 @@
                             label="Completion date"
                             :value="$imp->end_date"
                             :isDay="true"
-                            class="mb-2"
+                        />
+                        <x-item-badge
+                            label="Coordinates"
+                            :value="$imp->coordinates"
                         />
                     @endif
                     <div class="{{ $cardWrap }}">

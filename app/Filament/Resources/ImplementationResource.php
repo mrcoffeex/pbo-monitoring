@@ -77,6 +77,12 @@ class ImplementationResource extends Resource
                                     } else {
                                         $set('end_date', null);
                                     }
+
+                                    if ($latest?->coordinates) {
+                                        $set('coordinates', $latest->coordinates);
+                                    } else {
+                                        $set('coordinates', null);
+                                    }
                                 })
                                 ->columnSpan(6),
                             DatePicker::make('start_date')
@@ -110,6 +116,11 @@ class ImplementationResource extends Resource
                                 ->disabled()
                                 ->dehydrated(false)
                                 ->suffix('%')
+                                ->columnSpan(3),
+                            TextInput::make('coordinates')
+                                ->label('Coordinates')
+                                ->placeholder('e.g. 14.5995, 120.9842')
+                                ->helperText('Format: latitude, longitude')
                                 ->columnSpan(3),
                             Textarea::make('remarks')
                                 ->label('Remarks')
@@ -180,6 +191,10 @@ class ImplementationResource extends Resource
                         default => 'gray'
                     })
                     ->sortable()
+                    ->toggleable(),
+                TextColumn::make('coordinates')
+                    ->label('Coordinates')
+                    ->searchable()
                     ->toggleable(),
                 TextColumn::make('remarks')
                     ->label('Remarks')

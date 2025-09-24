@@ -15,6 +15,7 @@ class Implementation extends Model
         'date',
         'percentage',
         'remarks',
+        'coordinates',
         'user_id',
         'project_id',
     ];

@@ -130,7 +130,7 @@ class PurchaseRequestResource extends Resource
                     ->badge()
                     ->color('info')
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(),
                 TextColumn::make('created_at')
                     ->since()
                     ->tooltip(fn ($record) => $record->created_at?->format('Y-m-d H:i'))

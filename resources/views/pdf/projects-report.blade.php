@@ -258,6 +258,9 @@
                             <span>
                                 Completion Date: <span class="value">{{ $date($imp->end_date) }}</span>
                             </span><br>
+                            <span>
+                                Coordinates: <span class="value">{{ $sanitize($imp->coordinates) }}</span>
+                            </span><br>
                         @endif
                         <li>
                             <span>
