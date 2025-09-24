@@ -13,6 +13,7 @@ use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
@@ -67,8 +68,10 @@ class ProcurementResource extends Resource
                             DatePicker::make('pre_bid_conference')
                                 ->label('Pre Bid Conference Date')
                                 ->columnSpan(4),
-                            DatePicker::make('bid_opening')
+                            TagsInput::make('bid_opening')
                                 ->label('Bid Opening')
+                                ->placeholder('e.g. 2024-01-01')
+                                ->helperText('You can add up to 3 dates')
                                 ->columnSpan(4),
                         ]),
                         Grid::make('')
@@ -89,7 +92,7 @@ class ProcurementResource extends Resource
                                 ->rows(3)
                                 ->columnSpan(12)
                                 ->placeholder('e.g. the document is awesome')
-                                ]),
+                            ]),
                     ]),
 
                 Section::make('Notice of Award Details')
@@ -186,7 +189,6 @@ class ProcurementResource extends Resource
 
                 TextColumn::make('bid_opening')
                     ->label('Bid Opening')
-                    ->date('M d, Y')
                     ->badge()
                     ->color('warning')
                     ->sortable()

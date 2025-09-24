@@ -190,7 +190,9 @@
                                 Pre-Bid Conf.: <span class="value">{{ $date($proc->pre_bid_conference) }}</span>
                             </span><br>
                             <span>
-                                Bid Opening: <span class="value">{{ $date($proc->bid_opening) }}</span>
+                                Bid Opening: <span class="value">
+                                    {{ is_array($proc->bid_opening) ? implode(', ', array_filter($proc->bid_opening)) : $sanitize($proc->bid_opening) }}
+                                </span>
                             </span><br>
                             <span>
                                 BER: <span class="value">{{ $date($proc->ber) }}</span>

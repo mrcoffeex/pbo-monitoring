@@ -231,7 +231,7 @@
                         <x-item-badge
                             label="Bid Opening"
                             :value="$proc->bid_opening"
-                            :isDay="true"
+                            :isArray="true"
 
                         />
                         <x-item-badge

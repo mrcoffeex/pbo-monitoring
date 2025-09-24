@@ -27,6 +27,10 @@ class Procurement extends Model
         'project_id',
     ];
 
+    protected $casts = [
+        'bid_opening' => 'array',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);

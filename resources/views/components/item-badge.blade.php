@@ -6,6 +6,7 @@
     'tooltip' => null,
     'isDay' => false,
     'isCreator' => false, // highlight creator values
+    'isArray' => false,
 ])
 
 @php
@@ -24,7 +25,19 @@
     }
 
     $display = $value;
-    if ($isMoney && is_numeric($value)) {
+    if ($isArray && is_array($value)) {
+        $display = collect($value)
+            ->filter()
+            ->map(function ($item) {
+                if (\Carbon\Carbon::hasFormat($item, 'Y-m-d H:i:s')) {
+                    return \Carbon\Carbon::parse($item)->format('F d, Y');
+                } elseif (\Carbon\Carbon::hasFormat($item, 'Y-m-d')) {
+                    return \Carbon\Carbon::parse($item)->format('F d, Y');
+                }
+                return $item;
+            })
+            ->implode(', ');
+    } elseif ($isMoney && is_numeric($value)) {
         $display = '₱ ' . number_format($value, 2);
     } elseif ($isDay && is_numeric($value)) {
         $display = number_format($value, 0) . ' day' . ((int)$value === 1 ? '' : 's');
@@ -41,7 +54,7 @@
     @if(!empty($label))
         <span class="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ $label }}:</span>
     @endif
-    <x-filament::badge :color="$badgeColor" class="w-auto" :title="$value">
+    <x-filament::badge :color="$badgeColor" class="w-auto" :title="is_array($value) ? implode(', ', array_filter($value)) : $value">
         {{ $display }}
     </x-filament::badge>
 
