@@ -10,29 +10,89 @@ use Illuminate\Support\Facades\DB;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\HtmlString;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Form;
 
 class DashboardStats extends BaseWidget
 {
+    protected static ?int $sort = 1;
+
+    protected int | string | array $columnSpan = 'full';
+
+    public $selectedYear;
+
+    public function mount(): void
+    {
+        $this->selectedYear = now()->year;
+    }
+
+    public function form(Form $form): Form
+    {
+        // Get distinct years from projects and other models
+        $projectYears = Project::distinct()->orderBy('year', 'desc')->pluck('year')->toArray();
+
+        $allYears = array_unique($projectYears);
+        rsort($allYears);
+
+        $yearOptions = ['all' => 'All Years'];
+        foreach ($allYears as $year) {
+            $yearOptions[$year] = (string) $year;
+        }
+
+        return $form
+            ->schema([
+                Select::make('selectedYear')
+                    ->label('Filter by Year')
+                    ->options($yearOptions)
+                    ->default($this->selectedYear)
+                    ->live()
+                    ->afterStateUpdated(function ($state) {
+                        $this->selectedYear = $state;
+                    }),
+            ]);
+    }
 
     protected function getStats(): array
     {
-        function getModelGrowthStats(string $modelClass, string $dateColumn = 'created_at'): array
+        $selectedYear = $this->selectedYear ?? now()->year;
+
+        if ($selectedYear === 'all') {
+            $selectedYear = null;
+        } else {
+            $selectedYear = (int) $selectedYear;
+        }
+
+        function getModelGrowthStats(string $modelClass, ?int $year, string $dateColumn = 'created_at'): array
         {
             $now = now();
             $lastWeek = $now->copy()->subWeek()->startOfDay();
 
-            $total = $modelClass::count();
-            $lastWeekCount = $modelClass::where($dateColumn, '<', $lastWeek)->count();
+            $query = $modelClass::query();
+            if ($year !== null) {
+                $query->whereYear($dateColumn, $year);
+            }
+            $total = $query->count();
+
+            $lastWeekQuery = $modelClass::query();
+            if ($year !== null) {
+                $lastWeekQuery->whereYear($dateColumn, $year);
+            }
+            $lastWeekCount = $lastWeekQuery->where($dateColumn, '<', $lastWeek)->count();
+
             $growth = $total - $lastWeekCount;
             $growthPercent = $lastWeekCount > 0 ? round(($growth / $lastWeekCount) * 100, 1) : 0;
 
-            $dailyCountsRaw = $modelClass::query()
+            $dailyQuery = $modelClass::query()
                 ->selectRaw("DATE($dateColumn) as date, COUNT(*) as count")
                 ->whereDate($dateColumn, '>=', $now->copy()->subDays(6)->startOfDay())
                 ->groupByRaw("DATE($dateColumn)")
-                ->orderByRaw("DATE($dateColumn)")
-                ->pluck('count', 'date')
-                ->toArray();
+                ->orderByRaw("DATE($dateColumn)");
+
+            if ($year !== null) {
+                $dailyQuery->whereYear($dateColumn, $year);
+            }
+
+            $dailyCountsRaw = $dailyQuery->pluck('count', 'date')->toArray();
 
             $dailyCounts = [];
 
@@ -50,19 +110,30 @@ class DashboardStats extends BaseWidget
             ];
         }
 
-        $userStats = getModelGrowthStats(User::class);
-        $paymentStats = getModelGrowthStats(Payment::class);
+        $paymentStats = getModelGrowthStats(Payment::class, $selectedYear);
 
-        $noPurchaseRequestCount = Project::doesntHave('purchase_requests')->count();
-        $totalProjects = Project::count();
+        $projectQuery = Project::query();
+        if ($selectedYear !== null) {
+            $projectQuery->where('year', $selectedYear);
+        }
+
+        $noPurchaseRequestCount = (clone $projectQuery)->doesntHave('purchase_requests')->count();
+        $totalProjects = (clone $projectQuery)->count();
         $noPurchaseRequestPercent = $totalProjects > 0 ? round(($noPurchaseRequestCount / $totalProjects) * 100, 1) : 0;
 
-        $withPurchaseRequests = Project::has('purchase_requests')->count();
+        $withPurchaseRequests = (clone $projectQuery)->has('purchase_requests')->count();
         $withPurchaseRequestsPercent = $totalProjects > 0 ? round(($withPurchaseRequests / $totalProjects) * 100, 1) : 0;
 
         $lastWeekBoundary = now()->copy()->subWeek()->startOfDay();
-        $paymentsTotalAmount = (float) Payment::sum('amount');
-        $paymentsLastWeekAmount = (float) Payment::where('created_at', '<', $lastWeekBoundary)->sum('amount');
+
+        $paymentQuery = Payment::query();
+        if ($selectedYear !== null) {
+            $paymentQuery->whereYear('created_at', $selectedYear);
+        }
+
+        $paymentsTotalAmount = (float) (clone $paymentQuery)->sum('amount');
+        $paymentsLastWeekAmount = (float) (clone $paymentQuery)
+            ->where('created_at', '<', $lastWeekBoundary)->sum('amount');
         $paymentsGrowthAmount = $paymentsTotalAmount - $paymentsLastWeekAmount;
         $paymentsGrowthPercent = $paymentsLastWeekAmount > 0
             ? round(($paymentsGrowthAmount / $paymentsLastWeekAmount) * 100, 1)
@@ -78,7 +149,7 @@ class DashboardStats extends BaseWidget
             ->distinct()
             ->count('user_id');
         $totalUsers = User::count();
-        $onlinePercent = $totalUsers > 0 ? round(($onlineUsers / max($totalUsers,1)) * 100, 1) : 0;
+        $onlinePercent = $totalUsers > 0 ? round(($onlineUsers / max($totalUsers, 1)) * 100, 1) : 0;
 
         return [
             Stat::make('Users Online', $onlineUsers)
@@ -88,10 +159,7 @@ class DashboardStats extends BaseWidget
                 ->extraAttributes([
                     'class' => 'shadow-md ring-1 ring-offset-1 ring-primary-100 transition-all duration-300 hover:scale-[1.02]',
                 ]),
-            Stat::make('Projects', Project::where([
-                    'year' => now()->format('Y'),
-                    'status' => 'released',
-                ])->count())
+            Stat::make('Projects', Project::when($selectedYear, fn($q) => $q->where('year', $selectedYear))->where('status', 'released')->count())
                 ->label('Projects')
                 ->description('Released Projects')
                 ->icon('heroicon-o-folder-open')
@@ -111,7 +179,7 @@ class DashboardStats extends BaseWidget
                     'class' => 'shadow-md ring-1 ring-offset-1 ring-primary-100 transition-all duration-300 hover:scale-[1.02]',
                 ]),
 
-            Stat::make('Procurements', Procurement::count())
+            Stat::make('Procurements', Procurement::when($selectedYear, fn($q) => $q->whereHas('project', fn($p) => $p->where('year', $selectedYear)))->count())
                 ->label('Procurements')
                 ->description('Projects with On-Going Procurements')
                 ->icon('heroicon-o-shopping-cart')
@@ -120,7 +188,8 @@ class DashboardStats extends BaseWidget
                     'class' => 'shadow-md ring-1 ring-offset-1 ring-primary-100 transition-all duration-300 hover:scale-[1.02]',
                 ]),
 
-            Stat::make('Issued NOA', Procurement::whereNotNull('noa_date_received')->count())
+            Stat::make('Issued NOA', Procurement::whereNotNull('noa_date_received')
+                ->when($selectedYear, fn($q) => $q->whereHas('project', fn($p) => $p->where('year', $selectedYear)))->count())
                 ->description('Projects with Issued NOA')
                 ->icon('heroicon-o-document-text')
                 ->color('primary')
@@ -128,7 +197,8 @@ class DashboardStats extends BaseWidget
                     'class' => 'shadow-md ring-1 ring-offset-1 ring-primary-100 transition-all duration-300 hover:scale-[1.02]',
                 ]),
 
-            Stat::make('Issued NTP', Procurement::whereNotNull('ntp_number')->count())
+            Stat::make('Issued NTP', Procurement::whereNotNull('ntp_number')
+                ->when($selectedYear, fn($q) => $q->whereHas('project', fn($p) => $p->where('year', $selectedYear)))->count())
                 ->description('Projects with Issued NTP')
                 ->icon('heroicon-o-document-text')
                 ->color('primary')
