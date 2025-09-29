@@ -14,6 +14,16 @@ class MonthlyPaymentsLineChart extends ChartWidget
 
     protected static ?string $maxHeight = '250px';
 
+    public function getColumnSpan(): int|string|array
+    {
+        return [
+            'default' => 1,
+            'md' => 2,
+            'lg' => 2,
+            'xl' => 3,
+        ];
+    }
+
     protected function getData(): array
     {
         // Get the selected filter (year)
@@ -34,7 +44,7 @@ class MonthlyPaymentsLineChart extends ChartWidget
             $endOfMonth = $month->copy()->endOfMonth();
 
             // Sum all payments within this month, filtered by project year
-            $monthlyTotal = Payment::whereBetween('created_at', [$startOfMonth, $endOfMonth])
+            $monthlyTotal = Payment::whereBetween('date', [$startOfMonth, $endOfMonth])
                 ->whereHas('project', function($query) use ($selectedYear) {
                     $query->where('year', $selectedYear);
                 })

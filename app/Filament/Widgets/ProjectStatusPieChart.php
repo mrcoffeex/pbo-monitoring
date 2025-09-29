@@ -13,6 +13,16 @@ class ProjectStatusPieChart extends ChartWidget
 
     protected static ?string $maxHeight = '250px';
 
+    public function getColumnSpan(): int|string|array
+    {
+        return [
+            'default' => 1,
+            'md' => 2,
+            'lg' => 2,
+            'xl' => 3,
+        ];
+    }
+
     private array $statusCounts = [];
 
     protected function getData(): array

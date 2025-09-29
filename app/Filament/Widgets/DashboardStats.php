@@ -7,195 +7,231 @@ use App\Models\Payment;
 use App\Models\Procurement;
 use App\Models\Project;
 use Illuminate\Support\Facades\DB;
-use Filament\Widgets\StatsOverviewWidget as BaseWidget;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
+use Filament\Widgets\Widget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\HtmlString;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Form;
 
-class DashboardStats extends BaseWidget
+class DashboardStats extends Widget
 {
-    protected function getStats(): array
+    protected static string $view = 'filament.widgets.dashboard-stats';
+
+    protected static ?int $sort = 0; // Render first
+
+    public string $year;
+
+    public function getColumnSpan(): int|string|array
     {
-        $selectedYear = now()->year;
+        return 'full';
+    }
 
-        function getModelGrowthStats(string $modelClass, ?int $year, string $dateColumn = 'created_at'): array
-        {
-            $now = now();
-            $lastWeek = $now->copy()->subWeek()->startOfDay();
+    public function mount(): void
+    {
+        $this->year = (string) now()->year;
+    }
 
-            $query = $modelClass::query();
-            if ($year !== null) {
-                $query->whereYear($dateColumn, $year);
-            }
-            $total = $query->count();
+    public function updatedYear(): void
+    {
+        Log::info('Dashboard year updated', [
+            'new_year' => $this->year,
+            'user_id'  => Auth::id(),
+        ]);
+    }
 
-            $lastWeekQuery = $modelClass::query();
-            if ($year !== null) {
-                $lastWeekQuery->whereYear($dateColumn, $year);
-            }
-            $lastWeekCount = $lastWeekQuery->where($dateColumn, '<', $lastWeek)->count();
+    public function getAvailableYears(): array
+    {
+        $years = Project::query()
+            ->whereNotNull('year')
+            ->distinct()
+            ->orderBy('year', 'desc')
+            ->pluck('year')
+            ->map(fn ($y) => (string) $y)
+            ->toArray();
 
-            $growth = $total - $lastWeekCount;
-            $growthPercent = $lastWeekCount > 0 ? round(($growth / $lastWeekCount) * 100, 1) : 0;
-
-            $dailyQuery = $modelClass::query()
-                ->selectRaw("DATE($dateColumn) as date, COUNT(*) as count")
-                ->whereDate($dateColumn, '>=', $now->copy()->subDays(6)->startOfDay())
-                ->groupByRaw("DATE($dateColumn)")
-                ->orderByRaw("DATE($dateColumn)");
-
-            if ($year !== null) {
-                $dailyQuery->whereYear($dateColumn, $year);
-            }
-
-            $dailyCountsRaw = $dailyQuery->pluck('count', 'date')->toArray();
-
-            $dailyCounts = [];
-
-            for ($i = 6; $i >= 0; $i--) {
-                $date = $now->copy()->subDays($i)->toDateString();
-                $dailyCounts[$date] = $dailyCountsRaw[$date] ?? 0;
-            }
-
-            return [
-                'total' => $total,
-                'last_week' => $lastWeekCount,
-                'growth' => $growth,
-                'growth_percent' => $growthPercent,
-                'daily_counts' => $dailyCounts,
-            ];
+        if (empty($years)) {
+            $years[] = (string) now()->year;
         }
 
-        $paymentStats = getModelGrowthStats(Payment::class, $selectedYear);
+        $currentYear = (string) now()->year;
 
-        $projectQuery = Project::query();
+        $availableYears = [];
+
+        if (in_array($currentYear, $years)) {
+            $availableYears[$currentYear] = $currentYear;
+            $years = array_diff($years, [$currentYear]);
+        }
+
+        foreach ($years as $year) {
+            $availableYears[$year] = $year;
+        }
+
+        $availableYears['all'] = 'All Years';
+
+        return $availableYears;
+    }
+
+    public function getStatsProperty(): array
+    {
+        try {
+            $selectedYear = $this->year === 'all' ? null : (int) $this->year;
+
+            // Debug log to see when stats are recalculated
+            Log::info('Recalculating stats for year: ' . $this->year);
+
+        $paymentStats = $this->getModelGrowthStats(Payment::class, $selectedYear);
+
+        $projectBase = Project::query();
         if ($selectedYear !== null) {
-            $projectQuery->where('year', $selectedYear);
+            $projectBase->where('year', $selectedYear);
         }
 
-        $noPurchaseRequestCount = (clone $projectQuery)->doesntHave('purchase_requests')->count();
-        $totalProjects = (clone $projectQuery)->count();
-        $noPurchaseRequestPercent = $totalProjects > 0 ? round(($noPurchaseRequestCount / $totalProjects) * 100, 1) : 0;
+        $noPurchaseRequestCount    = (clone $projectBase)->doesntHave('purchase_requests')->count();
+        $totalProjects             = (clone $projectBase)->count();
+        $withPurchaseRequests      = (clone $projectBase)->has('purchase_requests')->count();
 
-        $withPurchaseRequests = (clone $projectQuery)->has('purchase_requests')->count();
-        $withPurchaseRequestsPercent = $totalProjects > 0 ? round(($withPurchaseRequests / $totalProjects) * 100, 1) : 0;
+        $noPurchaseRequestPercent    = $totalProjects ? round(($noPurchaseRequestCount / $totalProjects) * 100, 1) : 0;
+        $withPurchaseRequestsPercent = $totalProjects ? round(($withPurchaseRequests / $totalProjects) * 100, 1) : 0;
 
         $lastWeekBoundary = now()->copy()->subWeek()->startOfDay();
 
         $paymentQuery = Payment::query();
         if ($selectedYear !== null) {
-            $paymentQuery->whereYear('created_at', $selectedYear);
+            $paymentQuery->whereYear('date', $selectedYear);
         }
 
-        $paymentsTotalAmount = (float) (clone $paymentQuery)->sum('amount');
-        $paymentsLastWeekAmount = (float) (clone $paymentQuery)
-            ->where('created_at', '<', $lastWeekBoundary)->sum('amount');
-        $paymentsGrowthAmount = $paymentsTotalAmount - $paymentsLastWeekAmount;
-        $paymentsGrowthPercent = $paymentsLastWeekAmount > 0
+        $paymentsTotalAmount    = (float) (clone $paymentQuery)->sum('amount');
+        $paymentsLastWeekAmount = (float) (clone $paymentQuery)->where('created_at', '<', $lastWeekBoundary)->sum('amount');
+        $paymentsGrowthAmount   = $paymentsTotalAmount - $paymentsLastWeekAmount;
+        $paymentsGrowthPercent  = $paymentsLastWeekAmount > 0
             ? round(($paymentsGrowthAmount / $paymentsLastWeekAmount) * 100, 1)
             : 0.0;
 
         $currency = fn($v) => '₱ ' . number_format($v, 2);
 
-        // Online users (active within last 10 minutes via sessions table)
         $onlineWindowMinutes = 10;
         $onlineUsers = DB::table('sessions')
             ->whereNotNull('user_id')
             ->where('last_activity', '>=', now()->subMinutes($onlineWindowMinutes)->getTimestamp())
             ->distinct()
             ->count('user_id');
-        $totalUsers = User::count();
-        $onlinePercent = $totalUsers > 0 ? round(($onlineUsers / max($totalUsers, 1)) * 100, 1) : 0;
+        $totalUsers    = User::count();
+        $onlinePercent = $totalUsers ? round($onlineUsers / $totalUsers * 100, 1) : 0;
 
-        return [
+        $stats = [
             Stat::make('Users Online', $onlineUsers)
-                ->description(new HtmlString("<span class='text-xs'>{$onlinePercent}% of {$totalUsers} users active (last {$onlineWindowMinutes}m)</span>"))
+                ->description(new HtmlString("<span class='text-xs'>{$onlinePercent}% of {$totalUsers} users (last {$onlineWindowMinutes}m)</span>"))
                 ->icon('heroicon-o-signal')
-                ->color($onlineUsers > 0 ? 'success' : 'gray')
-                ->extraAttributes([
-                    'class' => 'shadow-md ring-1 ring-offset-1 ring-primary-100 transition-all duration-300 hover:scale-[1.02]',
-                ]),
-            Stat::make('Projects', Project::when($selectedYear, fn($q) => $q->where('year', $selectedYear))->where('status', 'released')->count())
-                ->label('Projects')
+                ->color($onlineUsers > 0 ? 'success' : 'gray'),
+
+            Stat::make('Projects', Project::when($selectedYear, fn($q) => $q->where('year', $selectedYear))
+                ->where('status', 'released')
+                ->count())
                 ->description('Released Projects')
                 ->icon('heroicon-o-folder-open')
-                ->color('info')
-                ->extraAttributes([
-                    'class' => 'shadow-md ring-1 ring-offset-1 ring-primary-100 transition-all duration-300 hover:scale-[1.02]',
-                ]),
+                ->color('info'),
 
             Stat::make('Disbursements', $currency($paymentsTotalAmount))
-                ->description("Up by {$paymentsGrowthPercent}% vs last week")
+                ->description("Change vs last week: {$paymentsGrowthPercent}%")
                 ->descriptionIcon($paymentsGrowthAmount >= 0 ? 'heroicon-o-chevron-up' : 'heroicon-o-chevron-down')
                 ->color($paymentsGrowthAmount >= 0 ? 'success' : 'primary')
                 ->icon('heroicon-o-currency-dollar')
-                ->chartColor($paymentsGrowthAmount >= 0 ? 'success' : 'primary')
-                ->chart(array_values($paymentStats['daily_counts']))
-                ->extraAttributes([
-                    'class' => 'shadow-md ring-1 ring-offset-1 ring-primary-100 transition-all duration-300 hover:scale-[1.02]',
-                ]),
+                ->chart(array_values($paymentStats['daily_counts'])),
 
-            Stat::make('Procurements', Procurement::when($selectedYear, fn($q) => $q->whereHas('project', fn($p) => $p->where('year', $selectedYear)))->count())
-                ->label('Procurements')
-                ->description('Projects with On-Going Procurements')
+            Stat::make('Procurements', Procurement::when(
+                $selectedYear,
+                fn($q) => $q->whereHas('project', fn($p) => $p->where('year', $selectedYear))
+            )->count())
+                ->description('On-Going Procurements')
                 ->icon('heroicon-o-shopping-cart')
-                ->color('primary')
-                ->extraAttributes([
-                    'class' => 'shadow-md ring-1 ring-offset-1 ring-primary-100 transition-all duration-300 hover:scale-[1.02]',
-                ]),
+                ->color('primary'),
 
             Stat::make('Issued NOA', Procurement::whereNotNull('noa_date_received')
                 ->when($selectedYear, fn($q) => $q->whereHas('project', fn($p) => $p->where('year', $selectedYear)))->count())
-                ->description('Projects with Issued NOA')
+                ->description('Projects with NOA')
                 ->icon('heroicon-o-document-text')
-                ->color('primary')
-                ->extraAttributes([
-                    'class' => 'shadow-md ring-1 ring-offset-1 ring-primary-100 transition-all duration-300 hover:scale-[1.02]',
-                ]),
+                ->color('primary'),
 
             Stat::make('Issued NTP', Procurement::whereNotNull('ntp_number')
                 ->when($selectedYear, fn($q) => $q->whereHas('project', fn($p) => $p->where('year', $selectedYear)))->count())
-                ->description('Projects with Issued NTP')
+                ->description('Projects with NTP')
                 ->icon('heroicon-o-document-text')
-                ->color('primary')
-                ->extraAttributes([
-                    'class' => 'shadow-md ring-1 ring-offset-1 ring-primary-100 transition-all duration-300 hover:scale-[1.02]',
-                ]),
+                ->color('primary'),
 
             Stat::make('With Purchase Requests', $withPurchaseRequests)
                 ->description(new HtmlString("
                     <div class='space-y-1 text-xs'>
-                        <div class='flex justify-between'>
-                            <span>{$withPurchaseRequestsPercent}% with purchase requests out of {$totalProjects} of Registered Projects</span>
-                        </div>
-                        <div class='h-2 w-full rounded bg-gray-200/70 dark:bg-gray-800'>
-                            <div class='h-2 rounded bg-blue-500' style='width: {$withPurchaseRequestsPercent}%;'></div>
+                        <div>{$withPurchaseRequestsPercent}% with PR of {$totalProjects}</div>
+                        <div class='h-2 w-full rounded bg-gray-200 dark:bg-gray-800'>
+                            <div class='h-2 rounded bg-blue-500' style='width: {$withPurchaseRequestsPercent}%'></div>
                         </div>
                     </div>
                 "))
                 ->icon('heroicon-o-check')
-                ->color('info')
-                ->extraAttributes([
-                    'class' => 'shadow-md ring-1 ring-offset-1 ring-primary-100 transition-all duration-300 hover:scale-[1.02]',
-                ]),
+                ->color('info'),
 
             Stat::make('No Purchase Request', $noPurchaseRequestCount)
                 ->description(new HtmlString("
                     <div class='space-y-1 text-xs'>
-                        <div class='flex justify-between'>
-                            <span>{$noPurchaseRequestPercent}% without purchase requests out of {$totalProjects} of Registered Projects</span>
-                        </div>
-                        <div class='h-2 w-full rounded bg-gray-200/70 dark:bg-gray-800'>
-                            <div class='h-2 rounded bg-red-500' style='width: {$noPurchaseRequestPercent}%;'></div>
+                        <div>{$noPurchaseRequestPercent}% without PR of {$totalProjects}</div>
+                        <div class='h-2 w-full rounded bg-gray-200 dark:bg-gray-800'>
+                            <div class='h-2 rounded bg-red-500' style='width: {$noPurchaseRequestPercent}%'></div>
                         </div>
                     </div>
                 "))
                 ->icon('heroicon-o-x-mark')
-                ->color('danger')
-                ->extraAttributes([
-                    'class' => 'shadow-md ring-1 ring-offset-1 ring-primary-100 transition-all duration-300 hover:scale-[1.02]',
-                ]),
+                ->color('danger'),
+        ];
+
+        return $stats;
+        } catch (\Exception $e) {
+            Log::error('Error calculating dashboard stats', [
+                'error' => $e->getMessage(),
+                'year' => $this->year
+            ]);
+
+            return [
+                Stat::make('Error', 'Failed to load stats')
+                    ->description('Please try refreshing the page')
+                    ->icon('heroicon-o-exclamation-triangle')
+                    ->color('danger'),
+            ];
+        }
+    }
+
+    private function getModelGrowthStats(string $modelClass, ?int $year, string $dateColumn = 'created_at'): array
+    {
+        $now      = now();
+        $lastWeek = $now->copy()->subWeek()->startOfDay();
+
+        $total = $modelClass::when($year, fn($q) => $q->whereYear($dateColumn, $year))->count();
+
+        $lastWeekCount = $modelClass::when($year, fn($q) => $q->whereYear($dateColumn, $year))
+            ->where($dateColumn, '<', $lastWeek)
+            ->count();
+
+        $growth        = $total - $lastWeekCount;
+        $growthPercent = $lastWeekCount > 0 ? round(($growth / $lastWeekCount) * 100, 1) : 0;
+
+        $dailyRaw = $modelClass::when($year, fn($q) => $q->whereYear($dateColumn, $year))
+            ->selectRaw("DATE($dateColumn) as d, COUNT(*) as c")
+            ->whereDate($dateColumn, '>=', $now->copy()->subDays(6)->toDateString())
+            ->groupBy('d')
+            ->pluck('c', 'd')
+            ->toArray();
+
+        $daily = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $day = $now->copy()->subDays($i)->toDateString();
+            $daily[$day] = $dailyRaw[$day] ?? 0;
+        }
+
+        return [
+            'total'          => $total,
+            'last_week'      => $lastWeekCount,
+            'growth'         => $growth,
+            'growth_percent' => $growthPercent,
+            'daily_counts'   => $daily,
         ];
     }
 }
