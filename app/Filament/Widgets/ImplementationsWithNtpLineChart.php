@@ -16,13 +16,16 @@ class ImplementationsWithNtpLineChart extends ChartWidget
 
     protected function getData(): array
     {
-        // Get the last 12 months
+        // Get the selected filter (year)
+        $selectedYear = $this->filter ?? now()->year;
+
+        // Get the 12 months for the selected year
         $months = collect();
-        for ($i = 11; $i >= 0; $i--) {
-            $months->push(Carbon::now()->subMonths($i));
+        for ($i = 1; $i <= 12; $i++) {
+            $months->push(Carbon::createFromDate($selectedYear, $i, 1));
         }
 
-        // Get implementation data for the last 12 months
+        // Get implementation data for each month of the selected year
         $implementationsData = [];
         $labels = [];
 
@@ -30,10 +33,13 @@ class ImplementationsWithNtpLineChart extends ChartWidget
             $startOfMonth = $month->copy()->startOfMonth();
             $endOfMonth = $month->copy()->endOfMonth();
 
-            // Count implementations for projects that have NTP numbers
+            // Count implementations for projects that have NTP numbers, filtered by project year
             $monthlyCount = Implementation::whereHas('project.procurements', function ($query) {
                 $query->whereNotNull('ntp_number')
                       ->where('ntp_number', '!=', '');
+            })
+            ->whereHas('project', function($query) use ($selectedYear) {
+                $query->where('year', $selectedYear);
             })
             ->whereBetween('end_date', [$startOfMonth, $endOfMonth])
             ->count();
@@ -60,6 +66,22 @@ class ImplementationsWithNtpLineChart extends ChartWidget
             ],
             'labels' => $labels,
         ];
+    }
+
+    protected function getFilters(): ?array
+    {
+        // Get distinct years from projects
+        $projectYears = Project::distinct()
+            ->orderBy('year', 'desc')
+            ->pluck('year')
+            ->toArray();
+
+        $filters = [];
+        foreach ($projectYears as $year) {
+            $filters[(string) $year] = (string) $year;
+        }
+
+        return $filters;
     }
 
     protected function getType(): string

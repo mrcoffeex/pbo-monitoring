@@ -17,11 +17,14 @@ class ProjectStatusPieChart extends ChartWidget
 
     protected function getData(): array
     {
+        // Get the selected filter (year)
+        $selectedYear = $this->filter ?? now()->year;
+
         $projects = Project::with([
             'purchase_requests:id,project_id',
             'procurements:id,project_id,contract_amount',
             'payments:id,project_id,amount',
-        ])->get();
+        ])->where('year', $selectedYear)->get();
 
         $completed = 0;
         $ongoing = 0;
@@ -75,6 +78,22 @@ class ProjectStatusPieChart extends ChartWidget
                 "Not Started ($notStarted / $total = {$pNotStarted}%)",
             ],
         ];
+    }
+
+    protected function getFilters(): ?array
+    {
+        // Get distinct years from projects
+        $projectYears = Project::distinct()
+            ->orderBy('year', 'desc')
+            ->pluck('year')
+            ->toArray();
+
+        $filters = [];
+        foreach ($projectYears as $year) {
+            $filters[(string) $year] = (string) $year;
+        }
+
+        return $filters;
     }
 
     protected function getType(): string

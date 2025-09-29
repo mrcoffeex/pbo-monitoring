@@ -15,9 +15,12 @@ class FinancialStatusPieChart extends ChartWidget
 
     protected function getData(): array
     {
+        // Get the selected filter (year)
+        $selectedYear = $this->filter ?? now()->year;
+
         $projects = Project::with([
             'obligation_requests:id,project_id,amount',
-        ])->get();
+        ])->where('year', $selectedYear)->get();
 
         $totalAllotment = (float) $projects->sum('allotment');
         $totalObligated = (float) $projects->sum(function ($project) {
@@ -53,6 +56,22 @@ class FinancialStatusPieChart extends ChartWidget
                 "Remaining (₱" . number_format($remainingAllotment, 2) . " - {$percentageRemaining}%)",
             ],
         ];
+    }
+
+    protected function getFilters(): ?array
+    {
+        // Get distinct years from projects
+        $projectYears = Project::distinct()
+            ->orderBy('year', 'desc')
+            ->pluck('year')
+            ->toArray();
+
+        $filters = [];
+        foreach ($projectYears as $year) {
+            $filters[(string) $year] = (string) $year;
+        }
+
+        return $filters;
     }
 
     protected function getType(): string

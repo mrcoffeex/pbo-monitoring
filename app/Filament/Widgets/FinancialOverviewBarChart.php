@@ -16,9 +16,18 @@ class FinancialOverviewBarChart extends ChartWidget
 
     protected function getData(): array
     {
-        $totalAppropriation = (float) Project::sum('appropriation');
-        $totalObligated     = (float) ObligationRequest::sum('amount');
-        $totalDisbursed     = (float) Payment::sum('amount');
+        // Get the selected filter (year)
+        $selectedYear = $this->filter ?? now()->year;
+
+        // Filter data based on selected year
+        $totalAppropriation = (float) Project::where('year', $selectedYear)
+            ->sum('appropriation');
+        $totalObligated     = (float) ObligationRequest::whereHas('project', function($query) use ($selectedYear) {
+            $query->where('year', $selectedYear);
+        })->sum('amount');
+        $totalDisbursed     = (float) Payment::whereHas('project', function($query) use ($selectedYear) {
+            $query->where('year', $selectedYear);
+        })->sum('amount');
 
         return [
             'datasets' => [
@@ -44,6 +53,22 @@ class FinancialOverviewBarChart extends ChartWidget
                 'Disbursed',
             ],
         ];
+    }
+
+    protected function getFilters(): ?array
+    {
+        // Get distinct years from projects
+        $projectYears = Project::distinct()
+            ->orderBy('year', 'desc')
+            ->pluck('year')
+            ->toArray();
+
+        $filters = [];
+        foreach ($projectYears as $year) {
+            $filters[(string) $year] = (string) $year;
+        }
+
+        return $filters;
     }
 
     protected function getType(): string

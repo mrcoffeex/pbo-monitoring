@@ -3,25 +3,29 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Payment;
+use App\Models\Project;
 use Filament\Support\RawJs;
 use Filament\Widgets\ChartWidget;
 use Carbon\Carbon;
 
 class MonthlyPaymentsLineChart extends ChartWidget
 {
-    protected static ?string $heading = 'Total Payments per Month (Last 12 Months)';
+    protected static ?string $heading = 'Total Payments per Month';
 
     protected static ?string $maxHeight = '250px';
 
     protected function getData(): array
     {
-        // Get the last 12 months
+        // Get the selected filter (year)
+        $selectedYear = $this->filter ?? now()->year;
+
+        // Get the 12 months for the selected year
         $months = collect();
-        for ($i = 11; $i >= 0; $i--) {
-            $months->push(Carbon::now()->subMonths($i));
+        for ($i = 1; $i <= 12; $i++) {
+            $months->push(Carbon::createFromDate($selectedYear, $i, 1));
         }
 
-        // Get payment data for the last 12 months
+        // Get payment data for each month of the selected year
         $paymentsData = [];
         $labels = [];
 
@@ -29,8 +33,11 @@ class MonthlyPaymentsLineChart extends ChartWidget
             $startOfMonth = $month->copy()->startOfMonth();
             $endOfMonth = $month->copy()->endOfMonth();
 
-            // Sum all payments within this month
+            // Sum all payments within this month, filtered by project year
             $monthlyTotal = Payment::whereBetween('created_at', [$startOfMonth, $endOfMonth])
+                ->whereHas('project', function($query) use ($selectedYear) {
+                    $query->where('year', $selectedYear);
+                })
                 ->sum('amount');
 
             $paymentsData[] = (float) $monthlyTotal;
@@ -55,6 +62,22 @@ class MonthlyPaymentsLineChart extends ChartWidget
             ],
             'labels' => $labels,
         ];
+    }
+
+    protected function getFilters(): ?array
+    {
+        // Get distinct years from projects
+        $projectYears = Project::distinct()
+            ->orderBy('year', 'desc')
+            ->pluck('year')
+            ->toArray();
+
+        $filters = [];
+        foreach ($projectYears as $year) {
+            $filters[(string) $year] = (string) $year;
+        }
+
+        return $filters;
     }
 
     protected function getType(): string

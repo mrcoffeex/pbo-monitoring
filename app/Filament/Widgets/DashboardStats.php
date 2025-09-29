@@ -15,52 +15,9 @@ use Filament\Forms\Form;
 
 class DashboardStats extends BaseWidget
 {
-    protected static ?int $sort = 1;
-
-    protected int | string | array $columnSpan = 'full';
-
-    public $selectedYear;
-
-    public function mount(): void
-    {
-        $this->selectedYear = now()->year;
-    }
-
-    public function form(Form $form): Form
-    {
-        // Get distinct years from projects and other models
-        $projectYears = Project::distinct()->orderBy('year', 'desc')->pluck('year')->toArray();
-
-        $allYears = array_unique($projectYears);
-        rsort($allYears);
-
-        $yearOptions = ['all' => 'All Years'];
-        foreach ($allYears as $year) {
-            $yearOptions[$year] = (string) $year;
-        }
-
-        return $form
-            ->schema([
-                Select::make('selectedYear')
-                    ->label('Filter by Year')
-                    ->options($yearOptions)
-                    ->default($this->selectedYear)
-                    ->live()
-                    ->afterStateUpdated(function ($state) {
-                        $this->selectedYear = $state;
-                    }),
-            ]);
-    }
-
     protected function getStats(): array
     {
-        $selectedYear = $this->selectedYear ?? now()->year;
-
-        if ($selectedYear === 'all') {
-            $selectedYear = null;
-        } else {
-            $selectedYear = (int) $selectedYear;
-        }
+        $selectedYear = now()->year;
 
         function getModelGrowthStats(string $modelClass, ?int $year, string $dateColumn = 'created_at'): array
         {
