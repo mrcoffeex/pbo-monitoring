@@ -80,7 +80,7 @@ class StatsDashboard extends Page
         // Payment stats
         $paymentQuery = Payment::query();
         if ($selectedYear !== null) {
-            $paymentQuery->whereYear('created_at', $selectedYear);
+            $paymentQuery->whereYear('date', $selectedYear);
         }
 
         $lastWeekBoundary = now()->copy()->subWeek()->startOfDay();
