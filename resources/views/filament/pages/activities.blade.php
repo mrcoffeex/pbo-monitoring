@@ -2,7 +2,7 @@
 <x-filament-panels::page>
     <div class="space-y-8">
         <form method="GET" class="mb-8">
-            <div 
+            <div
                 class="flex flex-col md:flex-row items-center gap-4 rounded-xl p-4 shadow-sm mb-4 mx-auto bg-white dark:bg-gray-900 p-4 whitespace-nowrap">
                 <div class="flex items-center gap-2 w-full md:w-auto">
                     <div class="flex flex-col w-full">
@@ -13,7 +13,7 @@
                             id="start_date"
                             :value="request('start_date')"
                             class="rounded"
-                            style="border: 1px solid #616161ff;" 
+                            style="border: 1px solid #616161ff;"
                             autofocus
                             required=""
                         />
@@ -28,7 +28,7 @@
                             id="end_date"
                             :value="request('end_date')"
                             class="rounded"
-                            style="border: 1px solid #616161ff;" 
+                            style="border: 1px solid #616161ff;"
                             required=""
                         />
                     </div>
@@ -46,15 +46,7 @@
             </div>
         </form>
         @php
-            $start = request('start_date') ? \Carbon\Carbon::parse(request('start_date'))->startOfDay() : now()->subDays(6)->startOfDay();
-            $end = request('end_date') ? \Carbon\Carbon::parse(request('end_date'))->endOfDay() : now()->endOfDay();
-            $user = auth()->user();
-            if ($user && !$user->hasRole('super_admin')) {
-                $filtered = collect($activities)->filter(fn($activity) => $activity->created_at >= $start && $activity->created_at <= $end && $activity->causer_id == $user->id);
-            } else {
-                $filtered = collect($activities)->filter(fn($activity) => $activity->created_at >= $start && $activity->created_at <= $end);
-            }
-            $grouped = $filtered->groupBy(fn($activity) => $activity->causer?->name ?? 'System');
+            $grouped = collect($activities)->groupBy(fn($activity) => $activity->causer?->name ?? 'System');
         @endphp
         <div class="grid grid-cols-1 md:grid-cols-1 gap-4">
             @foreach($grouped as $user => $userActivities)
