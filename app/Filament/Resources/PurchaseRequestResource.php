@@ -21,6 +21,7 @@ use Filament\Facades\Filament;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Textarea;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class PurchaseRequestResource extends Resource
@@ -165,10 +166,6 @@ class PurchaseRequestResource extends Resource
                     ->query(fn (Builder $q) => $q->whereNotNull('forward_twg_date')),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make()
-                    ->modalHeading('Purchase Request Details')
-                    ->button()
-                    ->color('gray'),
                 Tables\Actions\EditAction::make()
                     ->button()
                     ->color('info'),
@@ -181,27 +178,44 @@ class PurchaseRequestResource extends Resource
                     Tables\Actions\BulkAction::make('export_csv')
                         ->label('Export CSV')
                         ->icon('heroicon-o-arrow-down-tray')
-                        ->action(function ($records) {
-                            $csv = collect([
-                                ['ID','Project','Received','PR Number','Forwarded TWG'],
-                            ])->merge(
-                                $records->map(fn ($r) => [
-                                    $r->id,
-                                    optional($r->project)->name,
-                                    $r->received_date,
-                                    $r->pr_number,
-                                    $r->forward_twg_date,
-                                ])
-                            )->map(fn ($row) => implode(',', array_map(fn ($v) => '"'.str_replace('"','""',$v).'"', $row)))->implode("\n");
+                        ->action(function (Collection $records) {
+                            $headers = ['ID', 'Project Code', 'Project Name', 'PR Number', 'Received Date', 'Forward TWG Date', 'Created By', 'Created At'];
+                            $csvData = collect([$headers]);
 
-                            return response($csv)
-                                ->withHeaders([
-                                    'Content-Type' => 'text/csv',
-                                    'Content-Disposition' => 'attachment; filename=purchase_requests.csv',
+                            foreach ($records as $record) {
+                                $csvData->push([
+                                    $record->id,
+                                    $record->project?->code ?? 'N/A',
+                                    $record->project?->name ?? 'N/A',
+                                    $record->pr_number ?? 'N/A',
+                                    $record->received_date ? $record->received_date : 'N/A',
+                                    $record->forward_twg_date ? $record->forward_twg_date : 'N/A',
+                                    $record->user?->name ?? 'System',
+                                    $record->created_at->format('Y-m-d H:i:s'),
                                 ]);
+                            }
+
+                            $csv = $csvData->map(function ($row) {
+                                return collect($row)->map(function ($value) {
+                                    return '"' . str_replace('"', '""', $value ?? '') . '"';
+                                })->join(',');
+                            })->join("\n");
+
+                            $filename = 'purchase_requests_export_' . now()->format('Y-m-d_His') . '.csv';
+
+                            return response()->streamDownload(function () use ($csv) {
+                                echo $csv;
+                            }, $filename, [
+                                'Content-Type' => 'text/csv',
+                                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                            ]);
                         })
                         ->requiresConfirmation()
-                        ->color('primary'),
+                        ->modalHeading('Export Purchase Requests to CSV')
+                        ->modalDescription('This will export the selected purchase request records to a CSV file.')
+                        ->modalSubmitActionLabel('Export')
+                        ->color('success')
+                        ->deselectRecordsAfterCompletion(),
                 ]),
             ])
             ->emptyStateIcon('heroicon-o-clipboard-document')

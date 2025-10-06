@@ -12,9 +12,9 @@ use Filament\Pages\Dashboard as BaseDashboard;
 class ChartDashboard extends BaseDashboard
 {
     protected static ?string $navigationIcon = 'heroicon-o-chart-bar';
-    protected static ?string $navigationLabel = 'Statistics';
+    protected static ?string $navigationLabel = 'Chart Statistics';
     protected static ?int $navigationSort = 2;
-    protected static ?string $title = 'Statistics Overview';
+    protected static ?string $title = 'Chart Statistics';
     protected static string $routePath = 'stats';
 
     public function getColumns(): int | string | array

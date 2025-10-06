@@ -22,6 +22,7 @@ use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class TechnicalWorkingGroupResource extends Resource
@@ -148,27 +149,51 @@ class TechnicalWorkingGroupResource extends Resource
                     Tables\Actions\BulkAction::make('export_csv')
                         ->label('Export CSV')
                         ->icon('heroicon-o-arrow-down-tray')
-                        ->action(function ($records) {
-                            $csv = collect([
-                                ['ID','Project','Review','Controlled','ABC'],
-                            ])->merge(
-                                $records->map(fn ($r) => [
-                                    $r->id,
-                                    optional($r->project)->name,
-                                    $r->review_date,
-                                    $r->controlled_date,
-                                    $r->abc,
-                                ])
-                            )->map(fn ($row) => implode(',', array_map(fn ($v) => '"'.str_replace('"','""',$v).'"', $row)))->implode("\n");
+                        ->action(function (Collection $records) {
+                            // Prepare CSV headers
+                            $headers = ['ID', 'Project Code', 'Project Name', 'Project Year', 'Review Date', 'Review Remarks', 'Created By', 'Created At'];
 
-                            return response($csv)
-                                ->withHeaders([
-                                    'Content-Type' => 'text/csv',
-                                    'Content-Disposition' => 'attachment; filename=twg_reviews.csv',
+                            // Prepare CSV data
+                            $csvData = collect([$headers]);
+
+                            foreach ($records as $record) {
+                                $csvData->push([
+                                    $record->id,
+                                    $record->project?->code ?? 'N/A',
+                                    $record->project?->name ?? 'N/A',
+                                    $record->project?->year ?? 'N/A',
+                                    $record->review_date ? $record->review_date : 'N/A',
+                                    $record->review_remarks ?? '',
+                                    $record->user?->name ?? 'System',
+                                    $record->created_at->format('Y-m-d H:i:s'),
                                 ]);
+                            }
+
+                            // Generate CSV content
+                            $csv = $csvData->map(function ($row) {
+                                return collect($row)->map(function ($value) {
+                                    // Escape double quotes and wrap in quotes
+                                    return '"' . str_replace('"', '""', $value ?? '') . '"';
+                                })->join(',');
+                            })->join("\n");
+
+                            // Generate filename with timestamp
+                            $filename = 'twg_reviews_export_' . now()->format('Y-m-d_His') . '.csv';
+
+                            // Return download response
+                            return response()->streamDownload(function () use ($csv) {
+                                echo $csv;
+                            }, $filename, [
+                                'Content-Type' => 'text/csv',
+                                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                            ]);
                         })
                         ->requiresConfirmation()
-                        ->color('primary'),
+                        ->modalHeading('Export TWG Reviews to CSV')
+                        ->modalDescription('This will export the selected TWG review records to a CSV file.')
+                        ->modalSubmitActionLabel('Export')
+                        ->color('success')
+                        ->deselectRecordsAfterCompletion(),
                 ]),
             ])
             ->emptyStateIcon('heroicon-o-users')

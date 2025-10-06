@@ -1,6 +1,6 @@
 <div>
     <div class="gap-y-8 py-8 flex items-center justify-between">
-        <h2 class="fi-header-heading text-2xl font-bold tracking-tight text-gray-950 dark:text-white sm:text-3xl">Dashboard Overview</h2>
+        <h2 class="fi-header-heading text-2xl font-bold tracking-tight text-gray-950 dark:text-white sm:text-3xl">Dashboard</h2>
 
         <div class="w-48">
             <x-filament::input.wrapper>

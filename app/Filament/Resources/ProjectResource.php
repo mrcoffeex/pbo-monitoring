@@ -25,6 +25,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class ProjectResource extends Resource
@@ -254,6 +255,48 @@ class ProjectResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\BulkAction::make('export_csv')
+                        ->label('Export CSV')
+                        ->icon('heroicon-o-arrow-down-tray')
+                        ->action(function (Collection $records) {
+                            $headers = ['ID', 'Year', 'Code', 'Project Name', 'Appropriation', 'Allotment', 'Status', 'Created By', 'Created At'];
+                            $csvData = collect([$headers]);
+
+                            foreach ($records as $record) {
+                                $csvData->push([
+                                    $record->id,
+                                    $record->year ?? 'N/A',
+                                    $record->code ?? 'N/A',
+                                    $record->name ?? 'N/A',
+                                    $record->appropriation ?? 'N/A',
+                                    $record->allotment ?? 'N/A',
+                                    $record->status ?? 'N/A',
+                                    $record->user?->name ?? 'System',
+                                    $record->created_at->format('Y-m-d H:i:s'),
+                                ]);
+                            }
+
+                            $csv = $csvData->map(function ($row) {
+                                return collect($row)->map(function ($value) {
+                                    return '"' . str_replace('"', '""', $value ?? '') . '"';
+                                })->join(',');
+                            })->join("\n");
+
+                            $filename = 'projects_export_' . now()->format('Y-m-d_His') . '.csv';
+
+                            return response()->streamDownload(function () use ($csv) {
+                                echo $csv;
+                            }, $filename, [
+                                'Content-Type' => 'text/csv',
+                                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                            ]);
+                        })
+                        ->requiresConfirmation()
+                        ->modalHeading('Export Projects to CSV')
+                        ->modalDescription('This will export the selected project records to a CSV file.')
+                        ->modalSubmitActionLabel('Export')
+                        ->color('success')
+                        ->deselectRecordsAfterCompletion(),
                 ]),
             ])
             ->emptyStateIcon('heroicon-o-folder-open')

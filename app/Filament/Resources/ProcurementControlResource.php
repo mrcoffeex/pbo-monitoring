@@ -19,6 +19,7 @@ use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class ProcurementControlResource extends Resource
@@ -139,6 +140,47 @@ class ProcurementControlResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\BulkAction::make('export_csv')
+                        ->label('Export CSV')
+                        ->icon('heroicon-o-arrow-down-tray')
+                        ->action(function (Collection $records) {
+                            $headers = ['ID', 'Project Code', 'Project Name', 'Controlled Date', 'ABC', 'Remarks', 'Created By', 'Created At'];
+                            $csvData = collect([$headers]);
+
+                            foreach ($records as $record) {
+                                $csvData->push([
+                                    $record->id,
+                                    $record->project?->code ?? 'N/A',
+                                    $record->project?->name ?? 'N/A',
+                                    $record->controlled_date ? $record->controlled_date : 'N/A',
+                                    $record->abc ?? 'N/A',
+                                    $record->remarks ?? '',
+                                    $record->user?->name ?? 'System',
+                                    $record->created_at->format('Y-m-d H:i:s'),
+                                ]);
+                            }
+
+                            $csv = $csvData->map(function ($row) {
+                                return collect($row)->map(function ($value) {
+                                    return '"' . str_replace('"', '""', $value ?? '') . '"';
+                                })->join(',');
+                            })->join("\n");
+
+                            $filename = 'pmo_controls_export_' . now()->format('Y-m-d_His') . '.csv';
+
+                            return response()->streamDownload(function () use ($csv) {
+                                echo $csv;
+                            }, $filename, [
+                                'Content-Type' => 'text/csv',
+                                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                            ]);
+                        })
+                        ->requiresConfirmation()
+                        ->modalHeading('Export PMO Controls to CSV')
+                        ->modalDescription('This will export the selected PMO control records to a CSV file.')
+                        ->modalSubmitActionLabel('Export')
+                        ->color('success')
+                        ->deselectRecordsAfterCompletion(),
                 ]),
             ])
             ->emptyStateIcon('heroicon-o-document-check')

@@ -15,6 +15,7 @@ use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class OfficeResource extends Resource
@@ -92,25 +93,40 @@ class OfficeResource extends Resource
                     Tables\Actions\BulkAction::make('export_csv')
                         ->label('Export CSV')
                         ->icon('heroicon-o-arrow-down-tray')
-                        ->action(function ($records) {
-                            $csv = collect([
-                                ['ID','Office','Emails'],
-                            ])->merge(
-                                $records->map(fn ($r) => [
-                                    $r->id,
-                                    $r->name,
-                                    is_array($r->emails) ? implode('|', $r->emails) : $r->emails,
-                                ])
-                            )->map(fn ($row) => implode(',', array_map(fn ($v) => '"'.str_replace('"','""',$v).'"', $row)))->implode("\n");
+                        ->action(function (Collection $records) {
+                            $headers = ['ID', 'Office Name', 'Emails', 'Created At'];
+                            $csvData = collect([$headers]);
 
-                            return response($csv)
-                                ->withHeaders([
-                                    'Content-Type' => 'text/csv',
-                                    'Content-Disposition' => 'attachment; filename=offices.csv',
+                            foreach ($records as $record) {
+                                $csvData->push([
+                                    $record->id,
+                                    $record->name,
+                                    is_array($record->emails) ? implode(', ', $record->emails) : $record->emails,
+                                    $record->created_at->format('Y-m-d H:i:s'),
                                 ]);
+                            }
+
+                            $csv = $csvData->map(function ($row) {
+                                return collect($row)->map(function ($value) {
+                                    return '"' . str_replace('"', '""', $value ?? '') . '"';
+                                })->join(',');
+                            })->join("\n");
+
+                            $filename = 'offices_export_' . now()->format('Y-m-d_His') . '.csv';
+
+                            return response()->streamDownload(function () use ($csv) {
+                                echo $csv;
+                            }, $filename, [
+                                'Content-Type' => 'text/csv',
+                                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                            ]);
                         })
                         ->requiresConfirmation()
-                        ->color('primary'),
+                        ->modalHeading('Export Offices to CSV')
+                        ->modalDescription('This will export the selected office records to a CSV file.')
+                        ->modalSubmitActionLabel('Export')
+                        ->color('success')
+                        ->deselectRecordsAfterCompletion(),
                 ]),
             ])
             ->emptyStateIcon('heroicon-o-briefcase')

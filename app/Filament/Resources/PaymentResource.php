@@ -23,6 +23,7 @@ use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class PaymentResource extends Resource
@@ -277,27 +278,46 @@ class PaymentResource extends Resource
                     Tables\Actions\BulkAction::make('export_csv')
                         ->label('Export CSV')
                         ->icon('heroicon-o-arrow-down-tray')
-                        ->action(function ($records) {
-                            $csv = collect([
-                                ['ID','Project','Type','Amount','Date'],
-                            ])->merge(
-                                $records->map(fn ($r) => [
-                                    $r->id,
-                                    optional($r->project)->name,
-                                    CustomOptions::PAYMENTS[$r->type] ?? $r->type,
-                                    $r->amount,
-                                    $r->date,
-                                ])
-                            )->map(fn ($row) => implode(',', array_map(fn ($v) => '"'.str_replace('"','""',$v).'"', $row)))->implode("\n");
+                        ->action(function (Collection $records) {
+                            $headers = ['ID', 'Project Code', 'Project Name', 'Type', 'Amount', 'Date', 'DV Number', 'Check Number', 'Created By', 'Created At'];
+                            $csvData = collect([$headers]);
 
-                            return response($csv)
-                                ->withHeaders([
-                                    'Content-Type' => 'text/csv',
-                                    'Content-Disposition' => 'attachment; filename=payments.csv',
+                            foreach ($records as $record) {
+                                $csvData->push([
+                                    $record->id,
+                                    $record->project?->code ?? 'N/A',
+                                    $record->project?->name ?? 'N/A',
+                                    CustomOptions::PAYMENTS[$record->type] ?? $record->type,
+                                    $record->amount ?? 'N/A',
+                                    $record->date ? $record->date : 'N/A',
+                                    $record->dv_number ?? 'N/A',
+                                    $record->check_number ?? 'N/A',
+                                    $record->user?->name ?? 'System',
+                                    $record->created_at->format('Y-m-d H:i:s'),
                                 ]);
+                            }
+
+                            $csv = $csvData->map(function ($row) {
+                                return collect($row)->map(function ($value) {
+                                    return '"' . str_replace('"', '""', $value ?? '') . '"';
+                                })->join(',');
+                            })->join("\n");
+
+                            $filename = 'payments_export_' . now()->format('Y-m-d_His') . '.csv';
+
+                            return response()->streamDownload(function () use ($csv) {
+                                echo $csv;
+                            }, $filename, [
+                                'Content-Type' => 'text/csv',
+                                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                            ]);
                         })
                         ->requiresConfirmation()
-                        ->color('primary'),
+                        ->modalHeading('Export Payments to CSV')
+                        ->modalDescription('This will export the selected payment records to a CSV file.')
+                        ->modalSubmitActionLabel('Export')
+                        ->color('success')
+                        ->deselectRecordsAfterCompletion(),
                 ]),
             ])
             ->emptyStateIcon('heroicon-o-currency-dollar')

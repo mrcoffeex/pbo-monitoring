@@ -16,6 +16,7 @@ use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Hash;
 use Symfony\Contracts\Service\Attribute\Required;
@@ -133,9 +134,11 @@ class UserResource extends Resource
                     ->query(fn (Builder $q) => $q->whereNotNull('email_verified_at')),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make()->modalHeading('User Details'),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->button()
+                    ->color('info'),
+                Tables\Actions\DeleteAction::make()
+                    ->button(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -143,27 +146,49 @@ class UserResource extends Resource
                     Tables\Actions\BulkAction::make('export_csv')
                         ->label('Export CSV')
                         ->icon('heroicon-o-arrow-down-tray')
-                        ->action(function ($records) {
-                            $csv = collect([
-                                ['ID','Name','Email','Roles','Verified'],
-                            ])->merge(
-                                $records->map(fn ($r) => [
-                                    $r->id,
-                                    $r->name,
-                                    $r->email,
-                                    $r->roles->pluck('name')->join('|'),
-                                    $r->email_verified_at,
-                                ])
-                            )->map(fn ($row) => implode(',', array_map(fn ($v) => '"'.str_replace('"','""',$v).'"', $row)))->implode("\n");
+                        ->action(function (Collection $records) {
+                            // Prepare CSV headers
+                            $headers = ['ID', 'Name', 'Email', 'Roles', 'Email Verified At', 'Created At'];
 
-                            return response($csv)
-                                ->withHeaders([
-                                    'Content-Type' => 'text/csv',
-                                    'Content-Disposition' => 'attachment; filename=users.csv',
+                            // Prepare CSV data
+                            $csvData = collect([$headers]);
+
+                            foreach ($records as $record) {
+                                $csvData->push([
+                                    $record->id,
+                                    $record->name,
+                                    $record->email,
+                                    $record->roles->pluck('name')->join(', '),
+                                    $record->email_verified_at ? $record->email_verified_at->format('Y-m-d H:i:s') : 'Not Verified',
+                                    $record->created_at->format('Y-m-d H:i:s'),
                                 ]);
+                            }
+
+                            // Generate CSV content
+                            $csv = $csvData->map(function ($row) {
+                                return collect($row)->map(function ($value) {
+                                    // Escape double quotes and wrap in quotes
+                                    return '"' . str_replace('"', '""', $value ?? '') . '"';
+                                })->join(',');
+                            })->join("\n");
+
+                            // Generate filename with timestamp
+                            $filename = 'users_export_' . now()->format('Y-m-d_His') . '.csv';
+
+                            // Return download response
+                            return response()->streamDownload(function () use ($csv) {
+                                echo $csv;
+                            }, $filename, [
+                                'Content-Type' => 'text/csv',
+                                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                            ]);
                         })
                         ->requiresConfirmation()
-                        ->color('primary'),
+                        ->modalHeading('Export Users to CSV')
+                        ->modalDescription('This will export the selected users to a CSV file.')
+                        ->modalSubmitActionLabel('Export')
+                        ->color('success')
+                        ->deselectRecordsAfterCompletion(),
                 ]),
             ])
             ->emptyStateIcon('heroicon-o-user-group')
