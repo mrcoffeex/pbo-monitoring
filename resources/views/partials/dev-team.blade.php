@@ -8,6 +8,24 @@
             @php
                 $team = [
                     [
+                        'name' => 'Dessamie Sanchez, CPA',
+                        'role' => 'Project Leader',
+                        'bio'  => 'CPA - Provincial Budget Officer',
+                        'img'  => 'https://ui-avatars.com/api/?name=BMT&background=fc03e8&color=fff',
+                        'links' => [
+                            'facebook' => '#',
+                        ],
+                    ],
+                    [
+                        'name' => 'Bhengie Mark Tubiano',
+                        'role' => 'Quality Assurance',
+                        'bio'  => 'CPA - Head of Budget Execution',
+                        'img'  => 'https://ui-avatars.com/api/?name=BMT&background=4acf4d&color=fff',
+                        'links' => [
+                            'facebook' => '#',
+                        ],
+                    ],
+                    [
                         'name' => 'Kent John Gocotano',
                         'role' => 'Full Stack Developer',
                         'bio'  => 'VILT - TALL - MySQL - WSL - Docker',
@@ -15,15 +33,6 @@
                         'links' => [
                             'github'   => 'https://github.com/mrcoffeex',
                             'linkedin' => 'https://www.linkedin.com/in/kentjohngo',
-                        ],
-                    ],
-                    [
-                        'name' => 'Bhengie Mark Tubiano',
-                        'role' => 'Quality Assurance',
-                        'bio'  => 'CPA',
-                        'img'  => 'https://ui-avatars.com/api/?name=BMT&background=4acf4d&color=fff',
-                        'links' => [
-                            'facebook' => 'https://www.facebook.com/matthew.tubiano',
                         ],
                     ],
                 ];
