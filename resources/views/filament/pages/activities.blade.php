@@ -50,7 +50,7 @@
         @endphp
         <div class="grid grid-cols-1 md:grid-cols-1 gap-4">
             @foreach($grouped as $user => $userActivities)
-                <details class="rounded-xl shadow bg-white dark:bg-gray-900 p-4 group" open>
+                <details class="rounded-xl shadow bg-white dark:bg-gray-900 p-4 group">
                     <summary class="flex items-center mb-4 cursor-pointer select-none">
                         <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-800 flex items-center justify-center text-gray-700 dark:text-gray-200 font-bold text-lg">
                             <x-heroicon-o-user class="w-5 h-5" />
