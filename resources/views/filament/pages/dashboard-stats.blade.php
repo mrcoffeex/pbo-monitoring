@@ -146,7 +146,7 @@
                 </div>
             </div>
             <!-- Payment Chart -->
-            <div class="mt-4 h-20">
+            <div class="mt-4 h-20" wire:key="payment-chart-{{ $selectedYear }}">
                 <canvas id="paymentChart" class="w-full"></canvas>
             </div>
         </div>
@@ -157,7 +157,7 @@
             <div class="mt-4 space-y-3">
                 <div>
                     <div class="flex items-center justify-between text-sm">
-                        <span class="text-slate-600 dark:text-slate-400">With PR</span>
+                        <span class="text-slate-600 dark:text-slate-400">With PR ({{ number_format($stats['withPurchaseRequests']) }})</span>
                         <span class="font-medium text-slate-950 dark:text-slate-50">{{ $stats['withPurchaseRequestsPercent'] }}%</span>
                     </div>
                     <div class="mt-2 h-2.5 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
@@ -166,7 +166,7 @@
                 </div>
                 <div>
                     <div class="flex items-center justify-between text-sm">
-                        <span class="text-slate-600 dark:text-slate-400">Without PR</span>
+                        <span class="text-slate-600 dark:text-slate-400">Without PR ({{ number_format($stats['noPurchaseRequestCount']) }})</span>
                         <span class="font-medium text-slate-950 dark:text-slate-50">{{ $stats['noPurchaseRequestPercent'] }}%</span>
                     </div>
                     <div class="mt-2 h-2.5 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
@@ -180,27 +180,22 @@
     @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            initPaymentChart();
-        });
-
-        document.addEventListener('livewire:navigated', function() {
-            initPaymentChart();
-        });
+        let paymentChart = null;
 
         function initPaymentChart() {
             const canvas = document.getElementById('paymentChart');
             if (!canvas) return;
 
             // Destroy existing chart if it exists
-            if (canvas.chart) {
-                canvas.chart.destroy();
+            if (paymentChart) {
+                paymentChart.destroy();
+                paymentChart = null;
             }
 
             const ctx = canvas.getContext('2d');
             const chartData = @json($stats['paymentChartData']);
 
-            canvas.chart = new Chart(ctx, {
+            paymentChart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: ['6d ago', '5d ago', '4d ago', '3d ago', '2d ago', 'Yesterday', 'Today'],
@@ -246,11 +241,16 @@
             });
         }
 
-        // Reinitialize chart on Livewire updates
-        Livewire.hook('message.processed', (message, component) => {
-            if (component.name === 'filament.pages.custom-dashboard') {
+        // Initialize chart on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initPaymentChart();
+        });
+
+        // Reinitialize chart after Livewire updates
+        window.addEventListener('livewire:initialized', () => {
+            window.Livewire.hook('morph.updated', ({ el, component }) => {
                 setTimeout(() => initPaymentChart(), 100);
-            }
+            });
         });
     </script>
     @endpush
