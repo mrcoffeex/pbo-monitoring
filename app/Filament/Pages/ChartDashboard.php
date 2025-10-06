@@ -13,7 +13,7 @@ class ChartDashboard extends BaseDashboard
 {
     protected static ?string $navigationIcon = 'heroicon-o-chart-bar';
     protected static ?string $navigationLabel = 'Statistics';
-    protected static ?int $sort = null;
+    protected static ?int $navigationSort = 2;
     protected static ?string $title = 'Statistics Overview';
     protected static string $routePath = 'stats';
 

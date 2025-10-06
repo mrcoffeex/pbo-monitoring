@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\ChartDashboard;
+use App\Filament\Pages\CustomDashboard;
 use App\Filament\Pages\StatsDashboard;
 use App\Filament\Widgets\DashboardStats;
 use Filament\Http\Middleware\Authenticate;
