@@ -35,9 +35,7 @@ class FinancialOverviewBarChart extends ChartWidget
         $totalObligated     = (float) ObligationRequest::whereHas('project', function($query) use ($selectedYear) {
             $query->where('year', $selectedYear);
         })->sum('amount');
-        $totalDisbursed     = (float) Payment::whereHas('project', function($query) use ($selectedYear) {
-            $query->where('year', $selectedYear);
-        })->sum('amount');
+        $totalDisbursed = (float) Payment::whereYear('date', $selectedYear)->sum('amount');
 
         return [
             'datasets' => [
