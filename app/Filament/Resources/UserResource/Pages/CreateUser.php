@@ -15,9 +15,9 @@ class CreateUser extends CreateRecord
 
     protected static string $resource = UserResource::class;
 
-    protected function afterCreate(): void
-    {
-        Mail::to($this->record->email)->send(new UserRegistrationMail($this->record));
-    }
+    // protected function afterCreate(): void
+    // {
+    //     Mail::to($this->record->email)->send(new UserRegistrationMail($this->record));
+    // }
 
 }
