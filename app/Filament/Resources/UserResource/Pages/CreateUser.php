@@ -18,6 +18,7 @@ class CreateUser extends CreateRecord
     protected function afterCreate(): void
     {
         // Send registration notification email
-        // Mail::to($this->record->email)->send(new UserRegistrationMail($this->record));
+        Mail::to($this->record->email)->send(new UserRegistrationMail($this->record));
     }
+
 }
