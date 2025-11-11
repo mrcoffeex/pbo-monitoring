@@ -260,12 +260,12 @@ class ProjectResource extends Resource
                         return $query->when(
                             $data['value'] === 'paid',
                             function (Builder $query): Builder {
-                                return $query->whereRaw('appropriation <= (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE payments.project_id = projects.id)');
+                                return $query->whereRaw('(SELECT COALESCE(SUM(contract_amount), 0) FROM procurements WHERE procurements.project_id = projects.id) > 0 AND (SELECT COALESCE(SUM(contract_amount), 0) FROM procurements WHERE procurements.project_id = projects.id) <= (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE payments.project_id = projects.id)');
                             }
                         )->when(
                             $data['value'] === 'unpaid',
                             function (Builder $query): Builder {
-                                return $query->whereRaw('appropriation > (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE payments.project_id = projects.id)');
+                                return $query->whereRaw('(SELECT COALESCE(SUM(contract_amount), 0) FROM procurements WHERE procurements.project_id = projects.id) = 0 OR (SELECT COALESCE(SUM(contract_amount), 0) FROM procurements WHERE procurements.project_id = projects.id) > (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE payments.project_id = projects.id)');
                             }
                         );
                     }),
