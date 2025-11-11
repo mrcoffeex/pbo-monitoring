@@ -255,6 +255,7 @@ class ProjectResource extends Resource
                     ->options([
                         'paid' => 'Paid',
                         'unpaid' => 'Unpaid',
+                        'no_contract' => 'No Contract Amount',
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query->when(
@@ -265,7 +266,12 @@ class ProjectResource extends Resource
                         )->when(
                             $data['value'] === 'unpaid',
                             function (Builder $query): Builder {
-                                return $query->whereRaw('(SELECT COALESCE(SUM(contract_amount), 0) FROM procurements WHERE procurements.project_id = projects.id) = 0 OR (SELECT COALESCE(SUM(contract_amount), 0) FROM procurements WHERE procurements.project_id = projects.id) > (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE payments.project_id = projects.id)');
+                                return $query->whereRaw('(SELECT COALESCE(SUM(contract_amount), 0) FROM procurements WHERE procurements.project_id = projects.id) > 0 AND (SELECT COALESCE(SUM(contract_amount), 0) FROM procurements WHERE procurements.project_id = projects.id) > (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE payments.project_id = projects.id)');
+                            }
+                        )->when(
+                            $data['value'] === 'no_contract',
+                            function (Builder $query): Builder {
+                                return $query->whereRaw('(SELECT COALESCE(SUM(contract_amount), 0) FROM procurements WHERE procurements.project_id = projects.id) = 0');
                             }
                         );
                     }),

@@ -73,7 +73,7 @@ class Project extends Model
     {
         $totalDisbursed = $this->payments()->sum('amount') ?? 0;
         $contractAmount = $this->procurements()->sum('contract_amount') ?? 0;
-        $balance = ($contractAmount > 0) ? $contractAmount - $totalDisbursed : 0;
+        $balance = ($contractAmount > 0) ? $contractAmount - $totalDisbursed : $this->allotment;
         return  (float) $balance;
     }
 }
