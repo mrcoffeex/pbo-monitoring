@@ -283,6 +283,9 @@
 
             <!-- Payments horizontal -->
             <td class="small">
+                <div style="font-weight:600; margin-bottom:4px; padding-bottom:4px; border-bottom:1px solid #d9e0e6;">
+                    Balance: <span class="value">{{ $money($project->balance) }}</span>
+                </div>
                 @if($project->payments?->count())
                     @foreach($project->payments as $pay)
                         <li>

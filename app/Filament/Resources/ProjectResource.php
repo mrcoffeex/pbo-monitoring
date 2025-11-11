@@ -61,7 +61,7 @@ class ProjectResource extends Resource
                                     ->label('Calendar Year')
                                     ->options(
                                         collect(range(now()->year, now()->year - 5))
-                                            ->mapWithKeys(fn ($year) => [
+                                            ->mapWithKeys(fn($year) => [
                                                 $year => $year
                                             ])
                                             ->toArray()
@@ -125,7 +125,7 @@ class ProjectResource extends Resource
                     ->html(),
                 TextColumn::make('status')
                     ->badge()
-                    ->color(fn ($state) => match ($state) {
+                    ->color(fn($state) => match ($state) {
                         'released' => 'success',
                         'unreleased' => 'primary',
                         'canceled' => 'danger',
@@ -138,10 +138,10 @@ class ProjectResource extends Resource
                     ->label('Project')
                     ->wrap()
                     ->limit(35)
-                    ->tooltip(fn ($record) => $record->name)
+                    ->tooltip(fn($record) => $record->name)
                     ->sortable()
                     ->searchable()
-                    ->description(fn ($record) => $record->year, position: 'above'),
+                    ->description(fn($record) => $record->year, position: 'above'),
                 TextColumn::make('code')
                     ->label('Res. Center')
                     ->badge()
@@ -151,7 +151,7 @@ class ProjectResource extends Resource
                     ->sortable()
                     ->searchable()
                     ->badge()
-                    ->formatStateUsing(fn ($state) => CustomOptions::FUNDS[$state] ?? $state),
+                    ->formatStateUsing(fn($state) => CustomOptions::FUNDS[$state] ?? $state),
                 TextColumn::make('appropriation')
                     ->numeric()
                     ->prefix('₱ ')
@@ -162,6 +162,12 @@ class ProjectResource extends Resource
                     ->prefix('₱ ')
                     ->sortable()
                     ->searchable(),
+                TextColumn::make('balance')
+                    ->label('Balance')
+                    ->numeric()
+                    ->prefix('₱ ')
+                    ->sortable(false)
+                    ->searchable(false),
                 TextColumn::make('user.name')
                     ->label('Created By')
                     ->badge()
@@ -191,10 +197,10 @@ class ProjectResource extends Resource
                     ->query(function (Builder $query, array $data): Builder {
                         return $query->when(
                             $data['value'] === 'with',
-                            fn (Builder $query): Builder => $query->whereHas('purchase_requests')
+                            fn(Builder $query): Builder => $query->whereHas('purchase_requests')
                         )->when(
                             $data['value'] === 'without',
-                            fn (Builder $query): Builder => $query->whereDoesntHave('purchase_requests')
+                            fn(Builder $query): Builder => $query->whereDoesntHave('purchase_requests')
                         );
                     }),
                 SelectFilter::make('noa_received')
@@ -206,12 +212,12 @@ class ProjectResource extends Resource
                     ->query(function (Builder $query, array $data): Builder {
                         return $query->when(
                             $data['value'] === 'received',
-                            fn (Builder $query): Builder => $query->whereHas('procurements', function (Builder $query) {
+                            fn(Builder $query): Builder => $query->whereHas('procurements', function (Builder $query) {
                                 $query->whereNotNull('noa_date_received');
                             })
                         )->when(
                             $data['value'] === 'not_received',
-                            fn (Builder $query): Builder => $query->whereHas('procurements', function (Builder $query) {
+                            fn(Builder $query): Builder => $query->whereHas('procurements', function (Builder $query) {
                                 $query->whereNull('noa_date_received');
                             })
                         );
@@ -225,12 +231,12 @@ class ProjectResource extends Resource
                     ->query(function (Builder $query, array $data): Builder {
                         return $query->when(
                             $data['value'] === 'issued',
-                            fn (Builder $query): Builder => $query->whereHas('procurements', function (Builder $query) {
+                            fn(Builder $query): Builder => $query->whereHas('procurements', function (Builder $query) {
                                 $query->whereNotNull('ntp_number');
                             })
                         )->when(
                             $data['value'] === 'not_issued',
-                            fn (Builder $query): Builder => $query->whereHas('procurements', function (Builder $query) {
+                            fn(Builder $query): Builder => $query->whereHas('procurements', function (Builder $query) {
                                 $query->whereNull('ntp_number');
                             })
                         );
@@ -239,11 +245,30 @@ class ProjectResource extends Resource
                     ->label('Calendar Year')
                     ->options(
                         collect(range(now()->year, now()->year - 5))
-                            ->mapWithKeys(fn ($year) => [
+                            ->mapWithKeys(fn($year) => [
                                 $year => $year
                             ])
                             ->toArray()
                     ),
+                SelectFilter::make('payment_status')
+                    ->label('Payment Status')
+                    ->options([
+                        'paid' => 'Paid',
+                        'unpaid' => 'Unpaid',
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query->when(
+                            $data['value'] === 'paid',
+                            function (Builder $query): Builder {
+                                return $query->whereRaw('appropriation <= (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE payments.project_id = projects.id)');
+                            }
+                        )->when(
+                            $data['value'] === 'unpaid',
+                            function (Builder $query): Builder {
+                                return $query->whereRaw('appropriation > (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE payments.project_id = projects.id)');
+                            }
+                        );
+                    }),
             ])
             ->actions([
                 Tables\Actions\EditAction::make()
@@ -259,7 +284,7 @@ class ProjectResource extends Resource
                         ->label('Export CSV')
                         ->icon('heroicon-o-arrow-down-tray')
                         ->action(function (Collection $records) {
-                            $headers = ['ID', 'Year', 'Code', 'Project Name', 'Appropriation', 'Allotment', 'Status', 'Created By', 'Created At'];
+                            $headers = ['ID', 'Year', 'Code', 'Project Name', 'Appropriation', 'Allotment', 'Balance', 'Status', 'Created By', 'Created At'];
                             $csvData = collect([$headers]);
 
                             foreach ($records as $record) {
@@ -270,6 +295,7 @@ class ProjectResource extends Resource
                                     $record->name ?? 'N/A',
                                     $record->appropriation ?? 'N/A',
                                     $record->allotment ?? 'N/A',
+                                    $record->balance ?? 'N/A',
                                     $record->status ?? 'N/A',
                                     $record->user?->name ?? 'System',
                                     $record->created_at->format('Y-m-d H:i:s'),
@@ -305,7 +331,7 @@ class ProjectResource extends Resource
             ->emptyStateActions([
                 Tables\Actions\CreateAction::make(),
             ])
-            ->paginated([15,25,50,100])
+            ->paginated([15, 25, 50, 100])
             ->defaultPaginationPageOption(15);
     }
 

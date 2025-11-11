@@ -68,4 +68,10 @@ class Project extends Model
     {
         return $this->hasMany(Payment::class);
     }
+
+    public function getBalanceAttribute(): float
+    {
+        $totalDisbursed = $this->payments()->sum('amount') ?? 0;
+        return (float) ($this->appropriation - $totalDisbursed);
+    }
 }

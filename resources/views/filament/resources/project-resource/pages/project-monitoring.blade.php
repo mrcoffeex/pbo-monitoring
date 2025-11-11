@@ -26,7 +26,7 @@
 
         $contractors = $procurements->pluck('contractor')->filter()->unique()->values();
         $contractor = $contractors->count() ? ($contractors->count() === 1 ? $contractors->first() : $contractors->implode(', ')) : 'No Contractor';
-        $unpaid       = $contractAmount - $totalPayment;
+
         $paymentPct   = $contractAmount > 0 ? round(($totalPayment / $contractAmount) * 100, 2) : 0;
         $latestImpl   = $implementations->sortByDesc('date')->first();
         $implPct      = ($latestImpl && is_numeric($latestImpl->percentage)) ? (float)$latestImpl->percentage : 0;
@@ -57,8 +57,8 @@
             <div class="text-sm font-semibold">₱ {{ number_format($totalPayment, 2) }}</div>
         </div>
         <div class="flex-1 min-w-[160px] rounded-lg px-4 py-3 bg-white dark:bg-gray-900 ring-1 ring-gray-200 dark:ring-gray-700">
-            <div class="text-[11px] uppercase tracking-wide text-red-500 dark:text-red-400 mb-2">Unpaid</div>
-            <div class="text-sm font-semibold">₱ {{ number_format($unpaid, 2) }}</div>
+            <div class="text-[11px] uppercase tracking-wide text-red-500 dark:text-red-400 mb-2">Balance</div>
+            <div class="text-sm font-semibold">₱ {{ number_format($project->balance, 2) }}</div>
         </div>
         <div class="flex-1 min-w-[160px] rounded-lg px-4 py-3 bg-white dark:bg-gray-900 ring-1 ring-gray-200 dark:ring-gray-700">
             <div class="text-[11px] uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-2">Implementation</div>
@@ -434,7 +434,7 @@
             <div class="{{ $sectionBody }}">
                 <div class="{{ $cardWrap }}">
                     <x-item-badge label="Total Payments" :value="$totalPayment" :isMoney="true" />
-                    <x-item-badge label="Unpaid Obligation" :value="$unpaid" :isMoney="true" />
+                    <x-item-badge label="Balance" :value="$project->balance" :isMoney="true" />
                 </div>
             </div>
         </x-filament::section>
