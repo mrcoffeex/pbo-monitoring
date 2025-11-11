@@ -72,6 +72,8 @@ class Project extends Model
     public function getBalanceAttribute(): float
     {
         $totalDisbursed = $this->payments()->sum('amount') ?? 0;
-        return (float) ($this->appropriation - $totalDisbursed);
+        $contractAmount = $this->procurements()->sum('contract_amount') ?? 0;
+        $balance = ($contractAmount > 0) ? $contractAmount - $totalDisbursed : 0;
+        return  (float) $balance;
     }
 }
