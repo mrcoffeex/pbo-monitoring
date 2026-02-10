@@ -37,5 +37,10 @@ class CustomOptions
         'infrastructure_project' => 'Infrastructure Project',
         'non_infrastructure_project' => 'Non-Infrastructure Project',
         'land_project' => 'Land Project',
+        'Scholarship' => 'Scholarship',
+        'Loans Payment' => 'Loans Payment',
+        'Livelihood' => 'Livelihood',
+        'Relocation Site' => 'Relocation Site',
+        'Other' => 'Other',
     ];
 }
