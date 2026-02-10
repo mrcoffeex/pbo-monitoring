@@ -32,4 +32,10 @@ class CustomOptions
         'sixth_partial' => 'Sixth Partial Payment',
         'final_payment' => 'Final Payment',
     ];
+
+    public const PROJECT_TYPES = [
+        'infrastructure_project' => 'Infrastructure Project',
+        'non_infrastructure_project' => 'Non-Infrastructure Project',
+        'land_project' => 'Land Project',
+    ];
 }

@@ -10,6 +10,7 @@ class Project extends Model
     use SoftDeletes;
 
     protected $fillable = [
+        'type',
         'code',
         'name',
         'year',
@@ -21,6 +22,7 @@ class Project extends Model
     ];
 
     protected $casts = [
+        'type' => 'array',
         'funds' => 'array',
     ];
 

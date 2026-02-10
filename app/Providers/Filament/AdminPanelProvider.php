@@ -32,6 +32,7 @@ class AdminPanelProvider extends PanelProvider
     {
         return $panel
             ->default()
+            ->spa()
             ->brandName(new HtmlString(
                 '<span class="bg-gradient-to-r from-pink-600 via-fuchsia-500 to-gray-600 dark:from-pink-400 dark:via-fuchsia-400 dark:to-gray-400 bg-clip-text text-transparent font-extrabold text-xl leading-none font-google-code">
                     Infra Monitoring
