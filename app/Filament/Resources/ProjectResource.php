@@ -22,6 +22,7 @@ use Filament\Support\RawJs;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 
 use Illuminate\Database\Eloquent\Builder;
@@ -42,21 +43,24 @@ class ProjectResource extends Resource
                     ->columns(12)
                     ->schema([
                         Grid::make()
-                            ->columns(12)
+                            ->columns(5)
                             ->schema([
+                                Select::make('type')
+                                    ->label('Project Type')
+                                    ->options(CustomOptions::PROJECT_TYPES)
+                                    ->required()
+                                    ->autofocus(),
                                 TextInput::make('code')
                                     ->label('Responsibility Center')
                                     ->maxLength(12)
                                     ->unique(ignoreRecord: true)
                                     ->required()
-                                    ->autofocus()
-                                    ->columnSpan(3),
+                                    ->autofocus(),
                                 Select::make('funds')
                                     ->label('Source of Funds')
                                     ->options(CustomOptions::FUNDS)
                                     ->multiple()
-                                    ->required()
-                                    ->columnSpan(3),
+                                    ->required(),
                                 Select::make('year')
                                     ->label('Calendar Year')
                                     ->options(
@@ -67,20 +71,20 @@ class ProjectResource extends Resource
                                             ->toArray()
                                     )
                                     ->default(now()->year)
-                                    ->required()
-                                    ->columnSpan(3),
+                                    ->required(),
                                 Select::make('status')
                                     ->label('Project Status')
                                     ->options(CustomOptions::PROJECT_STATUS)
                                     ->default('approved')
-                                    ->required()
-                                    ->columnSpan(3),
+                                    ->required(),
+
                                 Textarea::make('name')
                                     ->label('Project Name')
                                     ->required()
                                     ->unique(ignoreRecord: true)
                                     ->maxLength(255)
-                                    ->columnSpan(12),
+                                    ->rows(3)
+                                    ->columnSpanFull(),
                             ]),
                     ]),
                 Section::make('Amounts')
@@ -142,6 +146,13 @@ class ProjectResource extends Resource
                     ->sortable()
                     ->searchable()
                     ->description(fn($record) => $record->year, position: 'above'),
+                TextColumn::make('type')
+                    ->label('Type')
+                    ->badge()
+                    ->color('info')
+                    ->formatStateUsing(fn($state) => CustomOptions::PROJECT_TYPES[$state] ?? $state)
+                    ->sortable()
+                    ->searchable(),
                 TextColumn::make('code')
                     ->label('Res. Center')
                     ->badge()
@@ -188,6 +199,25 @@ class ProjectResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
+                Filter::make('type')
+                    ->label('Project Type')
+                    ->form([
+                        Select::make('type')
+                            ->label('Select Project Type')
+                            ->options(CustomOptions::PROJECT_TYPES)
+                            ->placeholder('All Project Types')
+                            ->multiple()
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        if (!empty($data['type'])) {
+                            $query->where(function (Builder $subQuery) use ($data) {
+                                foreach ($data['type'] as $type) {
+                                    $subQuery->orWhereJsonContains('type', $type);
+                                }
+                            });
+                        }
+                        return $query;
+                    }),
                 SelectFilter::make('purchase_requests')
                     ->label('Purchase Requests')
                     ->options([
@@ -274,6 +304,70 @@ class ProjectResource extends Resource
                                 return $query->whereRaw('(SELECT COALESCE(SUM(contract_amount), 0) FROM procurements WHERE procurements.project_id = projects.id) = 0');
                             }
                         );
+                    }),
+                SelectFilter::make('obligation')
+                    ->label('Obligation Status')
+                    ->options([
+                        'obligated' => 'Obligated',
+                        'unobligated' => 'Unobligated',
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query->when(
+                            $data['value'] === 'obligated',
+                            fn(Builder $query): Builder => $query->whereHas('obligation_requests')
+                        )->when(
+                            $data['value'] === 'unobligated',
+                            fn(Builder $query): Builder => $query->whereDoesntHave('obligation_requests')
+                        );
+                    }),
+                Filter::make('funds')
+                    ->label('Fund Source')
+                    ->form([
+                        Select::make('funds')
+                            ->label('Select Fund')
+                            ->options(CustomOptions::FUNDS)
+                            ->placeholder('All Funds')
+                            ->multiple()
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query->when(
+                            !empty($data['funds']),
+                            function (Builder $query) use ($data) {
+                                return $query->whereJsonContains('funds', $data['funds'], 'or');
+                            }
+                        );
+                    }),
+                Filter::make('latest_implementation_percentage')
+                    ->label('Latest Implementation Percentage')
+                    ->form([
+                        Select::make('percentage_range')
+                            ->label('Range')
+                            ->options([
+                                '0-25' => '0% - 25%',
+                                '25-50' => '25% - 50%',
+                                '50-75' => '50% - 75%',
+                                '75-100' => '75% - 100%',
+                            ])
+                            ->placeholder('All Percentages')
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        if (empty($data['percentage_range'])) {
+                            return $query;
+                        }
+
+                        return $query->whereHas('implementations', function (Builder $query) use ($data) {
+                            $query->whereRaw('implementations.id = (SELECT id FROM implementations WHERE project_id = projects.id ORDER BY date DESC LIMIT 1)');
+
+                            match ($data['percentage_range']) {
+                                '0-25' => $query->whereRaw('percentage BETWEEN 0 AND 25'),
+                                '25-50' => $query->whereRaw('percentage BETWEEN 25 AND 50'),
+                                '50-75' => $query->whereRaw('percentage BETWEEN 50 AND 75'),
+                                '75-100' => $query->whereRaw('percentage BETWEEN 75 AND 100'),
+                                default => null,
+                            };
+
+                            return $query;
+                        });
                     }),
             ])
             ->actions([
