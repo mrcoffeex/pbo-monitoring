@@ -20,6 +20,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Support\RawJs;
 use Filament\Tables;
+use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\Filter;
@@ -371,11 +372,11 @@ class ProjectResource extends Resource
                     }),
             ])
             ->actions([
-                Tables\Actions\EditAction::make()
-                    ->button()
-                    ->color('info'),
-                Tables\Actions\DeleteAction::make()
-                    ->button(),
+                ActionGroup::make([
+                    Tables\Actions\EditAction::make()
+                        ->color('info'),
+                    Tables\Actions\DeleteAction::make(),
+                ]),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

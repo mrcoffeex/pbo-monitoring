@@ -1,9 +1,8 @@
+@import url("https://fonts.googleapis.com/css2?family=Google+Sans+Code:ital,wght@0,300..800;1,300..800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Fugaz+One&family=Funnel+Sans:ital,wght@0,300..800;1,300..800&family=Google+Sans+Code:ital,wght@0,300..800;1,300..800&family=Permanent+Marker&display=swap");
 
-@import url('https://fonts.googleapis.com/css2?family=Google+Sans+Code:ital,wght@0,300..800;1,300..800&display=swap');
-
-@import 'tailwindcss';
+@import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
-
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
@@ -11,11 +10,20 @@
 @source '../**/*.js';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
-    --font-google-code: 'Google Sans Code', ui-sans-serif, system-ui, sans-serif;
+    --font-sans:
+        "Instrument Sans", ui-sans-serif, system-ui, sans-serif,
+        "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
+        "Noto Color Emoji";
+    --font-google-code:
+        "Google Sans Code", ui-sans-serif, system-ui, sans-serif;
+    --font-funnel-sans: "Funnel Sans", ui-sans-serif, system-ui, sans-serif;
 }
 
 @layer utilities {
-  .font-google-code { font-family: var(--font-google-code); }
+    .font-google-code {
+        font-family: var(--font-google-code);
+    }
+    .font-funnel-sans {
+        font-family: var(--font-funnel-sans);
+    }
 }
