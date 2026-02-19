@@ -22,7 +22,7 @@
     <!-- Stats Grid -->
     <div class="grid gap-7 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
         <!-- Online Users -->
-        <div class="rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 p-6 shadow-sm ring-1 ring-emerald-100 dark:from-emerald-950/50 dark:to-teal-950/50 dark:ring-emerald-800/50">
+        <div class="rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 p-6 shadow-sm dark:from-emerald-950/50 dark:to-teal-950/50">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm font-medium text-emerald-700 dark:text-emerald-300">Online Users</p>
@@ -40,7 +40,7 @@
         </div>
 
         <!-- Released Projects -->
-        <div class="rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 p-6 shadow-sm ring-1 ring-blue-100 dark:from-blue-950/50 dark:to-indigo-950/50 dark:ring-blue-800/50">
+        <div class="rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 p-6 shadow-sm dark:from-blue-950/50 dark:to-indigo-950/50">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm font-medium text-blue-700 dark:text-blue-300">Released Projects</p>
@@ -58,7 +58,7 @@
         </div>
 
         <!-- Total Procurements -->
-        <div class="rounded-xl bg-gradient-to-br from-purple-50 to-fuchsia-50 p-6 shadow-sm ring-1 ring-purple-100 dark:from-purple-950/50 dark:to-fuchsia-950/50 dark:ring-purple-800/50">
+        <div class="rounded-xl bg-gradient-to-br from-purple-50 to-fuchsia-50 p-6 shadow-sm dark:from-purple-950/50 dark:to-fuchsia-950/50">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm font-medium text-purple-700 dark:text-purple-300">Total Procurements</p>
@@ -76,7 +76,7 @@
         </div>
 
         <!-- Procurements with NTP -->
-        <div class="rounded-xl bg-gradient-to-br from-cyan-50 to-sky-50 p-6 shadow-sm ring-1 ring-cyan-100 dark:from-cyan-950/50 dark:to-sky-950/50 dark:ring-cyan-800/50">
+        <div class="rounded-xl bg-gradient-to-br from-cyan-50 to-sky-50 p-6 shadow-sm dark:from-cyan-950/50 dark:to-sky-950/50">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm font-medium text-cyan-700 dark:text-cyan-300">With NTP</p>
@@ -94,7 +94,7 @@
         </div>
 
         <!-- With Purchase Requests -->
-        <div class="rounded-xl bg-gradient-to-br from-green-50 to-lime-50 p-6 shadow-sm ring-1 ring-green-100 dark:from-green-950/50 dark:to-lime-950/50 dark:ring-green-800/50">
+        <div class="rounded-xl bg-gradient-to-br from-green-50 to-lime-50 p-6 shadow-sm dark:from-green-950/50 dark:to-lime-950/50">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm font-medium text-green-700 dark:text-green-300">With Purchase Requests</p>
@@ -112,7 +112,7 @@
         </div>
 
         <!-- No Purchase Request -->
-        <div class="rounded-xl bg-gradient-to-br from-red-50 to-rose-50 p-6 shadow-sm ring-1 ring-red-100 dark:from-red-950/50 dark:to-rose-950/50 dark:ring-red-800/50">
+        <div class="rounded-xl bg-gradient-to-br from-red-50 to-rose-50 p-6 shadow-sm dark:from-red-950/50 dark:to-rose-950/50">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm font-medium text-red-700 dark:text-red-300">No Purchase Request</p>
@@ -130,7 +130,7 @@
         </div>
 
         <!-- Total Payments -->
-        <div class="rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 p-6 shadow-sm ring-1 ring-amber-100 dark:from-amber-950/50 dark:to-orange-950/50 dark:ring-amber-800/50">
+        <div class="rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 p-6 shadow-sm dark:from-amber-950/50 dark:to-orange-950/50">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm font-medium text-amber-700 dark:text-amber-300">Total Payments</p>
@@ -152,7 +152,7 @@
         </div>
 
         <!-- Projects without Purchase Requests Bar -->
-        <div class="rounded-xl bg-gradient-to-br from-slate-50 to-gray-50 p-6 shadow-sm ring-1 ring-slate-100 dark:from-slate-950/50 dark:to-gray-950/50 dark:ring-slate-800/50">
+        <div class="rounded-xl bg-gradient-to-br from-indigo-50 to-indigo-100 p-6 shadow-sm dark:from-indigo-950/50 dark:to-indigo-900/50">
             <p class="text-sm font-medium text-slate-700 dark:text-slate-300">Project Status</p>
             <div class="mt-4 space-y-3">
                 <div>
