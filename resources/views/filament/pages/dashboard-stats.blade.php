@@ -152,8 +152,8 @@
         </div>
 
         <!-- Projects without Purchase Requests Bar -->
-        <div class="rounded-xl bg-gradient-to-br from-indigo-50 to-indigo-100 p-6 shadow-sm dark:from-indigo-950/50 dark:to-indigo-900/50">
-            <p class="text-sm font-medium text-slate-700 dark:text-slate-300">Project Status</p>
+        <div class="rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 p-6 shadow-sm dark:from-amber-950/50 dark:to-orange-950/50">
+            <p class="text-sm font-medium text-amber-700 dark:text-amber-300">Project Status</p>
             <div class="mt-4 space-y-3">
                 <div>
                     <div class="flex items-center justify-between text-sm">
