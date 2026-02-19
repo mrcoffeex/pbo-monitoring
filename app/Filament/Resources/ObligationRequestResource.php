@@ -18,11 +18,13 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Support\RawJs;
 use Filament\Tables;
+use Filament\Tables\Actions\CreateAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Auth;
 
 class ObligationRequestResource extends Resource
 {
@@ -35,60 +37,49 @@ class ObligationRequestResource extends Resource
         return $form
             ->schema([
                 Section::make('OBR Details')
-                    ->columns(12)
+                    ->columns(1)
                     ->schema([
-                        Grid::make('')
-                            ->columns(12)
-                            ->schema([
-                                Select::make('project_id')
-                                    ->label('Project')
-                                    ->options(
-                                        Project::get()->mapWithKeys(fn ($project) => [
-                                            $project->id => ($project->code) . (' - ' . $project->name ?? 'no projects')
-                                        ])
-                                    )
-                                    ->reactive()
-                                    ->afterStateUpdated(function ($state, callable $set) {
-                                        if (! $state) {
-                                            $set('amount', null);
-                                            return;
-                                        }
+                        Select::make('project_id')
+                            ->label('Project')
+                            ->options(
+                                Project::get()->mapWithKeys(fn($project) => [
+                                    $project->id => ($project->code) . (' - ' . $project->name ?? 'no projects')
+                                ])
+                            )
+                            ->reactive()
+                            ->afterStateUpdated(function ($state, callable $set) {
+                                if (! $state) {
+                                    $set('amount', null);
+                                    return;
+                                }
 
-                                        $project = Project::find($state);
-                                        $allotment = $project?->allotment;
+                                $project = Project::find($state);
+                                $allotment = $project?->allotment;
 
-                                        $value = is_numeric($allotment) ? (float) $allotment : (float) preg_replace('/[^0-9\.\-]/', '', (string) $allotment ?: 0);
+                                $value = is_numeric($allotment) ? (float) $allotment : (float) preg_replace('/[^0-9\.\-]/', '', (string) $allotment ?: 0);
 
-                                        $set('amount', number_format($value, 2));
-                                    })
-                                    ->searchable()
-                                    ->required()
-                                    ->columnSpan(9),
-                                DatePicker::make('controlled_date')
-                                    ->label('OBR Date')
-                                    ->required()
-                                    ->columnSpan(3),
-                            ]),
-                        Grid::make('')
-                            ->columns(12)
-                            ->schema([
-                                TextInput::make('number')
-                                    ->label('OBR Number')
-                                    ->minLength(1)
-                                    ->maxLength(50)
-                                    ->required()
-                                    ->placeholder('e.g. 0000')
-                                    ->columnSpan(6),
-                                TextInput::make('amount')
-                                    ->required()
-                                    ->numeric()
-                                    ->prefix('₱')
-                                    ->minValue(0)
-                                    ->placeholder('0.00')
-                                    ->mask(RawJs::make('$money($input)'))
-                                    ->stripCharacters(',')
-                                    ->columnSpan(6),
-                            ])
+                                $set('amount', number_format($value, 2));
+                            })
+                            ->searchable()
+                            ->required(),
+                        DatePicker::make('controlled_date')
+                            ->label('OBR Date')
+                            ->required(),
+
+                        TextInput::make('number')
+                            ->label('OBR Number')
+                            ->minLength(1)
+                            ->maxLength(50)
+                            ->required()
+                            ->placeholder('e.g. 0000'),
+                        TextInput::make('amount')
+                            ->required()
+                            ->numeric()
+                            ->prefix('₱')
+                            ->minValue(0)
+                            ->placeholder('0.00')
+                            ->mask(RawJs::make('$money($input)'))
+                            ->stripCharacters(','),
                     ]),
             ]);
     }
@@ -116,10 +107,10 @@ class ObligationRequestResource extends Resource
                     ->label('Project')
                     ->wrap()
                     ->limit(35)
-                    ->tooltip(fn ($record) => $record->project?->name)
+                    ->tooltip(fn($record) => $record->project?->name)
                     ->sortable()
                     ->searchable()
-                    ->description(fn ($record) => $record->project?->year . ' - ' .$record->project?->code, position: 'above'),
+                    ->description(fn($record) => $record->project?->year . ' - ' . $record->project?->code, position: 'above'),
                 TextColumn::make('controlled_date')
                     ->label('OBR Date')
                     ->date('M d, Y')
@@ -138,7 +129,7 @@ class ObligationRequestResource extends Resource
                     ->money('PHP', true)
                     ->sortable()
                     ->alignEnd()
-                    ->color(fn ($state) => $state > 0 ? 'success' : 'gray'),
+                    ->color(fn($state) => $state > 0 ? 'success' : 'gray'),
                 TextColumn::make('user.name')
                     ->label('Created By')
                     ->badge()
@@ -147,12 +138,12 @@ class ObligationRequestResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('created_at')
                     ->since()
-                    ->tooltip(fn ($record) => $record->created_at?->format('Y-m-d H:i'))
+                    ->tooltip(fn($record) => $record->created_at?->format('Y-m-d H:i'))
                     ->sortable()
                     ->toggleable(),
                 TextColumn::make('updated_at')
                     ->since()
-                    ->tooltip(fn ($record) => $record->updated_at?->format('Y-m-d H:i'))
+                    ->tooltip(fn($record) => $record->updated_at?->format('Y-m-d H:i'))
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
@@ -170,14 +161,16 @@ class ObligationRequestResource extends Resource
                     ])
                     ->query(function (Builder $q, array $data) {
                         return $q
-                            ->when($data['from'] ?? null, fn ($qq, $d) => $qq->whereDate('controlled_date', '>=', $d))
-                            ->when($data['until'] ?? null, fn ($qq, $d) => $qq->whereDate('controlled_date', '<=', $d));
+                            ->when($data['from'] ?? null, fn($qq, $d) => $qq->whereDate('controlled_date', '>=', $d))
+                            ->when($data['until'] ?? null, fn($qq, $d) => $qq->whereDate('controlled_date', '<=', $d));
                     }),
             ])
             ->actions([
                 Tables\Actions\EditAction::make()
                     ->button()
-                    ->color('info'),
+                    ->color('info')
+                    ->slideOver()
+                    ->modalWidth('md'),
                 Tables\Actions\DeleteAction::make()
                     ->button(),
             ])
@@ -231,9 +224,18 @@ class ObligationRequestResource extends Resource
             ->emptyStateHeading('No OBRs')
             ->emptyStateDescription('Create your first obligation request record.')
             ->emptyStateActions([
-                Tables\Actions\CreateAction::make(),
+                CreateAction::make()
+                    ->slideOver()
+                    ->modalWidth('md')
+                    ->createAnother(false)
+                    ->using(function (array $data): ObligationRequest {
+
+                        $data['user_id'] = Auth::id();
+
+                        return ObligationRequest::create($data);
+                    }),
             ])
-            ->paginated([15,25,50,100])
+            ->paginated([15, 25, 50, 100])
             ->defaultPaginationPageOption(15);
     }
 
@@ -273,8 +275,6 @@ class ObligationRequestResource extends Resource
     {
         return [
             'index' => Pages\ListObligationRequests::route('/'),
-            'create' => Pages\CreateObligationRequest::route('/create'),
-            'edit' => Pages\EditObligationRequest::route('/{record}/edit'),
         ];
     }
 }

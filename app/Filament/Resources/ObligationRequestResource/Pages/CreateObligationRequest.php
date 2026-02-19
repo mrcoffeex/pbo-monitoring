@@ -12,12 +12,5 @@ class CreateObligationRequest extends CreateRecord
 {
     use LogCreateRecord;
 
-    protected function mutateFormDataBeforeCreate(array $data): array
-    {
-        $data['user_id'] = Auth::id();
-
-        return $data;
-    }
-
     protected static string $resource = ObligationRequestResource::class;
 }

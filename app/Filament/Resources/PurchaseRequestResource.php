@@ -3,26 +3,29 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PurchaseRequestResource\Pages;
-use App\Filament\Resources\PurchaseRequestResource\RelationManagers;
 use App\Models\Project;
 use App\Models\PurchaseRequest;
 use Filament\Forms;
-use Filament\Forms\Components\DateTimePicker;
-use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Filament\Facades\Filament;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Textarea;
+use Filament\Tables\Actions\BulkAction;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\CreateAction;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Auth;
 
 class PurchaseRequestResource extends Resource
 {
@@ -44,23 +47,24 @@ class PurchaseRequestResource extends Resource
                                     $project->id => ($project->code) . (' - ' . $project->name ?? 'no projects')
                                 ])
                             )
+                            ->preload()
                             ->searchable()
                             ->required()
-                            ->columnSpan(9),
+                            ->columnSpanFull(),
                         DatePicker::make('received_date')
                             ->label('Received Date & Time')
                             ->required()
-                            ->columnSpan(3),
+                            ->columnSpanFull(),
                         TextInput::make('pr_number')
                             ->label('PR Number')
                             ->minLength(2)
                             ->maxlength(50)
                             ->placeholder('e.g. PR00000000')
-                            ->columnSpan(4),
+                            ->columnSpanFull(),
                         Textarea::make('remarks')
                             ->label('Remarks')
                             ->rows(3)
-                            ->columnSpan(8)
+                            ->columnSpanFull()
                             ->placeholder('e.g. the document is awesome'),
                     ]),
                 Section::make('TWG - Technical Working Group')
@@ -68,7 +72,7 @@ class PurchaseRequestResource extends Resource
                     ->schema([
                         DatePicker::make('forward_twg_date')
                             ->label('Forwarded to TWG')
-                            ->columnSpan(3),
+                            ->columnSpanFull(),
                     ]),
 
             ]);
@@ -144,12 +148,12 @@ class PurchaseRequestResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('center')
+                SelectFilter::make('center')
                     ->label('Project')
                     ->relationship('project', 'name')
                     ->searchable()
                     ->preload(),
-                Tables\Filters\Filter::make('date_range')
+                Filter::make('date_range')
                     ->label('Received Range')
                     ->form([
                         Forms\Components\DatePicker::make('from')->label('From'),
@@ -160,22 +164,24 @@ class PurchaseRequestResource extends Resource
                             ->when($data['from'] ?? null, fn ($qq, $d) => $qq->whereDate('received_date', '>=', $d))
                             ->when($data['until'] ?? null, fn ($qq, $d) => $qq->whereDate('received_date', '<=', $d));
                     }),
-                Tables\Filters\Filter::make('forwarded')
+                Filter::make('forwarded')
                     ->label('Forwarded to TWG')
                     ->toggle()
                     ->query(fn (Builder $q) => $q->whereNotNull('forward_twg_date')),
             ])
             ->actions([
-                Tables\Actions\EditAction::make()
+                EditAction::make()
                     ->button()
-                    ->color('info'),
-                Tables\Actions\DeleteAction::make()
+                    ->color('info')
+                    ->slideOver()
+                    ->modalWidth('md'),
+                DeleteAction::make()
                     ->button(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\BulkAction::make('export_csv')
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                    BulkAction::make('export_csv')
                         ->label('Export CSV')
                         ->icon('heroicon-o-arrow-down-tray')
                         ->action(function (Collection $records) {
@@ -222,7 +228,16 @@ class PurchaseRequestResource extends Resource
             ->emptyStateHeading('No Purchase Requests')
             ->emptyStateDescription('Create your first purchase request record.')
             ->emptyStateActions([
-                Tables\Actions\CreateAction::make(),
+                CreateAction::make()
+                    ->slideOver()
+                    ->modalWidth('md')
+                    ->createAnother(false)
+                    ->using(function (array $data): PurchaseRequest {
+
+                        $data['user_id'] = Auth::id();
+
+                        return PurchaseRequest::create($data);
+                    }),
             ])
             ->paginated([15,25,50,100])
             ->defaultPaginationPageOption(15);
@@ -264,8 +279,6 @@ class PurchaseRequestResource extends Resource
     {
         return [
             'index' => Pages\ListPurchaseRequests::route('/'),
-            'create' => Pages\CreatePurchaseRequest::route('/create'),
-            'edit' => Pages\EditPurchaseRequest::route('/{record}/edit'),
         ];
     }
 }

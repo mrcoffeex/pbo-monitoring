@@ -18,11 +18,13 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Support\RawJs;
 use Filament\Tables;
+use Filament\Tables\Actions\CreateAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Auth;
 
 class PurchaseRequestControlResource extends Resource
 {
@@ -35,7 +37,7 @@ class PurchaseRequestControlResource extends Resource
         return $form
             ->schema([
                 Section::make('PR Control Details')
-                    ->columns(12)
+                    ->columns(1)
                     ->schema([
                         Select::make('project_id')
                             ->label('Project')
@@ -59,19 +61,17 @@ class PurchaseRequestControlResource extends Resource
                                 $set('amount', number_format($value, 2));
                             })
                             ->searchable()
-                            ->required()
-                            ->columnSpan(9),
+                            ->preload()
+                            ->required(),
                         DatePicker::make('controlled_date')
                             ->label('Controlled Date')
-                            ->required()
-                            ->columnSpan(3),
+                            ->required(),
                         TextInput::make('control_number')
                             ->label('PR Control Number')
                             ->minLength(2)
                             ->maxlength(50)
                             ->required()
-                            ->placeholder('e.g. 0000')
-                            ->columnSpan(6),
+                            ->placeholder('e.g. 0000'),
                         TextInput::make('amount')
                             ->label('PR Amount')
                             ->required()
@@ -80,8 +80,7 @@ class PurchaseRequestControlResource extends Resource
                             ->minValue(0)
                             ->placeholder('0.00')
                             ->mask(RawJs::make('$money($input)'))
-                            ->stripCharacters(',')
-                            ->columnSpan(6),
+                            ->stripCharacters(','),
                     ]),
             ]);
     }
@@ -170,7 +169,9 @@ class PurchaseRequestControlResource extends Resource
             ->actions([
                 Tables\Actions\EditAction::make()
                     ->button()
-                    ->color('info'),
+                    ->color('info')
+                    ->slideOver()
+                    ->modalWidth('md'),
                 Tables\Actions\DeleteAction::make()
                     ->button(),
             ])
@@ -224,7 +225,16 @@ class PurchaseRequestControlResource extends Resource
             ->emptyStateHeading('No PR Controls')
             ->emptyStateDescription('Create your first purchase request control record.')
             ->emptyStateActions([
-                Tables\Actions\CreateAction::make(),
+                CreateAction::make()
+                    ->slideOver()
+                    ->modalWidth('md')
+                    ->createAnother(false)
+                    ->using(function (array $data): PurchaseRequestControl {
+
+                        $data['user_id'] = Auth::id();
+
+                        return PurchaseRequestControl::create($data);
+                    }),
             ])
             ->paginated([15,25,50,100])
             ->defaultPaginationPageOption(15);
@@ -266,8 +276,6 @@ class PurchaseRequestControlResource extends Resource
     {
         return [
             'index' => Pages\ListPurchaseRequestControls::route('/'),
-            'create' => Pages\CreatePurchaseRequestControl::route('/create'),
-            'edit' => Pages\EditPurchaseRequestControl::route('/{record}/edit'),
         ];
     }
 }

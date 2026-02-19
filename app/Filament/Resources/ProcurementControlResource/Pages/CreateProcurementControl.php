@@ -6,15 +6,11 @@ use App\Filament\Resources\ProcurementControlResource;
 use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\Auth;
+use Noxo\FilamentActivityLog\Extensions\LogCreateRecord;
 
 class CreateProcurementControl extends CreateRecord
 {
+    use LogCreateRecord;
+
     protected static string $resource = ProcurementControlResource::class;
-
-    protected function mutateFormDataBeforeCreate(array $data): array
-    {
-        $data['user_id'] = Auth::id();
-
-        return $data;
-    }
 }

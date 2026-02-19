@@ -19,11 +19,13 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Support\RawJs;
 use Filament\Tables;
+use Filament\Tables\Actions\CreateAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Auth;
 
 class TechnicalWorkingGroupResource extends Resource
 {
@@ -36,27 +38,25 @@ class TechnicalWorkingGroupResource extends Resource
         return $form
             ->schema([
                 Section::make('TWG Review Details')
-                    ->columns(12)
+                    ->columns(1)
                     ->schema([
                         Select::make('project_id')
                             ->label('Project')
                             ->options(
-                                Project::get()->mapWithKeys(fn ($project) => [
+                                Project::get()->mapWithKeys(fn($project) => [
                                     $project->id => ($project->code) . (' - ' . $project->name ?? 'no projects')
                                 ])
                             )
                             ->searchable()
-                            ->required()
-                            ->columnSpan(9),
+                            ->preload()
+                            ->required(),
                         DatePicker::make('review_date')
                             ->label('Review Date')
-                            ->required()
-                            ->columnSpan(3),
+                            ->required(),
                         Textarea::make('review_remarks')
                             ->label('Review Remarks')
                             ->rows(3)
-                            ->placeholder('e.g. the document is awesome')
-                            ->columnSpan(12),
+                            ->placeholder('e.g. the document is awesome'),
                     ]),
             ]);
     }
@@ -84,10 +84,10 @@ class TechnicalWorkingGroupResource extends Resource
                     ->label('Project')
                     ->wrap()
                     ->limit(35)
-                    ->tooltip(fn ($record) => $record->project?->name)
+                    ->tooltip(fn($record) => $record->project?->name)
                     ->sortable()
                     ->searchable()
-                    ->description(fn ($record) => $record->project?->year . ' - ' . $record->project?->code, position: 'above'),
+                    ->description(fn($record) => $record->project?->year . ' - ' . $record->project?->code, position: 'above'),
                 TextColumn::make('review_date')
                     ->label('Review')
                     ->dateTime('M d, Y')
@@ -99,7 +99,7 @@ class TechnicalWorkingGroupResource extends Resource
                     ->label('Review Remarks')
                     ->wrap()
                     ->limit(30)
-                    ->tooltip(fn ($record) => $record->review_remarks)
+                    ->tooltip(fn($record) => $record->review_remarks)
                     ->toggleable(),
                 TextColumn::make('user.name')
                     ->label('Created By')
@@ -109,12 +109,12 @@ class TechnicalWorkingGroupResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('created_at')
                     ->since()
-                    ->tooltip(fn ($record) => $record->created_at?->format('Y-m-d H:i'))
+                    ->tooltip(fn($record) => $record->created_at?->format('Y-m-d H:i'))
                     ->sortable()
                     ->toggleable(),
                 TextColumn::make('updated_at')
                     ->since()
-                    ->tooltip(fn ($record) => $record->updated_at?->format('Y-m-d H:i'))
+                    ->tooltip(fn($record) => $record->updated_at?->format('Y-m-d H:i'))
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
@@ -132,14 +132,16 @@ class TechnicalWorkingGroupResource extends Resource
                     ])
                     ->query(function (Builder $q, array $data) {
                         return $q
-                            ->when($data['from'] ?? null, fn ($qq, $d) => $qq->whereDate('review_date', '>=', $d))
-                            ->when($data['until'] ?? null, fn ($qq, $d) => $qq->whereDate('review_date', '<=', $d));
+                            ->when($data['from'] ?? null, fn($qq, $d) => $qq->whereDate('review_date', '>=', $d))
+                            ->when($data['until'] ?? null, fn($qq, $d) => $qq->whereDate('review_date', '<=', $d));
                     }),
             ])
             ->actions([
                 Tables\Actions\EditAction::make()
                     ->button()
-                    ->color('info'),
+                    ->color('info')
+                    ->slideOver()
+                    ->modalWidth('md'),
                 Tables\Actions\DeleteAction::make()
                     ->button(),
             ])
@@ -200,9 +202,18 @@ class TechnicalWorkingGroupResource extends Resource
             ->emptyStateHeading('No TWG Reviews')
             ->emptyStateDescription('Create your first TWG review record.')
             ->emptyStateActions([
-                Tables\Actions\CreateAction::make(),
+                CreateAction::make()
+                    ->slideOver()
+                    ->modalWidth('md')
+                    ->createAnother(false)
+                    ->using(function (array $data): TechnicalWorkingGroup {
+
+                        $data['user_id'] = Auth::id();
+
+                        return TechnicalWorkingGroup::create($data);
+                    }),
             ])
-            ->paginated([15,25,50,100])
+            ->paginated([15, 25, 50, 100])
             ->defaultPaginationPageOption(15);
     }
 
@@ -242,8 +253,6 @@ class TechnicalWorkingGroupResource extends Resource
     {
         return [
             'index' => Pages\ListTechnicalWorkingGroups::route('/'),
-            'create' => Pages\CreateTechnicalWorkingGroup::route('/create'),
-            'edit' => Pages\EditTechnicalWorkingGroup::route('/{record}/edit'),
         ];
     }
 }
