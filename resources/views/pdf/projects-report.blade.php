@@ -62,8 +62,8 @@
         <th class="col-center">Res. Center</th>
         <th class="col-app">Appropriation</th>
         <th class="col-allot">Allotment</th>
-        <th class="col-pr">PurchaseRequests</th>
         <th class="col-prep">PreProcurements</th>
+        <th class="col-pr">PurchaseRequests</th>
         <th class="col-twg">TechnicalWorkingGroups</th>
         <th class="col-twg">PmoControls</th>
         <th class="col-prc">PurchaseRequestControls</th>
