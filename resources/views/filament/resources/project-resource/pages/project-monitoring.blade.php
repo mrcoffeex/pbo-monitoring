@@ -72,7 +72,7 @@
         <x-filament::section
             :collapsible="true"
             :collapsed="false">
-            <x-slot name="heading">Pre Procurement</x-slot>
+            <x-slot name="heading">Pre Procurement Status</x-slot>
             <div class="{{ $sectionBody }}">
                 @forelse ($preProcurements as $preProcurement)
                 <div class="{{ $cardWrap }}">
