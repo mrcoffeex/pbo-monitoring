@@ -138,6 +138,7 @@ class ListProjects extends ListRecords
 
             $projects = Project::with([
                     'user',
+                    'pre_procurements.user',
                     'purchase_requests.user',
                     'technical_working_groups.user',
                     'purchase_request_controls.user',
@@ -220,6 +221,7 @@ class ListProjects extends ListRecords
             $ids = $records->pluck('id')->all();
             $records = Project::with([
                 'user',
+                'pre_procurements.user',
                 'purchase_requests.user',
                 'technical_working_groups.user',
                 'procurement_controls.user',
@@ -269,6 +271,7 @@ class ListProjects extends ListRecords
             $order = implode(',', $ids);
             $records = Project::with([
                 'user',
+                'pre_procurements.user',
                 'purchase_requests.user',
                 'technical_working_groups.user',
                 'procurement_controls.user',
@@ -319,25 +322,21 @@ class ListProjects extends ListRecords
             $options = new Options();
 
             // Column widths (1-indexed columns): tune for readability
-            //  1=Res.Center  2=Project Name  3=Year  4=Appropriation  5=Allotment
-            //  6=PR  7=TWG  8=PMO  9=PRC  10=Procurements
-            //  11=OR  12=Implementations  13=Payments  14=Status  15=Created By  16=Created At
-            $options->setColumnWidth(14, 1);    // Res. Center
-            $options->setColumnWidth(36, 2);    // Project Name
-            $options->setColumnWidth(8, 3);     // Year
-            $options->setColumnWidth(18, 4);    // Appropriation
-            $options->setColumnWidth(18, 5);    // Allotment
-            $options->setColumnWidth(32, 6);    // PurchaseRequests
-            $options->setColumnWidth(28, 7);    // TWG
-            $options->setColumnWidth(28, 8);    // PMO Controls
-            $options->setColumnWidth(28, 9);    // PRC Controls
-            $options->setColumnWidth(30, 10);   // Procurements
-            $options->setColumnWidth(28, 11);   // ObligationRequests
-            $options->setColumnWidth(28, 12);   // Implementations
-            $options->setColumnWidth(28, 13);   // Payments
-            $options->setColumnWidth(14, 14);   // Status
-            $options->setColumnWidth(16, 15);   // Created By
-            $options->setColumnWidth(20, 16);   // Created At
+            //  1=Res.Center  2=Appropriation  3=Allotment  4=PreProcurements
+            //  5=PR  6=TWG  7=PMO  8=PRC  9=Procurements
+            //  10=OR  11=Implementations  12=Payments
+            $options->setColumnWidth(18, 1);    // Res. Center
+            $options->setColumnWidth(18, 2);    // Appropriation
+            $options->setColumnWidth(18, 3);    // Allotment
+            $options->setColumnWidth(32, 4);    // PreProcurements
+            $options->setColumnWidth(32, 5);    // PurchaseRequests
+            $options->setColumnWidth(32, 6);    // TWG
+            $options->setColumnWidth(32, 7);    // PMO Controls
+            $options->setColumnWidth(32, 8);    // PRC Controls
+            $options->setColumnWidth(40, 9);    // Procurements
+            $options->setColumnWidth(32, 10);   // ObligationRequests
+            $options->setColumnWidth(40, 11);   // Implementations
+            $options->setColumnWidth(40, 12);   // Payments
 
             $options->DEFAULT_ROW_HEIGHT = 20;
 
@@ -434,15 +433,15 @@ class ListProjects extends ListRecords
                 $titleStyle
             ));
 
-            // Merge title across all 16 columns (0-based: col 0 to col 15, row 1)
-            $options->mergeCells(0, 1, 15, 1);
+            // Merge title across all 12 columns (0-based: col 0 to col 11, row 1)
+            $options->mergeCells(0, 1, 11, 1);
 
             // Info row: export date + record count
             $writer->addRow(Row::fromValues(
                 ['Generated: ' . now()->format('F d, Y h:i A') . '  |  Records: ' . $records->count()],
                 $infoStyle
             ));
-            $options->mergeCells(0, 2, 15, 2);
+            $options->mergeCells(0, 2, 11, 2);
 
             // Blank spacer row
             $writer->addRow(Row::fromValues([]));
@@ -450,10 +449,9 @@ class ListProjects extends ListRecords
             // --- Header row (row 4) ---
             $headers = [
                 'Res. Center',
-                'Project Name',
-                'Year',
                 'Appropriation',
                 'Allotment',
+                'Pre Procurements',
                 'Purchase Requests',
                 'Technical Working Groups',
                 'PMO Controls',
@@ -462,9 +460,6 @@ class ListProjects extends ListRecords
                 'Obligation Requests',
                 'Implementations',
                 'Payments',
-                'Status',
-                'Created By',
-                'Created At',
             ];
             $writer->addRow(Row::fromValues($headers, $headerStyle));
 
@@ -477,12 +472,12 @@ class ListProjects extends ListRecords
                 $currentStatusStyle = $isAlt ? $altStatusStyle  : $statusStyle;
 
                 // Build cells with per-column styles
+                $centerLabel = ($project->code ?? 'N/A') . ' - ' . ($project->name ?? '');
                 $cells = [
-                    Cell::fromValue($project->code ?? 'N/A', $currentDataStyle),
-                    Cell::fromValue($project->name ?? 'N/A', $currentDataStyle),
-                    Cell::fromValue($project->year ?? '', $currentDataStyle),
+                    Cell::fromValue($centerLabel, $currentDataStyle),
                     Cell::fromValue($project->appropriation ? number_format((float) $project->appropriation, 2) : '0.00', $currentNumStyle),
                     Cell::fromValue($project->allotment ? number_format((float) $project->allotment, 2) : '0.00', $currentNumStyle),
+                    Cell::fromValue($this->formatRelatedRecords($project->pre_procurements), $currentDataStyle),
                     Cell::fromValue($this->formatRelatedRecords($project->purchase_requests), $currentDataStyle),
                     Cell::fromValue($this->formatRelatedRecords($project->technical_working_groups), $currentDataStyle),
                     Cell::fromValue($this->formatRelatedRecords($project->procurement_controls), $currentDataStyle),
@@ -490,10 +485,7 @@ class ListProjects extends ListRecords
                     Cell::fromValue($this->formatRelatedRecords($project->procurements), $currentDataStyle),
                     Cell::fromValue($this->formatRelatedRecords($project->obligation_requests), $currentDataStyle),
                     Cell::fromValue($this->formatRelatedRecords($project->implementations), $currentDataStyle),
-                    Cell::fromValue($this->formatRelatedRecords($project->payments), $currentDataStyle),
-                    Cell::fromValue(strtoupper($project->status ?? ''), $currentStatusStyle),
-                    Cell::fromValue($project->user?->name ?? 'System', $currentDataStyle),
-                    Cell::fromValue($project->created_at?->format('Y-m-d H:i:s') ?? '', $currentDataStyle),
+                    Cell::fromValue($this->formatPayments($project), $currentDataStyle),
                 ];
 
                 $writer->addRow(new Row($cells));
@@ -522,6 +514,25 @@ class ListProjects extends ListRecords
         }
     }
 
+    private function formatPayments($project)
+    {
+        $result = [];
+        $result[] = 'Balance: ' . number_format((float)($project->balance ?? 0), 2);
+
+        if ($project->payments && $project->payments->count() > 0) {
+            foreach ($project->payments as $payment) {
+                $paymentType = \App\Enums\CustomOptions::PAYMENTS[$payment->type] ?? $payment->type;
+                $result[] = sprintf(
+                    'Payment: %s (%s)',
+                    number_format($payment->amount ?? 0, 2),
+                    optional($payment->date)->format('M-d-Y') ?? 'N/A'
+                );
+            }
+        }
+
+        return implode("\n", $result);
+    }
+
     private function formatRelatedRecords($records)
     {
         if (empty($records) || $records->count() === 0) {
@@ -544,44 +555,54 @@ class ListProjects extends ListRecords
         $type = class_basename($record);
 
         return match ($type) {
+            'PreProcurement' => sprintf(
+                'Remarks: %s | Date: %s',
+                $record->remarks ?? 'N/A',
+                optional($record->created_at)->format('M-d-Y') ?? 'N/A'
+            ),
             'PurchaseRequest' => sprintf(
-                'PR: %s (Received: %s)',
+                'PR: %s | Received: %s | Remarks: %s | Forwarded to TWG: %s',
                 $record->pr_number ?? 'N/A',
-                optional($record->received_date)->format('M-d-Y') ?? 'N/A'
+                optional($record->received_date)->format('M-d-Y') ?? 'N/A',
+                $record->remarks ?? 'N/A',
+                optional($record->forward_twg_date)->format('M-d-Y') ?? 'N/A'
             ),
             'TechnicalWorkingGroup' => sprintf(
-                'TWG (Reviewed: %s)',
-                optional($record->review_date)->format('M-d-Y') ?? 'N/A'
+                'Review Date: %s | Remarks: %s',
+                optional($record->review_date)->format('M-d-Y') ?? 'N/A',
+                $record->review_remarks ?? 'N/A'
             ),
             'ProcurementControl' => sprintf(
-                'PMO: ABC %s (Controlled: %s)',
+                'Controlled: %s | ABC: %s | Remarks: %s',
+                optional($record->controlled_date)->format('M-d-Y') ?? 'N/A',
                 number_format($record->abc ?? 0, 2),
-                optional($record->controlled_date)->format('M-d-Y') ?? 'N/A'
+                $record->forward_twg_date ?? 'N/A'
             ),
             'PurchaseRequestControl' => sprintf(
-                'PRC: %s (%s)',
+                'Controlled: %s | Control#: %s | Amount: %s',
+                optional($record->controlled_date)->format('M-d-Y') ?? 'N/A',
                 $record->control_number ?? 'N/A',
                 number_format($record->amount ?? 0, 2)
             ),
             'Procurement' => sprintf(
-                'IB: %s (NTP: %s)',
+                'IB: %s | Pre-Proc Conf: %s | Pre-Bid Conf: %s | NTP: %s | Contract: %s',
                 $record->ib_number ?? 'N/A',
-                $record->ntp_number ?? 'Pending'
+                optional($record->pre_procurement_conference)->format('M-d-Y') ?? 'N/A',
+                optional($record->pre_bid_conference)->format('M-d-Y') ?? 'N/A',
+                $record->ntp_number ?? 'Pending',
+                number_format($record->contract_amount ?? 0, 2)
             ),
             'ObligationRequest' => sprintf(
-                'OR: %s (%s)',
-                $record->or_number ?? 'N/A',
-                optional($record->or_date)->format('M-d-Y') ?? 'N/A'
+                'OR#: %s | Controlled: %s | Amount: %s',
+                $record->number ?? 'N/A',
+                optional($record->controlled_date)->format('M-d-Y') ?? 'N/A',
+                number_format($record->amount ?? 0, 2)
             ),
             'Implementation' => sprintf(
-                'Impl: %s%% (as of %s)',
+                'Date: %s | Percentage: %s%% | Remarks: %s',
+                optional($record->date)->format('M-d-Y') ?? 'N/A',
                 $record->percentage ?? 0,
-                optional($record->date)->format('M-d-Y') ?? 'N/A'
-            ),
-            'Payment' => sprintf(
-                'Payment: %s (Ref: %s)',
-                number_format($record->amount ?? 0, 2),
-                $record->reference_number ?? 'N/A'
+                $record->remarks ?? 'N/A'
             ),
             default => 'N/A'
         };

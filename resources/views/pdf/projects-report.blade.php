@@ -15,7 +15,7 @@
         th,td { border:1px solid #d9e0e6; padding:4px 5px; vertical-align:top; word-break:break-word; }
         th { background:#f3f5f7; font-weight:600; font-size:9px; text-transform:uppercase; letter-spacing:.5px; color:#374151; }
         tbody tr:nth-child(even){ background:#fafbfc; }
-        .amount { font-weight:600; color:#0b735a; font-size:10px; }
+        .amount { font-weight:400; color:#0b735a; font-size:10px; }
         .muted { color:#9aa2aa; font-style:italic; font-size:8px; }
         .value { color: #276CF5!important; }
         .small { font-size:8px; }
@@ -25,7 +25,7 @@
         .inner-wrap { max-height:82px; overflow:hidden; }
         .center { text-align:center; }
         .right { text-align:right; }
-        .col-center{width:7%}.col-project{width:11%}.col-app{width:8%}.col-allot{width:8%}.col-pr{width:10%}.col-twg{width:10%}.col-prc{width:9%}.col-proc{width:10%}.col-obr{width:9%}.col-impl{width:9%}.col-pay{width:9%}
+        .col-center{width:7%}.col-project{width:11%}.col-app{width:8%}.col-allot{width:8%}.col-pr{width:8%}.col-prep{width:8%}.col-twg{width:9%}.col-prc{width:8%}.col-proc{width:9%}.col-obr{width:8%}.col-impl{width:8%}.col-pay{width:8%}
         .status-badge { display:inline-block; padding:1px 4px; background:#e5e7eb; border-radius:3px; font-size:7px; font-weight:600; }
         .footer { position:fixed; left:0; right:0; bottom:0; text-align:center; font-size:9px; color:#6b7279; border-top:1px solid #d0d5da; padding:4px 0 2px; }
     </style>
@@ -63,6 +63,7 @@
         <th class="col-app">Appropriation</th>
         <th class="col-allot">Allotment</th>
         <th class="col-pr">PurchaseRequests</th>
+        <th class="col-prep">PreProcurements</th>
         <th class="col-twg">TechnicalWorkingGroups</th>
         <th class="col-twg">PmoControls</th>
         <th class="col-prc">PurchaseRequestControls</th>
@@ -89,6 +90,24 @@
             <!-- Allotment -->
             <td class="right">
                 <div class="amount">{{ $money($project->allotment ?? 0) }}</div>
+            </td>
+
+            <!-- PreProcurements horizontal -->
+            <td class="small">
+                @if($project->pre_procurements?->count())
+                    @foreach($project->pre_procurements as $prep)
+                        <li>
+                            <span>
+                                Remarks: <span class="value">{{ $sanitize($prep->remarks) }}</span>
+                            </span><br>
+                            <span>
+                                Date: <span class="value">{{ $date($prep->created_at) }}</span>
+                            </span><br>
+                        </li>
+                    @endforeach
+                @else
+                    <span class="muted">None</span>
+                @endif
             </td>
 
             <!-- Purchase Requests (horizontal) -->
