@@ -13,7 +13,17 @@ return new class extends Migration
     {
         Schema::create('pre_procurements', function (Blueprint $table) {
             $table->id();
+            $table->string('remarks')->nullable();
+            $table->foreignId('user_id')
+                ->nullable()
+                ->constrained()
+                ->nullOnDelete();
+            $table->foreignId('project_id')
+                ->nullable()
+                ->constrained()
+                ->nullOnDelete();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

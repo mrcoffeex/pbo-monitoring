@@ -31,6 +31,11 @@ class Project extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function pre_procurements()
+    {
+        return $this->hasMany(PreProcurement::class);
+    }
+
     public function purchase_requests()
     {
         return $this->hasMany(PurchaseRequest::class);

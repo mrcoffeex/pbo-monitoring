@@ -19,6 +19,7 @@ class ProjectMonitoring extends Page
     public function mount(Project $record): void
     {
         $this->project = $record->load([
+            'pre_procurements',
             'purchase_requests',
             'technical_working_groups',
             'procurement_controls',

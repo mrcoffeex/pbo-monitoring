@@ -18,6 +18,7 @@ class ProjectPdfViewer extends Page
     {
         $projects = Project::with([
             'user',
+            'pre_procurements.user',
             'purchase_requests.user',
             'technical_working_groups.user',
             'procurement_controls.user',
@@ -32,19 +33,20 @@ class ProjectPdfViewer extends Page
         $html = iconv('UTF-8', 'UTF-8//IGNORE', $html);
 
         return Pdf::setOptions([
-                'defaultFont' => 'DejaVu Sans',
-                'isRemoteEnabled' => false,
-                'isHtml5ParserEnabled' => true,
-            ])
+            'defaultFont' => 'DejaVu Sans',
+            'isRemoteEnabled' => false,
+            'isHtml5ParserEnabled' => true,
+        ])
             ->loadHTML($html)
             ->setPaper('a3', 'landscape')
-            ->stream('projects-report-'.now()->format('Y-m-d').'.pdf');
+            ->stream('projects-report-' . now()->format('Y-m-d') . '.pdf');
     }
 
     public function downloadProjectsPdf()
     {
         $projects = Project::with([
             'user',
+            'pre_procurements.user',
             'purchase_requests.user',
             'technical_working_groups.user',
             'procurement_controls.user',
@@ -59,13 +61,13 @@ class ProjectPdfViewer extends Page
         $html = iconv('UTF-8', 'UTF-8//IGNORE', $html);
 
         $pdf = Pdf::setOptions([
-                'defaultFont' => 'DejaVu Sans',
-                'isRemoteEnabled' => false,
-                'isHtml5ParserEnabled' => true,
-            ])
+            'defaultFont' => 'DejaVu Sans',
+            'isRemoteEnabled' => false,
+            'isHtml5ParserEnabled' => true,
+        ])
             ->loadHTML($html)
             ->setPaper('a3', 'landscape');
 
-        return response()->streamDownload(fn () => print($pdf->output()), 'projects-report-'.now()->format('Y-m-d').'.pdf');
+        return response()->streamDownload(fn() => print($pdf->output()), 'projects-report-' . now()->format('Y-m-d') . '.pdf');
     }
 }

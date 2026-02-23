@@ -67,6 +67,7 @@ class AdminPanelProvider extends PanelProvider
                 ChartDashboard::class,
             ])
             ->maxContentWidth('full')
+            ->sidebarCollapsibleOnDesktop()
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
                 // Widgets\AccountWidget::class,

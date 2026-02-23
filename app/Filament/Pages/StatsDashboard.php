@@ -80,7 +80,7 @@ class StatsDashboard extends Page
         // Payment stats
         $paymentQuery = Payment::query();
         if ($selectedYear !== null) {
-            $paymentQuery->whereYear('date', $selectedYear);
+            $paymentQuery->whereHas('project', fn($q) => $q->where('year', $selectedYear));
         }
 
         $lastWeekBoundary = now()->copy()->subWeek()->startOfDay();
@@ -142,8 +142,13 @@ class StatsDashboard extends Page
     private function getPaymentChartData(?int $year): array
     {
         $now = now();
-        $dailyRaw = Payment::query()
-            ->when($year, fn($q) => $q->whereYear('created_at', $year))
+        $query = Payment::query();
+
+        if ($year) {
+            $query->whereHas('project', fn($q) => $q->where('year', $year));
+        }
+
+        $dailyRaw = $query
             ->selectRaw("DATE(created_at) as d, COUNT(*) as c")
             ->whereDate('created_at', '>=', $now->copy()->subDays(6)->toDateString())
             ->groupBy('d')
