@@ -219,6 +219,15 @@ class ProjectResource extends Resource
                         }
                         return $query;
                     }),
+                SelectFilter::make('year')
+                    ->label('Calendar Year')
+                    ->options(
+                        collect(range(now()->year, now()->year - 5))
+                            ->mapWithKeys(fn($year) => [
+                                $year => $year
+                            ])
+                            ->toArray()
+                    ),
                 SelectFilter::make('purchase_requests')
                     ->label('Purchase Requests')
                     ->options([
@@ -272,15 +281,6 @@ class ProjectResource extends Resource
                             })
                         );
                     }),
-                SelectFilter::make('year')
-                    ->label('Calendar Year')
-                    ->options(
-                        collect(range(now()->year, now()->year - 5))
-                            ->mapWithKeys(fn($year) => [
-                                $year => $year
-                            ])
-                            ->toArray()
-                    ),
                 SelectFilter::make('payment_status')
                     ->label('Payment Status')
                     ->options([
