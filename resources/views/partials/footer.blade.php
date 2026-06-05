@@ -1,30 +1,30 @@
-{{-- Footer Partial --}}
-{{-- resources/views/partials/footer.blade.php --}}
-<footer class="py-12 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 transition-colors text-sm">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid gap-8 md:grid-cols-3">
+<footer class="border-t border-hairline bg-canvas py-12 lg:py-16">
+    <div class="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 md:grid-cols-3 lg:px-8">
         <div>
-            <h3 class="font-semibold mb-3 text-gray-900 dark:text-gray-100">PBO Monitoring</h3>
-            <p class="text-gray-600 dark:text-gray-400 text-xs leading-relaxed">
-                Transparent project lifecycle & budget oversight platform.
+            <h3 class="text-base font-medium text-ink">PBO Monitoring</h3>
+            <p class="mt-3 text-sm leading-relaxed text-muted">
+                Transparent project lifecycle and budget oversight platform.
             </p>
         </div>
         <div>
-            <h3 class="font-semibold mb-3 text-gray-900 dark:text-gray-100">Resources</h3>
-            <ul class="space-y-2 text-gray-600 dark:text-gray-400">
-                <li><a href="#features" class="hover:text-pink-600 dark:hover:text-pink-400 transition-colors">Features</a></li>
-                <li><a href="#dev-team" class="hover:text-pink-600 dark:hover:text-pink-400 transition-colors">Dev Team</a></li>
-                <li><a href="#" class="hover:text-pink-600 dark:hover:text-pink-400 transition-colors">Documentation</a></li>
+            <h3 class="text-base font-medium text-ink">Resources</h3>
+            <ul class="mt-3 space-y-3 text-sm text-body">
+                <li><a href="#features" class="hover:text-ink">Features</a></li>
+                <li><a href="#dev-team" class="hover:text-ink">Dev Team</a></li>
+                <li><a href="#contact" class="hover:text-ink">Contact</a></li>
             </ul>
         </div>
         <div>
-            <h3 class="font-semibold mb-3 text-gray-900 dark:text-gray-100">Legal</h3>
-            <ul class="space-y-2 text-gray-600 dark:text-gray-400">
-                <li><a href="#" class="hover:text-pink-600 dark:hover:text-pink-400 transition-colors">Privacy Policy</a></li>
-                <li><a href="#" class="hover:text-pink-600 dark:hover:text-pink-400 transition-colors">Terms of Service</a></li>
+            <h3 class="text-base font-medium text-ink">Legal</h3>
+            <ul class="mt-3 space-y-3 text-sm text-body">
+                <li><a href="#" class="hover:text-ink">Privacy Policy</a></li>
+                <li><a href="#" class="hover:text-ink">Terms of Service</a></li>
             </ul>
         </div>
     </div>
-    <div class="mt-10 pt-6 text-center text-xs text-gray-500 dark:text-gray-500">
-        © {{ now()->year }} {{ config('app.name', 'Laravel') }}. All rights reserved.
+    <div class="mx-auto mt-10 max-w-7xl border-t border-hairline px-4 pt-6 sm:px-6 lg:px-8">
+        <p class="text-center text-[13px] text-muted">
+            © {{ now()->year }} {{ config('app.name', 'Laravel') }}. All rights reserved.
+        </p>
     </div>
 </footer>

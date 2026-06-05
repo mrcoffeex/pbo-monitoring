@@ -2,8 +2,11 @@
 
 namespace App\Models;
 
+use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\Models\Activity;
 
 class Project extends Model
 {
@@ -81,6 +84,49 @@ class Project extends Model
         $totalDisbursed = $this->payments()->sum('amount') ?? 0;
         $contractAmount = $this->procurements()->sum('contract_amount') ?? 0;
         $balance = ($contractAmount > 0) ? $contractAmount - $totalDisbursed : $this->allotment;
-        return  (float) $balance;
+
+        return (float) $balance;
+    }
+
+    /**
+     * @return array<class-string<Model>, \Illuminate\Support\Collection<int, int|string>>
+     */
+    public function activitySubjectMap(): array
+    {
+        return [
+            self::class => collect([$this->id]),
+            PreProcurement::class => $this->pre_procurements()->pluck('id'),
+            PurchaseRequest::class => $this->purchase_requests()->pluck('id'),
+            TechnicalWorkingGroup::class => $this->technical_working_groups()->pluck('id'),
+            ProcurementControl::class => $this->procurement_controls()->pluck('id'),
+            PurchaseRequestControl::class => $this->purchase_request_controls()->pluck('id'),
+            Procurement::class => $this->procurements()->pluck('id'),
+            ObligationRequest::class => $this->obligation_requests()->pluck('id'),
+            Implementation::class => $this->implementations()->pluck('id'),
+            Payment::class => $this->payments()->pluck('id'),
+        ];
+    }
+
+    public function projectActivitiesQuery(?CarbonInterface $startDate = null, ?CarbonInterface $endDate = null): Builder
+    {
+        return Activity::query()
+            ->with('causer')
+            ->where(function (Builder $query): void {
+                foreach ($this->activitySubjectMap() as $subjectType => $subjectIds) {
+                    $subjectIds = collect($subjectIds)->filter()->values();
+
+                    if ($subjectIds->isEmpty()) {
+                        continue;
+                    }
+
+                    $query->orWhere(function (Builder $nested) use ($subjectType, $subjectIds): void {
+                        $nested->where('subject_type', $subjectType)
+                            ->whereIn('subject_id', $subjectIds);
+                    });
+                }
+            })
+            ->when($startDate, fn (Builder $query): Builder => $query->where('created_at', '>=', $startDate))
+            ->when($endDate, fn (Builder $query): Builder => $query->where('created_at', '<=', $endDate))
+            ->latest();
     }
 }

@@ -1,61 +1,232 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Infra Monitoring
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A Laravel application for **provincial infrastructure monitoring**—tracking projects from procurement through obligation, implementation, and payment. Built for transparency across the project lifecycle (Provincial Budget Office workflow).
 
-## About Laravel
+- **Public site:** marketing landing page at `/`
+- **Admin panel:** Filament at `/admin` (login required)
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Features
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### Project lifecycle
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Each **project** ties together related records across the full process:
 
-## Learning Laravel
+| Stage | Resource |
+|-------|----------|
+| Project master | Projects |
+| Pre-procurement | Pre-Procurement |
+| Purchase request | Purchase Requests |
+| Technical working group | TWG |
+| Procurement / PMO control | Procurement Control, PR Control |
+| Award & contract | Procurement |
+| Obligation | Obligation Requests |
+| Implementation progress | Implementations |
+| Disbursement | Payments |
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### Admin capabilities
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+- **Dashboards** — stats and chart views
+- **Project monitoring** — consolidated view of appropriation, allotment, contract, payments, and implementation per project
+- **Activity logs** — global log plus per-project timeline with filters (date range, record type, action, user)
+- **PDF export** — project reports via DomPDF
+- **Roles & permissions** — [Filament Shield](https://github.com/bezansalleh/filament-shield) (`super_admin` and role-based access)
+- **Offices & users** — organizational structure and account management
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Landing page
 
-## Laravel Sponsors
+Public homepage with an Airbnb-inspired design system (see `DESIGN.md`), dark mode toggle, and sections for features, team, and contact.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## Tech stack
 
-### Premium Partners
+| Layer | Technology |
+|-------|------------|
+| Backend | PHP 8.2+, Laravel 12 |
+| Admin UI | Filament 3, Livewire 3 |
+| Frontend | Vite 7, Tailwind CSS 4 |
+| Auth & RBAC | Filament Shield |
+| Auditing | Spatie Activity Log, noxoua/filament-activity-log |
+| PDF | barryvdh/laravel-dompdf |
+| Tests | Pest 3, PHPUnit 11 |
+| Code style | Laravel Pint |
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+## Requirements
 
-## Contributing
+- PHP 8.2 or higher (8.3 recommended)
+- Composer 2
+- Node.js 18+ and npm
+- MySQL 8+ (default) or another database supported by Laravel
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Installation
 
-## Code of Conduct
+### 1. Clone and install dependencies
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+git clone <repository-url> hotkopiv1
+cd hotkopiv1
 
-## Security Vulnerabilities
+composer install
+npm install
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### 2. Environment
+
+```bash
+cp .env.example .env
+php artisan key:generate
+```
+
+Edit `.env` for your database and `APP_URL`:
+
+```env
+APP_NAME="Infra Monitoring"
+APP_URL=http://localhost:8000
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=hotkopiv1
+DB_USERNAME=root
+DB_PASSWORD=
+```
+
+### 3. Database
+
+```bash
+php artisan migrate
+php artisan db:seed
+```
+
+The default seeder creates an admin user:
+
+| Field | Value |
+|-------|-------|
+| Email | `admin@example.com` |
+| Password | `password` |
+
+Change these credentials after first login.
+
+### 4. Filament Shield (roles)
+
+Generate permissions and assign a super admin role as needed:
+
+```bash
+php artisan shield:generate --all
+php artisan shield:super-admin
+```
+
+Follow the prompts to attach the super admin role to your user.
+
+### 5. Frontend assets
+
+```bash
+npm run build
+```
+
+For local development with hot reload:
+
+```bash
+npm run dev
+```
+
+### 6. Run the application
+
+**Option A — all services (recommended for dev):**
+
+```bash
+composer run dev
+```
+
+Starts the HTTP server, queue worker, log tail (Pail), and Vite.
+
+**Option B — minimal:**
+
+```bash
+php artisan serve
+```
+
+Visit:
+
+- Landing: `http://localhost:8000`
+- Admin: `http://localhost:8000/admin`
+
+## Development
+
+### Tests
+
+```bash
+php artisan test
+
+# Single file
+php artisan test tests/Feature/ExampleTest.php
+
+# Filter by name
+php artisan test --filter=testName
+```
+
+### Code formatting
+
+```bash
+vendor/bin/pint
+vendor/bin/pint --dirty
+```
+
+### Laravel Boost (Cursor MCP)
+
+This project includes [Laravel Boost](https://github.com/laravel/boost) for AI-assisted development. MCP config lives in `.cursor/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "laravel-boost": {
+      "type": "stdio",
+      "command": "php",
+      "args": ["${workspaceFolder}/artisan", "boost:mcp"],
+      "envFile": ".env"
+    }
+  }
+}
+```
+
+Enable **laravel-boost** in Cursor → Settings → MCP after install.
+
+## Project structure (high level)
+
+```
+app/
+├── Filament/
+│   ├── Resources/     # CRUD resources (Project, Payment, etc.)
+│   ├── Pages/         # Dashboards, activity log
+│   ├── Loggers/       # Activity log field definitions
+│   └── Widgets/
+├── Http/Controllers/
+├── Models/
+└── Providers/Filament/AdminPanelProvider.php
+
+resources/
+├── views/
+│   ├── partials/      # Landing page sections
+│   └── filament/      # Custom Filament / project pages
+└── css/app.css        # Tailwind + design tokens
+
+routes/web.php         # Landing + PDF routes
+```
+
+## Key routes
+
+| Route | Description |
+|-------|-------------|
+| `GET /` | Public landing page |
+| `GET /admin` | Filament admin (auth) |
+| `GET /admin/projects/{record}/monitoring` | Project monitoring board |
+| `GET /admin/projects/{record}/activities` | Per-project activity log |
+| `GET /admin/projects/{project}/pdf` | Project PDF (auth) |
+
+## Design
+
+UI tokens and layout guidance for the landing page are documented in [`DESIGN.md`](DESIGN.md) (Rausch primary `#ff385c`, Inter typography, light/dark canvas).
+
+Admin styling follows Filament defaults with a pink primary palette.
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+This application is open-source software licensed under the [MIT license](https://opensource.org/licenses/MIT).

@@ -2,12 +2,11 @@
 
 namespace App\Filament\Loggers;
 
-use App\Models\Project;
 use App\Filament\Resources\ProjectResource;
+use App\Models\Project;
 use Illuminate\Contracts\Support\Htmlable;
 use Noxo\FilamentActivityLog\Loggers\Logger;
 use Noxo\FilamentActivityLog\ResourceLogger\Field;
-use Noxo\FilamentActivityLog\ResourceLogger\RelationManager;
 use Noxo\FilamentActivityLog\ResourceLogger\ResourceLogger;
 use Spatie\Activitylog\Contracts\Activity;
 
@@ -15,7 +14,7 @@ class ProjectLogger extends Logger
 {
     public static ?string $model = Project::class;
 
-    public static function getLabel(): string | Htmlable | null
+    public static function getLabel(): string|Htmlable|null
     {
         return ProjectResource::getModelLabel();
     }
@@ -34,14 +33,23 @@ class ProjectLogger extends Logger
     {
         return $logger
             ->fields([
-                Field::make('status')
-                    ->label(__('status')),
+                Field::make('code')
+                    ->label(__('Responsibility Center')),
 
-                Field::make('center.name')
-                    ->label(__('Project')),
+                Field::make('name')
+                    ->label(__('Project Name')),
+
+                Field::make('type')
+                    ->label(__('Project Type')),
+
+                Field::make('funds')
+                    ->label(__('Source of Funds')),
 
                 Field::make('year')
                     ->label(__('Year')),
+
+                Field::make('status')
+                    ->label(__('Status')),
 
                 Field::make('appropriation')
                     ->label(__('Appropriation'))

@@ -2,16 +2,10 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\ProjectResource\Pages;
-use App\Filament\Resources\ProjectResource\RelationManagers;
-use App\Models\Center;
-use App\Models\Project;
 use App\Enums\CustomOptions;
-use Filament\Tables\Actions\Action;
-use Filament\Facades\Filament;
-use Filament\Forms;
+use App\Filament\Resources\ProjectResource\Pages;
+use App\Models\Project;
 use Filament\Forms\Components\Grid;
-use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -20,15 +14,14 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Support\RawJs;
 use Filament\Tables;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
-
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class ProjectResource extends Resource
 {
@@ -66,8 +59,8 @@ class ProjectResource extends Resource
                                     ->label('Calendar Year')
                                     ->options(
                                         collect(range(now()->year, now()->year - 5))
-                                            ->mapWithKeys(fn($year) => [
-                                                $year => $year
+                                            ->mapWithKeys(fn ($year) => [
+                                                $year => $year,
                                             ])
                                             ->toArray()
                                     )
@@ -130,7 +123,7 @@ class ProjectResource extends Resource
                     ->html(),
                 TextColumn::make('status')
                     ->badge()
-                    ->color(fn($state) => match ($state) {
+                    ->color(fn ($state) => match ($state) {
                         'released' => 'success',
                         'unreleased' => 'primary',
                         'canceled' => 'danger',
@@ -143,15 +136,15 @@ class ProjectResource extends Resource
                     ->label('Project')
                     ->wrap()
                     ->limit(35)
-                    ->tooltip(fn($record) => $record->name)
+                    ->tooltip(fn ($record) => $record->name)
                     ->sortable()
                     ->searchable()
-                    ->description(fn($record) => $record->year, position: 'above'),
+                    ->description(fn ($record) => $record->year, position: 'above'),
                 TextColumn::make('type')
                     ->label('Type')
                     ->badge()
                     ->color('info')
-                    ->formatStateUsing(fn($state) => CustomOptions::PROJECT_TYPES[$state] ?? $state)
+                    ->formatStateUsing(fn ($state) => CustomOptions::PROJECT_TYPES[$state] ?? $state)
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('code')
@@ -163,7 +156,7 @@ class ProjectResource extends Resource
                     ->sortable()
                     ->searchable()
                     ->badge()
-                    ->formatStateUsing(fn($state) => CustomOptions::FUNDS[$state] ?? $state),
+                    ->formatStateUsing(fn ($state) => CustomOptions::FUNDS[$state] ?? $state),
                 TextColumn::make('appropriation')
                     ->numeric()
                     ->prefix('₱ ')
@@ -207,24 +200,25 @@ class ProjectResource extends Resource
                             ->label('Select Project Type')
                             ->options(CustomOptions::PROJECT_TYPES)
                             ->placeholder('All Project Types')
-                            ->multiple()
+                            ->multiple(),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
-                        if (!empty($data['type'])) {
+                        if (! empty($data['type'])) {
                             $query->where(function (Builder $subQuery) use ($data) {
                                 foreach ($data['type'] as $type) {
                                     $subQuery->orWhereJsonContains('type', $type);
                                 }
                             });
                         }
+
                         return $query;
                     }),
                 SelectFilter::make('year')
                     ->label('Calendar Year')
                     ->options(
                         collect(range(now()->year, now()->year - 5))
-                            ->mapWithKeys(fn($year) => [
-                                $year => $year
+                            ->mapWithKeys(fn ($year) => [
+                                $year => $year,
                             ])
                             ->toArray()
                     ),
@@ -237,10 +231,10 @@ class ProjectResource extends Resource
                     ->query(function (Builder $query, array $data): Builder {
                         return $query->when(
                             $data['value'] === 'with',
-                            fn(Builder $query): Builder => $query->whereHas('purchase_requests')
+                            fn (Builder $query): Builder => $query->whereHas('purchase_requests')
                         )->when(
                             $data['value'] === 'without',
-                            fn(Builder $query): Builder => $query->whereDoesntHave('purchase_requests')
+                            fn (Builder $query): Builder => $query->whereDoesntHave('purchase_requests')
                         );
                     }),
                 SelectFilter::make('noa_received')
@@ -252,12 +246,12 @@ class ProjectResource extends Resource
                     ->query(function (Builder $query, array $data): Builder {
                         return $query->when(
                             $data['value'] === 'received',
-                            fn(Builder $query): Builder => $query->whereHas('procurements', function (Builder $query) {
+                            fn (Builder $query): Builder => $query->whereHas('procurements', function (Builder $query) {
                                 $query->whereNotNull('noa_date_received');
                             })
                         )->when(
                             $data['value'] === 'not_received',
-                            fn(Builder $query): Builder => $query->whereHas('procurements', function (Builder $query) {
+                            fn (Builder $query): Builder => $query->whereHas('procurements', function (Builder $query) {
                                 $query->whereNull('noa_date_received');
                             })
                         );
@@ -271,12 +265,12 @@ class ProjectResource extends Resource
                     ->query(function (Builder $query, array $data): Builder {
                         return $query->when(
                             $data['value'] === 'issued',
-                            fn(Builder $query): Builder => $query->whereHas('procurements', function (Builder $query) {
+                            fn (Builder $query): Builder => $query->whereHas('procurements', function (Builder $query) {
                                 $query->whereNotNull('ntp_number');
                             })
                         )->when(
                             $data['value'] === 'not_issued',
-                            fn(Builder $query): Builder => $query->whereHas('procurements', function (Builder $query) {
+                            fn (Builder $query): Builder => $query->whereHas('procurements', function (Builder $query) {
                                 $query->whereNull('ntp_number');
                             })
                         );
@@ -315,10 +309,10 @@ class ProjectResource extends Resource
                     ->query(function (Builder $query, array $data): Builder {
                         return $query->when(
                             $data['value'] === 'obligated',
-                            fn(Builder $query): Builder => $query->whereHas('obligation_requests')
+                            fn (Builder $query): Builder => $query->whereHas('obligation_requests')
                         )->when(
                             $data['value'] === 'unobligated',
-                            fn(Builder $query): Builder => $query->whereDoesntHave('obligation_requests')
+                            fn (Builder $query): Builder => $query->whereDoesntHave('obligation_requests')
                         );
                     }),
                 Filter::make('funds')
@@ -328,11 +322,11 @@ class ProjectResource extends Resource
                             ->label('Select Fund')
                             ->options(CustomOptions::FUNDS)
                             ->placeholder('All Funds')
-                            ->multiple()
+                            ->multiple(),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query->when(
-                            !empty($data['funds']),
+                            ! empty($data['funds']),
                             function (Builder $query) use ($data) {
                                 return $query->whereJsonContains('funds', $data['funds'], 'or');
                             }
@@ -349,7 +343,7 @@ class ProjectResource extends Resource
                                 '50-75' => '50% - 75%',
                                 '75-100' => '75% - 100%',
                             ])
-                            ->placeholder('All Percentages')
+                            ->placeholder('All Percentages'),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         if (empty($data['percentage_range'])) {
@@ -375,6 +369,11 @@ class ProjectResource extends Resource
                 ActionGroup::make([
                     Tables\Actions\EditAction::make()
                         ->color('info'),
+                    Action::make('activities')
+                        ->label('Activity')
+                        ->icon('heroicon-o-clock')
+                        ->color('gray')
+                        ->url(fn (Project $record): string => static::getUrl('activities', ['record' => $record])),
                     Tables\Actions\DeleteAction::make(),
                 ]),
             ])
@@ -405,17 +404,17 @@ class ProjectResource extends Resource
 
                             $csv = $csvData->map(function ($row) {
                                 return collect($row)->map(function ($value) {
-                                    return '"' . str_replace('"', '""', $value ?? '') . '"';
+                                    return '"'.str_replace('"', '""', $value ?? '').'"';
                                 })->join(',');
                             })->join("\n");
 
-                            $filename = 'projects_export_' . now()->format('Y-m-d_His') . '.csv';
+                            $filename = 'projects_export_'.now()->format('Y-m-d_His').'.csv';
 
                             return response()->streamDownload(function () use ($csv) {
                                 echo $csv;
                             }, $filename, [
                                 'Content-Type' => 'text/csv',
-                                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                                'Content-Disposition' => 'attachment; filename="'.$filename.'"',
                             ]);
                         })
                         ->requiresConfirmation()
@@ -465,6 +464,7 @@ class ProjectResource extends Resource
             'create' => Pages\CreateProject::route('/create'),
             'edit' => Pages\EditProject::route('/{record}/edit'),
             'monitoring' => Pages\ProjectMonitoring::route('/{record}/monitoring'),
+            'activities' => Pages\ProjectActivities::route('/{record}/activities'),
             'pdf-viewer' => Pages\ProjectPdfViewer::route('/pdf-viewer'),
         ];
     }

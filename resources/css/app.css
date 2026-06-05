@@ -1,5 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Google+Sans+Code:ital,wght@0,300..800;1,300..800&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Fugaz+One&family=Funnel+Sans:ital,wght@0,300..800;1,300..800&family=Google+Sans+Code:ital,wght@0,300..800;1,300..800&family=Permanent+Marker&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400..700;1,14..32,400..700&display=swap");
 
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
@@ -11,19 +10,145 @@
 
 @theme {
     --font-sans:
-        "Instrument Sans", ui-sans-serif, system-ui, sans-serif,
-        "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
-        "Noto Color Emoji";
-    --font-google-code:
-        "Google Sans Code", ui-sans-serif, system-ui, sans-serif;
-    --font-funnel-sans: "Funnel Sans", ui-sans-serif, system-ui, sans-serif;
+        "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+        "Helvetica Neue", sans-serif;
+
+    --color-rausch: #ff385c;
+    --color-rausch-active: #e00b41;
+    --color-rausch-disabled: #ffd1da;
+    --color-ink: #222222;
+    --color-body: #3f3f3f;
+    --color-muted: #6a6a6a;
+    --color-muted-soft: #929292;
+    --color-hairline: #dddddd;
+    --color-hairline-soft: #ebebeb;
+    --color-border-strong: #c1c1c1;
+    --color-canvas: #ffffff;
+    --color-surface-soft: #f7f7f7;
+    --color-surface-strong: #f2f2f2;
+    --color-on-primary: #ffffff;
+    --color-legal-link: #428bff;
+    --color-luxe: #460479;
+    --color-plus: #92174d;
+    --color-widget-emerald: #059669;
+    --color-widget-amber: #d97706;
+
+    --radius-sm: 8px;
+    --radius-md: 14px;
+    --radius-lg: 20px;
+    --radius-xl: 32px;
+    --radius-full: 9999px;
+
+    --shadow-card:
+        rgba(0, 0, 0, 0.02) 0 0 0 1px,
+        rgba(0, 0, 0, 0.04) 0 2px 6px 0,
+        rgba(0, 0, 0, 0.1) 0 4px 8px 0;
 }
 
-@layer utilities {
-    .font-google-code {
-        font-family: var(--font-google-code);
+@layer base {
+    .dark {
+        --color-ink: #f7f7f7;
+        --color-body: #d4d4d4;
+        --color-muted: #a3a3a3;
+        --color-muted-soft: #737373;
+        --color-hairline: #3f3f3f;
+        --color-hairline-soft: #333333;
+        --color-border-strong: #525252;
+        --color-canvas: #121212;
+        --color-surface-soft: #1a1a1a;
+        --color-surface-strong: #262626;
+
+        --shadow-card:
+            rgba(255, 255, 255, 0.04) 0 0 0 1px,
+            rgba(0, 0, 0, 0.3) 0 2px 6px 0,
+            rgba(0, 0, 0, 0.4) 0 4px 8px 0;
     }
-    .font-funnel-sans {
-        font-family: var(--font-funnel-sans);
+}
+
+@layer components {
+    .landing-page {
+        @apply bg-canvas text-body font-sans antialiased;
+    }
+
+    .landing-nav-link {
+        @apply text-base font-semibold text-muted transition-colors;
+    }
+
+    .landing-nav-link:hover,
+    .landing-nav-link.is-active {
+        @apply text-ink;
+    }
+
+    .landing-nav-link.is-active {
+        @apply relative;
+    }
+
+    .landing-nav-link.is-active::after {
+        content: "";
+        @apply absolute -bottom-1 left-0 right-0 h-0.5 rounded-full bg-ink;
+    }
+
+    .btn-rausch {
+        @apply inline-flex items-center justify-center gap-2 rounded-sm bg-rausch px-6 text-base font-medium text-on-primary transition-colors;
+        min-height: 48px;
+    }
+
+    .btn-rausch:hover {
+        background-color: var(--color-rausch-active);
+    }
+
+    .btn-secondary {
+        @apply inline-flex items-center justify-center gap-2 rounded-sm border border-ink bg-canvas px-6 text-base font-medium text-ink transition-colors;
+        min-height: 48px;
+    }
+
+    .btn-secondary:hover {
+        @apply bg-surface-soft;
+    }
+
+    .icon-btn-circle {
+        @apply inline-flex h-10 w-10 items-center justify-center rounded-full border border-hairline bg-canvas text-ink transition-colors;
+    }
+
+    .icon-btn-circle:hover {
+        @apply bg-surface-strong;
+    }
+
+    .landing-card {
+        @apply rounded-md border border-hairline bg-canvas transition-shadow duration-200;
+        box-shadow: var(--shadow-card);
+    }
+
+    .landing-card:hover {
+        box-shadow:
+            rgba(0, 0, 0, 0.02) 0 0 0 1px,
+            rgba(0, 0, 0, 0.06) 0 4px 12px 0,
+            rgba(0, 0, 0, 0.12) 0 8px 16px 0;
+    }
+
+    .landing-pill {
+        @apply rounded-full border border-hairline bg-canvas;
+        box-shadow: var(--shadow-card);
+    }
+
+    .landing-section-title {
+        @apply text-[28px] font-bold leading-[1.43] tracking-normal text-ink;
+    }
+
+    .landing-section-sub {
+        @apply mt-3 text-base leading-normal text-muted;
+    }
+
+    .landing-badge {
+        @apply inline-flex items-center rounded-full bg-canvas px-2.5 py-1 text-[11px] font-semibold text-ink;
+        box-shadow: var(--shadow-card);
+    }
+
+    .landing-tag-new {
+        @apply inline-flex items-center rounded-full bg-canvas px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-[0.32px] text-ink;
+    }
+
+    .animate-in {
+        @apply translate-y-0 opacity-100;
     }
 }

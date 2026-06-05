@@ -2,8 +2,9 @@
 
 <div
     @class([
-        'p-2 space-y-2 bg-white rounded-xl shadow group',
-        'dark:border-gray-600 dark:bg-gray-900',
+        'group space-y-2 rounded-xl p-4',
+        'bg-white shadow-sm',
+        'dark:bg-gray-900 dark:shadow-none',
     ])
     x-data="{
         isCollapsed: @json($this->isCollapsible ? $this->isCollapsed : false),
