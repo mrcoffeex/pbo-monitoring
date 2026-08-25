@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PurchaseRequest extends Model
 {
+    use HasFactory;
     use SoftDeletes;
 
     protected $fillable = [
@@ -15,7 +17,7 @@ class PurchaseRequest extends Model
         'remarks',
         'forward_twg_date',
         'user_id',
-        'project_id'
+        'project_id',
     ];
 
     public function user()

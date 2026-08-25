@@ -7,6 +7,7 @@
 @source '../../storage/framework/views/*.php';
 @source '../**/*.blade.php';
 @source '../**/*.js';
+@source '../**/*.jsx';
 
 @theme {
     --font-sans:
@@ -27,11 +28,13 @@
     --color-surface-soft: #f7f7f7;
     --color-surface-strong: #f2f2f2;
     --color-on-primary: #ffffff;
+    --color-on-dark: #ffffff;
     --color-legal-link: #428bff;
     --color-luxe: #460479;
     --color-plus: #92174d;
     --color-widget-emerald: #059669;
     --color-widget-amber: #d97706;
+    --color-scrim: #000000;
 
     --radius-sm: 8px;
     --radius-md: 14px;
@@ -63,11 +66,39 @@
             rgba(0, 0, 0, 0.3) 0 2px 6px 0,
             rgba(0, 0, 0, 0.4) 0 4px 8px 0;
     }
+
+    html {
+        scroll-padding-top: 7.5rem;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        html {
+            scroll-behavior: auto;
+        }
+    }
 }
 
 @layer components {
     .landing-page {
         @apply bg-canvas text-body font-sans antialiased;
+    }
+
+    .landing-page a:focus-visible,
+    .landing-page button:focus-visible {
+        outline: 2px solid var(--color-ink);
+        outline-offset: 3px;
+    }
+
+    .skip-link {
+        @apply sr-only;
+    }
+
+    .skip-link:focus {
+        @apply not-sr-only fixed left-4 top-4 z-50 rounded-sm bg-ink px-4 py-3 text-base font-medium text-on-dark;
+    }
+
+    .official-banner {
+        @apply border-b border-hairline bg-surface-soft text-sm text-body;
     }
 
     .landing-nav-link {
@@ -79,13 +110,18 @@
         @apply text-ink;
     }
 
-    .landing-nav-link.is-active {
-        @apply relative;
+    .product-tab {
+        @apply relative flex min-w-[5.5rem] flex-col items-center gap-1 px-3 pb-2 text-muted transition-colors;
     }
 
-    .landing-nav-link.is-active::after {
+    .product-tab:hover,
+    .product-tab.is-active {
+        @apply text-ink;
+    }
+
+    .product-tab.is-active::after {
         content: "";
-        @apply absolute -bottom-1 left-0 right-0 h-0.5 rounded-full bg-ink;
+        @apply absolute inset-x-3 -bottom-px h-0.5 rounded-full bg-ink;
     }
 
     .btn-rausch {
@@ -106,6 +142,10 @@
         @apply bg-surface-soft;
     }
 
+    .btn-tertiary {
+        @apply inline-flex items-center gap-2 text-base font-medium text-ink underline-offset-2 hover:underline;
+    }
+
     .icon-btn-circle {
         @apply inline-flex h-10 w-10 items-center justify-center rounded-full border border-hairline bg-canvas text-ink transition-colors;
     }
@@ -115,28 +155,50 @@
     }
 
     .landing-card {
-        @apply rounded-md border border-hairline bg-canvas transition-shadow duration-200;
+        @apply rounded-md border border-hairline bg-canvas;
         box-shadow: var(--shadow-card);
     }
 
-    .landing-card:hover {
-        box-shadow:
-            rgba(0, 0, 0, 0.02) 0 0 0 1px,
-            rgba(0, 0, 0, 0.06) 0 4px 12px 0,
-            rgba(0, 0, 0, 0.12) 0 8px 16px 0;
+    .reservation-card {
+        @apply rounded-md border border-hairline bg-canvas p-6;
+        box-shadow: var(--shadow-card);
     }
 
-    .landing-pill {
-        @apply rounded-full border border-hairline bg-canvas;
+    .search-pill {
+        @apply flex flex-col overflow-hidden rounded-xl border border-hairline bg-canvas sm:flex-row sm:items-center sm:rounded-full;
         box-shadow: var(--shadow-card);
+    }
+
+    .search-segment {
+        @apply flex min-h-16 flex-1 flex-col justify-center px-6 py-3 text-left transition-colors hover:bg-surface-soft;
+    }
+
+    .search-segment + .search-segment {
+        @apply border-t border-hairline sm:border-t-0 sm:border-l;
+    }
+
+    .search-orb {
+        @apply m-3 inline-flex h-12 w-12 shrink-0 items-center justify-center self-end rounded-full bg-rausch text-on-primary transition-colors sm:self-center;
+    }
+
+    .search-orb:hover {
+        background-color: var(--color-rausch-active);
+    }
+
+    .property-card {
+        @apply block text-left;
+    }
+
+    .property-card-photo {
+        @apply relative aspect-[4/3] overflow-hidden rounded-md bg-surface-soft;
     }
 
     .landing-section-title {
-        @apply text-[28px] font-bold leading-[1.43] tracking-normal text-ink;
+        @apply text-[22px] font-medium leading-[1.18] tracking-[-0.02em] text-ink sm:text-[28px] sm:font-bold sm:leading-[1.43] sm:tracking-normal;
     }
 
     .landing-section-sub {
-        @apply mt-3 text-base leading-normal text-muted;
+        @apply mt-3 max-w-2xl text-base leading-relaxed text-muted;
     }
 
     .landing-badge {
@@ -144,8 +206,21 @@
         box-shadow: var(--shadow-card);
     }
 
-    .landing-tag-new {
-        @apply inline-flex items-center rounded-full bg-canvas px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-[0.32px] text-ink;
+    .step-index {
+        @apply inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-ink text-sm font-semibold text-on-dark;
+    }
+
+    .amenity-row {
+        @apply flex gap-4 py-3;
+    }
+
+    .sticky-cta {
+        @apply fixed inset-x-0 bottom-0 z-30 border-t border-hairline bg-canvas/95 p-3 backdrop-blur md:hidden;
+        box-shadow: var(--shadow-card);
+    }
+
+    .footer-link {
+        @apply text-sm text-ink hover:underline;
     }
 
     .animate-in {

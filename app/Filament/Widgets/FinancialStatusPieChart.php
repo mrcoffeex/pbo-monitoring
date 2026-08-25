@@ -2,112 +2,78 @@
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Widgets\Concerns\HasYearChartFilter;
 use App\Models\Project;
 use Filament\Support\RawJs;
 use Filament\Widgets\ChartWidget;
-use Illuminate\Support\Js;
 
 class FinancialStatusPieChart extends ChartWidget
 {
-    protected static ?string $heading = 'Obligation vs Allotment Status';
+    use HasYearChartFilter;
 
-    protected static ?string $maxHeight = '250px';
+    protected static ?string $heading = 'Obligation vs Allotment';
+
+    protected static ?string $description = 'Share of allotment already obligated';
+
+    protected static ?string $maxHeight = '280px';
 
     public function getColumnSpan(): int|string|array
     {
-        return [
-            'default' => 1,
-            'md' => 2,
-            'lg' => 2,
-            'xl' => 3,
-        ];
+        return $this->halfWidthSpan();
     }
 
     protected function getData(): array
     {
-        // Get the selected filter (year)
-        $selectedYear = $this->filter ?? now()->year;
+        $selectedYear = $this->selectedYear();
 
-        $projects = Project::with([
-            'obligation_requests:id,project_id,amount',
-        ])->where('year', $selectedYear)->get();
+        $projects = Project::query()
+            ->with(['obligation_requests:id,project_id,amount'])
+            ->where('year', $selectedYear)
+            ->get(['id', 'allotment']);
 
         $totalAllotment = (float) $projects->sum('allotment');
-        $totalObligated = (float) $projects->sum(function ($project) {
-            return $project->obligation_requests->sum('amount');
-        });
+        $totalObligated = (float) $projects->sum(
+            fn (Project $project): float => (float) $project->obligation_requests->sum('amount'),
+        );
 
-        // Prevent division by zero
-        if ($totalAllotment <= 0) {
-            $totalAllotment = 1;
-        }
-
-        $obligatedAmount = min($totalObligated, $totalAllotment); // Cap at allotment
+        $obligatedAmount = $totalAllotment > 0
+            ? min($totalObligated, $totalAllotment)
+            : max($totalObligated, 0);
         $remainingAllotment = max($totalAllotment - $totalObligated, 0);
-
-        $percentageObligated = round(($obligatedAmount / $totalAllotment) * 100, 1);
-        $percentageRemaining = round(($remainingAllotment / $totalAllotment) * 100, 1);
 
         return [
             'datasets' => [
                 [
-                    'label' => 'Amount (%)',
-                    'data' => [$percentageObligated, $percentageRemaining],
+                    'label' => 'Amount',
+                    'data' => [$obligatedAmount, $remainingAllotment],
                     'backgroundColor' => [
-                        '#f472b6', // obligated
-                        '#dadee6', // remaining
+                        '#ec4899',
+                        '#cbd5e1',
                     ],
                     'borderColor' => '#ffffff',
-                    'borderWidth' => 1,
+                    'borderWidth' => 2,
+                    'hoverOffset' => 6,
                 ],
             ],
             'labels' => [
-                "Obligated (₱" . number_format($obligatedAmount, 2) . " - {$percentageObligated}%)",
-                "Remaining (₱" . number_format($remainingAllotment, 2) . " - {$percentageRemaining}%)",
+                'Obligated',
+                'Remaining',
             ],
         ];
-    }
-
-    protected function getFilters(): ?array
-    {
-        // Get distinct years from projects
-        $projectYears = Project::distinct()
-            ->orderBy('year', 'desc')
-            ->pluck('year')
-            ->toArray();
-
-        $filters = [];
-        foreach ($projectYears as $year) {
-            $filters[(string) $year] = (string) $year;
-        }
-
-        return $filters;
     }
 
     protected function getType(): string
     {
-        return 'pie';
+        return 'doughnut';
     }
 
     protected function getOptions(): array|RawJs|null
     {
-        return [
-            'plugins' => [
-                'legend' => [
-                    'labels' => [
-                        'padding' => 25, // space between legend items and chart
-                    ],
-                ],
-            ],
-            'scales' => [
-                'x' => ['display' => false],
-                'y' => ['display' => false],
-            ],
-        ];
+        return $this->currencyDoughnutOptions();
     }
 
     public static function getSort(): int
     {
-        return 3;
+        return 2;
     }
 }

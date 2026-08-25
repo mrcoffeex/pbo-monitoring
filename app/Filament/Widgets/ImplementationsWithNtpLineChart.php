@@ -2,60 +2,63 @@
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Widgets\Concerns\HasYearChartFilter;
 use App\Models\Implementation;
-use App\Models\Project;
+use Carbon\Carbon;
 use Filament\Support\RawJs;
 use Filament\Widgets\ChartWidget;
-use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 
 class ImplementationsWithNtpLineChart extends ChartWidget
 {
-    protected static ?string $heading = 'Implementations per Month (Projects with NTP)';
+    use HasYearChartFilter;
 
-    protected static ?string $maxHeight = '250px';
+    protected static ?string $heading = 'Implementations with NTP';
+
+    protected static ?string $description = 'Monthly implementation activity for projects with Notice to Proceed';
+
+    protected static ?string $maxHeight = '280px';
 
     public function getColumnSpan(): int|string|array
     {
-        return [
-            'default' => 1,
-            'md' => 2,
-            'lg' => 2,
-            'xl' => 3,
-        ];
+        return $this->fullWidthSpan();
     }
 
     protected function getData(): array
     {
-        // Get the selected filter (year)
-        $selectedYear = $this->filter ?? now()->year;
+        $selectedYear = $this->selectedYear();
 
-        // Get the 12 months for the selected year
-        $months = collect();
-        for ($i = 1; $i <= 12; $i++) {
-            $months->push(Carbon::createFromDate($selectedYear, $i, 1));
-        }
+        $baseQuery = Implementation::query()
+            ->whereHas('project.procurements', function (Builder $query): void {
+                $query->whereNotNull('ntp_number')
+                    ->where('ntp_number', '!=', '');
+            })
+            ->whereHas('project', fn (Builder $query) => $query->where('year', $selectedYear));
 
-        // Get implementation data for each month of the selected year
+        $byEndDate = (clone $baseQuery)
+            ->whereNotNull('end_date')
+            ->whereYear('end_date', $selectedYear)
+            ->selectRaw('MONTH(end_date) as month_number, COUNT(*) as total')
+            ->groupBy(DB::raw('MONTH(end_date)'))
+            ->pluck('total', 'month_number')
+            ->mapWithKeys(fn ($total, $month): array => [(int) $month => (int) $total]);
+
+        $byDateFallback = (clone $baseQuery)
+            ->whereNull('end_date')
+            ->whereNotNull('date')
+            ->whereYear('date', $selectedYear)
+            ->selectRaw('MONTH(date) as month_number, COUNT(*) as total')
+            ->groupBy(DB::raw('MONTH(date)'))
+            ->pluck('total', 'month_number')
+            ->mapWithKeys(fn ($total, $month): array => [(int) $month => (int) $total]);
+
         $implementationsData = [];
         $labels = [];
 
-        foreach ($months as $month) {
-            $startOfMonth = $month->copy()->startOfMonth();
-            $endOfMonth = $month->copy()->endOfMonth();
-
-            // Count implementations for projects that have NTP numbers, filtered by project year
-            $monthlyCount = Implementation::whereHas('project.procurements', function ($query) {
-                $query->whereNotNull('ntp_number')
-                      ->where('ntp_number', '!=', '');
-            })
-            ->whereHas('project', function($query) use ($selectedYear) {
-                $query->where('year', $selectedYear);
-            })
-            ->whereBetween('end_date', [$startOfMonth, $endOfMonth])
-            ->count();
-
-            $implementationsData[] = $monthlyCount;
-            $labels[] = $month->format('M Y');
+        for ($month = 1; $month <= 12; $month++) {
+            $implementationsData[] = (int) ($byEndDate[$month] ?? 0) + (int) ($byDateFallback[$month] ?? 0);
+            $labels[] = Carbon::createFromDate($selectedYear, $month, 1)->format('M');
         }
 
         return [
@@ -64,34 +67,19 @@ class ImplementationsWithNtpLineChart extends ChartWidget
                     'label' => 'Implementations',
                     'data' => $implementationsData,
                     'borderColor' => '#10b981',
-                    'backgroundColor' => 'rgba(16, 185, 129, 0.1)',
+                    'backgroundColor' => 'rgba(16, 185, 129, 0.12)',
                     'borderWidth' => 2,
                     'fill' => true,
-                    'tension' => 0.4,
+                    'tension' => 0.35,
                     'pointBackgroundColor' => '#10b981',
                     'pointBorderColor' => '#ffffff',
                     'pointBorderWidth' => 2,
-                    'pointRadius' => 4,
+                    'pointRadius' => 3,
+                    'pointHoverRadius' => 5,
                 ],
             ],
             'labels' => $labels,
         ];
-    }
-
-    protected function getFilters(): ?array
-    {
-        // Get distinct years from projects
-        $projectYears = Project::distinct()
-            ->orderBy('year', 'desc')
-            ->pluck('year')
-            ->toArray();
-
-        $filters = [];
-        foreach ($projectYears as $year) {
-            $filters[(string) $year] = (string) $year;
-        }
-
-        return $filters;
     }
 
     protected function getType(): string
@@ -99,8 +87,13 @@ class ImplementationsWithNtpLineChart extends ChartWidget
         return 'line';
     }
 
+    protected function getOptions(): array|RawJs|null
+    {
+        return $this->countAxisOptions();
+    }
+
     public static function getSort(): int
     {
-        return 6;
+        return 5;
     }
 }

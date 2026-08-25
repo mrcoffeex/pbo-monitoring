@@ -2,92 +2,67 @@
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Widgets\Concerns\HasYearChartFilter;
 use App\Models\Payment;
-use App\Models\Project;
+use Carbon\Carbon;
 use Filament\Support\RawJs;
 use Filament\Widgets\ChartWidget;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class MonthlyPaymentsLineChart extends ChartWidget
 {
-    protected static ?string $heading = 'Total Payments per Month';
+    use HasYearChartFilter;
 
-    protected static ?string $maxHeight = '250px';
+    protected static ?string $heading = 'Monthly Payments';
+
+    protected static ?string $description = 'Disbursements by month for the selected project year';
+
+    protected static ?string $maxHeight = '280px';
 
     public function getColumnSpan(): int|string|array
     {
-        return [
-            'default' => 1,
-            'md' => 2,
-            'lg' => 2,
-            'xl' => 3,
-        ];
+        return $this->halfWidthSpan();
     }
 
     protected function getData(): array
     {
-        // Get the selected filter (year)
-        $selectedYear = $this->filter ?? now()->year;
+        $selectedYear = $this->selectedYear();
 
-        // Get the 12 months for the selected year
-        $months = collect();
-        for ($i = 1; $i <= 12; $i++) {
-            $months->push(Carbon::createFromDate($selectedYear, $i, 1));
-        }
+        $totals = Payment::query()
+            ->whereHas('project', fn ($query) => $query->where('year', $selectedYear))
+            ->whereYear('date', $selectedYear)
+            ->selectRaw('MONTH(date) as month_number, SUM(amount) as total')
+            ->groupBy(DB::raw('MONTH(date)'))
+            ->pluck('total', 'month_number')
+            ->mapWithKeys(fn ($total, $month): array => [(int) $month => (float) $total]);
 
-        // Get payment data for each month of the selected year
         $paymentsData = [];
         $labels = [];
 
-        foreach ($months as $month) {
-            $startOfMonth = $month->copy()->startOfMonth();
-            $endOfMonth = $month->copy()->endOfMonth();
-
-            // Sum all payments within this month, filtered by project year
-            $monthlyTotal = Payment::whereBetween('date', [$startOfMonth, $endOfMonth])
-                ->whereHas('project', function($query) use ($selectedYear) {
-                    $query->where('year', $selectedYear);
-                })
-                ->sum('amount');
-
-            $paymentsData[] = (float) $monthlyTotal;
-            $labels[] = $month->format('M Y');
+        for ($month = 1; $month <= 12; $month++) {
+            $paymentsData[] = round((float) ($totals[$month] ?? 0), 2);
+            $labels[] = Carbon::createFromDate($selectedYear, $month, 1)->format('M');
         }
 
         return [
             'datasets' => [
                 [
-                    'label' => 'Payments (PHP)',
+                    'label' => 'Payments',
                     'data' => $paymentsData,
                     'borderColor' => '#3b82f6',
-                    'backgroundColor' => 'rgba(59, 130, 246, 0.1)',
+                    'backgroundColor' => 'rgba(59, 130, 246, 0.12)',
                     'borderWidth' => 2,
                     'fill' => true,
-                    'tension' => 0.4,
+                    'tension' => 0.35,
                     'pointBackgroundColor' => '#3b82f6',
                     'pointBorderColor' => '#ffffff',
                     'pointBorderWidth' => 2,
-                    'pointRadius' => 4,
+                    'pointRadius' => 3,
+                    'pointHoverRadius' => 5,
                 ],
             ],
             'labels' => $labels,
         ];
-    }
-
-    protected function getFilters(): ?array
-    {
-        // Get distinct years from projects
-        $projectYears = Project::distinct()
-            ->orderBy('year', 'desc')
-            ->pluck('year')
-            ->toArray();
-
-        $filters = [];
-        foreach ($projectYears as $year) {
-            $filters[(string) $year] = (string) $year;
-        }
-
-        return $filters;
     }
 
     protected function getType(): string
@@ -95,8 +70,13 @@ class MonthlyPaymentsLineChart extends ChartWidget
         return 'line';
     }
 
+    protected function getOptions(): array|RawJs|null
+    {
+        return $this->currencyAxisOptions();
+    }
+
     public static function getSort(): int
     {
-        return 2;
+        return 3;
     }
 }

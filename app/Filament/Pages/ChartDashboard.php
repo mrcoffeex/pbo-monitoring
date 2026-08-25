@@ -12,18 +12,21 @@ use Filament\Pages\Dashboard as BaseDashboard;
 class ChartDashboard extends BaseDashboard
 {
     protected static ?string $navigationIcon = 'heroicon-o-chart-bar';
+
     protected static ?string $navigationLabel = 'Chart Statistics';
+
     protected static ?int $navigationSort = 2;
+
     protected static ?string $title = 'Chart Statistics';
+
     protected static string $routePath = 'stats';
 
-    public function getColumns(): int | string | array
+    public function getColumns(): int|string|array
     {
         return [
             'default' => 1,
             'md' => 2,
-            'lg' => 4,
-            'xl' => 6,
+            'xl' => 2,
         ];
     }
 
@@ -32,9 +35,9 @@ class ChartDashboard extends BaseDashboard
         return [
             FinancialOverviewBarChart::class,
             FinancialStatusPieChart::class,
-            ImplementationsWithNtpLineChart::class,
             MonthlyPaymentsLineChart::class,
             ProjectStatusPieChart::class,
+            ImplementationsWithNtpLineChart::class,
         ];
     }
 }

@@ -2,86 +2,81 @@
 
 namespace App\Filament\Widgets;
 
-use App\Models\Project;
-use App\Models\Payment;
+use App\Filament\Widgets\Concerns\HasYearChartFilter;
 use App\Models\ObligationRequest;
+use App\Models\Payment;
+use App\Models\Project;
+use Filament\Support\RawJs;
 use Filament\Widgets\ChartWidget;
-use Illuminate\Support\Js;
 
 class FinancialOverviewBarChart extends ChartWidget
 {
-    protected static ?string $heading = 'Financial Overview (Appropriation / Obligated / Disbursed)';
+    use HasYearChartFilter;
 
-    protected static ?string $maxHeight = '250px';
+    protected static ?string $heading = 'Financial Overview';
+
+    protected static ?string $description = 'Appropriation, allotment, obligated, and disbursed amounts';
+
+    protected static ?string $maxHeight = '280px';
 
     public function getColumnSpan(): int|string|array
     {
-        return [
-            'default' => 1,
-            'md' => 2,
-            'lg' => 2,
-            'xl' => 3,
-        ];
+        return $this->halfWidthSpan();
     }
 
     protected function getData(): array
     {
-        // Get the selected filter (year)
-        $selectedYear = $this->filter ?? now()->year;
+        $selectedYear = $this->selectedYear();
 
-        // Filter data based on selected year
-        $totalAppropriation = (float) Project::where('year', $selectedYear)
-            ->sum('appropriation');
-        $totalObligated     = (float) ObligationRequest::whereHas('project', function($query) use ($selectedYear) {
-            $query->where('year', $selectedYear);
-        })->sum('amount');
-        $totalDisbursed = (float) Payment::whereYear('date', $selectedYear)->sum('amount');
+        $projects = Project::query()->where('year', $selectedYear);
+
+        $totalAppropriation = (float) (clone $projects)->sum('appropriation');
+        $totalAllotment = (float) (clone $projects)->sum('allotment');
+        $totalObligated = (float) ObligationRequest::query()
+            ->whereHas('project', fn ($query) => $query->where('year', $selectedYear))
+            ->sum('amount');
+        $totalDisbursed = (float) Payment::query()
+            ->whereHas('project', fn ($query) => $query->where('year', $selectedYear))
+            ->sum('amount');
 
         return [
             'datasets' => [
                 [
-                    'label' => 'Amount (PHP)',
+                    'label' => 'Amount',
                     'data' => [
                         $totalAppropriation,
+                        $totalAllotment,
                         $totalObligated,
                         $totalDisbursed,
                     ],
                     'backgroundColor' => [
-                        '#2563eb', // Appropriation
-                        '#f59e0b', // Obligated
-                        '#10b981', // Disbursed
+                        '#ec4899',
+                        '#06b6d4',
+                        '#f59e0b',
+                        '#10b981',
                     ],
-                    'borderColor' => '#ffffff',
-                    'borderWidth' => 1,
+                    'borderRadius' => 6,
+                    'borderSkipped' => false,
+                    'maxBarThickness' => 48,
                 ],
             ],
             'labels' => [
                 'Appropriation',
+                'Allotment',
                 'Obligated',
                 'Disbursed',
             ],
         ];
     }
 
-    protected function getFilters(): ?array
-    {
-        // Get distinct years from projects
-        $projectYears = Project::distinct()
-            ->orderBy('year', 'desc')
-            ->pluck('year')
-            ->toArray();
-
-        $filters = [];
-        foreach ($projectYears as $year) {
-            $filters[(string) $year] = (string) $year;
-        }
-
-        return $filters;
-    }
-
     protected function getType(): string
     {
         return 'bar';
+    }
+
+    protected function getOptions(): array|RawJs|null
+    {
+        return $this->currencyAxisOptions();
     }
 
     public static function getSort(): int

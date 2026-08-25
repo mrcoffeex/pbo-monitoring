@@ -2,130 +2,94 @@
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Widgets\Concerns\HasYearChartFilter;
 use App\Models\Project;
 use Filament\Support\RawJs;
 use Filament\Widgets\ChartWidget;
-use Illuminate\Support\Js;
 
 class ProjectStatusPieChart extends ChartWidget
 {
-    protected static ?string $heading = 'Project Status Distribution';
+    use HasYearChartFilter;
 
-    protected static ?string $maxHeight = '250px';
+    protected static ?string $heading = 'Project Progress';
+
+    protected static ?string $description = 'Completed, ongoing, and not started projects';
+
+    protected static ?string $maxHeight = '280px';
 
     public function getColumnSpan(): int|string|array
     {
-        return [
-            'default' => 1,
-            'md' => 2,
-            'lg' => 2,
-            'xl' => 3,
-        ];
+        return $this->halfWidthSpan();
     }
-
-    private array $statusCounts = [];
 
     protected function getData(): array
     {
-        // Get the selected filter (year)
-        $selectedYear = $this->filter ?? now()->year;
+        $selectedYear = $this->selectedYear();
 
-        $projects = Project::with([
-            'purchase_requests:id,project_id',
-            'procurements:id,project_id,contract_amount',
-            'payments:id,project_id,amount',
-        ])->where('year', $selectedYear)->get();
+        $projects = Project::query()
+            ->with([
+                'purchase_requests:id,project_id',
+                'procurements:id,project_id,contract_amount',
+                'payments:id,project_id,amount',
+            ])
+            ->where('year', $selectedYear)
+            ->get(['id']);
 
         $completed = 0;
         $ongoing = 0;
         $notStarted = 0;
 
-        $projects->each(function ($project) use (&$completed, &$ongoing, &$notStarted) {
-            $hasPR = $project->purchase_requests->isNotEmpty();
-            $contractAmount = $project->procurements->sum('contract_amount');
-            $paidTotal = $project->payments->sum('amount');
+        foreach ($projects as $project) {
+            $contractAmount = (float) $project->procurements->sum('contract_amount');
+            $paidTotal = (float) $project->payments->sum('amount');
             $isCompleted = $contractAmount > 0 && $paidTotal >= $contractAmount;
 
-            if ($isCompleted) { $completed++; return; }
-            if ($hasPR) { $ongoing++; return; }
+            if ($isCompleted) {
+                $completed++;
+
+                continue;
+            }
+
+            if ($project->purchase_requests->isNotEmpty()) {
+                $ongoing++;
+
+                continue;
+            }
+
             $notStarted++;
-        });
-
-        $total = max($completed + $ongoing + $notStarted, 1);
-
-        $pCompleted  = round(($completed / $total) * 100, 1);
-        $pOngoing    = round(($ongoing / $total) * 100, 1);
-        $pNotStarted = round(($notStarted / $total) * 100, 1);
-
-        $this->statusCounts = [
-            'completed'   => $completed,
-            'ongoing'     => $ongoing,
-            'notStarted'  => $notStarted,
-            'pCompleted'  => $pCompleted,
-            'pOngoing'    => $pOngoing,
-            'pNotStarted' => $pNotStarted,
-            'total'       => $total,
-        ];
+        }
 
         return [
             'datasets' => [
                 [
-                    'label' => 'Projects (%)',
-                    'data' => [$pCompleted, $pOngoing, $pNotStarted], // percentages
-                    'rawCounts' => [$completed, $ongoing, $notStarted], // counts
+                    'label' => 'Projects',
+                    'data' => [$completed, $ongoing, $notStarted],
                     'backgroundColor' => [
-                        '#4ade80',
-                        '#4379eeff',
-                        '#dadee6',
+                        '#22c55e',
+                        '#3b82f6',
+                        '#cbd5e1',
                     ],
                     'borderColor' => '#ffffff',
-                    'borderWidth' => 1,
+                    'borderWidth' => 2,
+                    'hoverOffset' => 6,
                 ],
             ],
             'labels' => [
-                "Completed ($completed / $total = {$pCompleted}%)",
-                "Ongoing ($ongoing / $total = {$pOngoing}%)",
-                "Not Started ($notStarted / $total = {$pNotStarted}%)",
+                "Completed ({$completed})",
+                "Ongoing ({$ongoing})",
+                "Not Started ({$notStarted})",
             ],
         ];
-    }
-
-    protected function getFilters(): ?array
-    {
-        // Get distinct years from projects
-        $projectYears = Project::distinct()
-            ->orderBy('year', 'desc')
-            ->pluck('year')
-            ->toArray();
-
-        $filters = [];
-        foreach ($projectYears as $year) {
-            $filters[(string) $year] = (string) $year;
-        }
-
-        return $filters;
     }
 
     protected function getType(): string
     {
-        return 'pie';
+        return 'doughnut';
     }
 
     protected function getOptions(): array|RawJs|null
     {
-        return [
-            'plugins' => [
-                'legend' => [
-                    'labels' => [
-                        'padding' => 20, // space between legend items and chart
-                    ],
-                ],
-            ],
-            'scales' => [
-                'x' => ['display' => false],
-                'y' => ['display' => false],
-            ],
-        ];
+        return $this->doughnutOptions();
     }
 
     public static function getSort(): int

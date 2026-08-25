@@ -1,257 +1,131 @@
-<div>
-    <div class="gap-y-8 py-8 flex items-center justify-between">
-        <h2 class="fi-header-heading text-2xl font-bold tracking-tight text-gray-950 dark:text-white sm:text-3xl">Dashboard</h2>
+@php
+    $dashboard = $this->getDashboardData();
+    $tones = [
+        'emerald' => [
+            'card' => 'from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-teal-950/40',
+            'label' => 'text-emerald-700 dark:text-emerald-300',
+            'value' => 'text-emerald-950 dark:text-emerald-50',
+            'hint' => 'text-emerald-600 dark:text-emerald-400',
+            'iconWrap' => 'bg-emerald-100 dark:bg-emerald-900/50',
+            'icon' => 'text-emerald-600 dark:text-emerald-400',
+        ],
+        'blue' => [
+            'card' => 'from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/40',
+            'label' => 'text-blue-700 dark:text-blue-300',
+            'value' => 'text-blue-950 dark:text-blue-50',
+            'hint' => 'text-blue-600 dark:text-blue-400',
+            'iconWrap' => 'bg-blue-100 dark:bg-blue-900/50',
+            'icon' => 'text-blue-600 dark:text-blue-400',
+        ],
+        'indigo' => [
+            'card' => 'from-indigo-50 to-violet-50 dark:from-indigo-950/40 dark:to-violet-950/40',
+            'label' => 'text-indigo-700 dark:text-indigo-300',
+            'value' => 'text-indigo-950 dark:text-indigo-50',
+            'hint' => 'text-indigo-600 dark:text-indigo-400',
+            'iconWrap' => 'bg-indigo-100 dark:bg-indigo-900/50',
+            'icon' => 'text-indigo-600 dark:text-indigo-400',
+        ],
+        'purple' => [
+            'card' => 'from-purple-50 to-fuchsia-50 dark:from-purple-950/40 dark:to-fuchsia-950/40',
+            'label' => 'text-purple-700 dark:text-purple-300',
+            'value' => 'text-purple-950 dark:text-purple-50',
+            'hint' => 'text-purple-600 dark:text-purple-400',
+            'iconWrap' => 'bg-purple-100 dark:bg-purple-900/50',
+            'icon' => 'text-purple-600 dark:text-purple-400',
+        ],
+        'amber' => [
+            'card' => 'from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/40',
+            'label' => 'text-amber-700 dark:text-amber-300',
+            'value' => 'text-amber-950 dark:text-amber-50',
+            'hint' => 'text-amber-600 dark:text-amber-400',
+            'iconWrap' => 'bg-amber-100 dark:bg-amber-900/50',
+            'icon' => 'text-amber-600 dark:text-amber-400',
+        ],
+        'fuchsia' => [
+            'card' => 'from-fuchsia-50 to-pink-50 dark:from-fuchsia-950/40 dark:to-pink-950/40',
+            'label' => 'text-fuchsia-700 dark:text-fuchsia-300',
+            'value' => 'text-fuchsia-950 dark:text-fuchsia-50',
+            'hint' => 'text-fuchsia-600 dark:text-fuchsia-400',
+            'iconWrap' => 'bg-fuchsia-100 dark:bg-fuchsia-900/50',
+            'icon' => 'text-fuchsia-600 dark:text-fuchsia-400',
+        ],
+        'cyan' => [
+            'card' => 'from-cyan-50 to-sky-50 dark:from-cyan-950/40 dark:to-sky-950/40',
+            'label' => 'text-cyan-700 dark:text-cyan-300',
+            'value' => 'text-cyan-950 dark:text-cyan-50',
+            'hint' => 'text-cyan-600 dark:text-cyan-400',
+            'iconWrap' => 'bg-cyan-100 dark:bg-cyan-900/50',
+            'icon' => 'text-cyan-600 dark:text-cyan-400',
+        ],
+        'green' => [
+            'card' => 'from-green-50 to-lime-50 dark:from-green-950/40 dark:to-lime-950/40',
+            'label' => 'text-green-700 dark:text-green-300',
+            'value' => 'text-green-950 dark:text-green-50',
+            'hint' => 'text-green-600 dark:text-green-400',
+            'iconWrap' => 'bg-green-100 dark:bg-green-900/50',
+            'icon' => 'text-green-600 dark:text-green-400',
+        ],
+    ];
+    $icons = [
+        'users' => 'M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z',
+        'check' => 'M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+        'bank' => 'M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z',
+        'document' => 'M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z',
+        'currency' => 'M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+        'clipboard' => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+        'badge' => 'M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z',
+        'queue' => 'M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z',
+    ];
+@endphp
 
-        <div class="w-48">
-            <x-filament::input.wrapper>
-                <x-filament::input.select
-                    wire:model.live="selectedYear"
-                >
-                    @foreach($this->getAvailableYears() as $value => $label)
-                        <option value="{{ $value }}">{{ $label }}</option>
-                    @endforeach
-                </x-filament::input.select>
-            </x-filament::input.wrapper>
+<x-filament-panels::page>
+    <div>
+        <div class="mb-4 flex items-center justify-end">
+            <div class="w-40">
+                <x-filament::input.wrapper>
+                    <x-filament::input.select wire:model.live="selectedYear">
+                        @foreach($this->getAvailableYears() as $value => $label)
+                            <option value="{{ $value }}">{{ $label }}</option>
+                        @endforeach
+                    </x-filament::input.select>
+                </x-filament::input.wrapper>
+            </div>
         </div>
+
+        <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
+            @foreach ($dashboard['cards'] as $card)
+                @php
+                    $tone = $tones[$card['tone']] ?? $tones['emerald'];
+                    $hintClass = match ($card['hintTone'] ?? null) {
+                        'positive' => 'text-emerald-600 dark:text-emerald-400',
+                        'negative' => 'text-red-600 dark:text-red-400',
+                        default => $tone['hint'],
+                    };
+                @endphp
+                <div class="min-w-0 rounded-lg bg-gradient-to-br p-3 shadow-sm {{ $tone['card'] }}">
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="min-w-0">
+                            <p class="text-[11px] font-medium leading-tight {{ $tone['label'] }}">{{ $card['label'] }}</p>
+                            <p class="mt-1 truncate text-lg font-semibold leading-none {{ $tone['value'] }}" title="{{ $card['hint'] }}">
+                                {{ $card['value'] }}
+                            </p>
+                            <p class="mt-1.5 truncate text-[11px] leading-tight {{ $hintClass }}">{{ $card['hint'] }}</p>
+                        </div>
+                        <div class="shrink-0 rounded-full p-1.5 {{ $tone['iconWrap'] }}">
+                            <svg class="h-4 w-4 {{ $tone['icon'] }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="{{ $icons[$card['icon']] ?? $icons['check'] }}" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+
+        <div
+            id="dashboard-charts-root"
+            class="mt-4"
+            wire:ignore
+            data-charts='@json($dashboard['charts'])'
+        ></div>
     </div>
-
-    @php
-        $stats = $this->getStatsData();
-    @endphp
-
-    <!-- Stats Grid -->
-    <div class="grid gap-7 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-        <!-- Online Users -->
-        <div class="rounded-xl bg-gradient-to-br from-emerald-50 to-teal-50 p-6 shadow-sm dark:from-emerald-950/50 dark:to-teal-950/50">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-medium text-emerald-700 dark:text-emerald-300">Online Users</p>
-                    <p class="mt-2 text-3xl font-semibold text-emerald-950 dark:text-emerald-50">{{ $stats['onlineUsers'] }}</p>
-                    <p class="mt-2 text-sm text-emerald-600 dark:text-emerald-400">
-                        {{ $stats['onlinePercent'] }}% of {{ number_format($stats['totalUsers']) }} total
-                    </p>
-                </div>
-                <div class="rounded-full bg-emerald-100 p-3 dark:bg-emerald-900/50">
-                    <svg class="h-6 w-6 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                    </svg>
-                </div>
-            </div>
-        </div>
-
-        <!-- Released Projects -->
-        <div class="rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 p-6 shadow-sm dark:from-blue-950/50 dark:to-indigo-950/50">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-medium text-blue-700 dark:text-blue-300">Released Projects</p>
-                    <p class="mt-2 text-3xl font-semibold text-blue-950 dark:text-blue-50">{{ number_format($stats['releasedProjects']) }}</p>
-                    <p class="mt-2 text-sm text-blue-600 dark:text-blue-400">
-                        of {{ number_format($stats['totalProjects']) }} total
-                    </p>
-                </div>
-                <div class="rounded-full bg-blue-100 p-3 dark:bg-blue-900/50">
-                    <svg class="h-6 w-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                </div>
-            </div>
-        </div>
-
-        <!-- Total Procurements -->
-        <div class="rounded-xl bg-gradient-to-br from-purple-50 to-fuchsia-50 p-6 shadow-sm dark:from-purple-950/50 dark:to-fuchsia-950/50">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-medium text-purple-700 dark:text-purple-300">Total Procurements</p>
-                    <p class="mt-2 text-3xl font-semibold text-purple-950 dark:text-purple-50">{{ number_format($stats['totalProcurements']) }}</p>
-                    <p class="mt-2 text-sm text-purple-600 dark:text-purple-400">
-                        {{ $stats['procurementsWithNOA'] }} with NOA
-                    </p>
-                </div>
-                <div class="rounded-full bg-purple-100 p-3 dark:bg-purple-900/50">
-                    <svg class="h-6 w-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                </div>
-            </div>
-        </div>
-
-        <!-- Procurements with NTP -->
-        <div class="rounded-xl bg-gradient-to-br from-cyan-50 to-sky-50 p-6 shadow-sm dark:from-cyan-950/50 dark:to-sky-950/50">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-medium text-cyan-700 dark:text-cyan-300">With NTP</p>
-                    <p class="mt-2 text-3xl font-semibold text-cyan-950 dark:text-cyan-50">{{ number_format($stats['procurementsWithNTP']) }}</p>
-                    <p class="mt-2 text-sm text-cyan-600 dark:text-cyan-400">
-                        Notice to Proceed issued
-                    </p>
-                </div>
-                <div class="rounded-full bg-cyan-100 p-3 dark:bg-cyan-900/50">
-                    <svg class="h-6 w-6 text-cyan-600 dark:text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                    </svg>
-                </div>
-            </div>
-        </div>
-
-        <!-- With Purchase Requests -->
-        <div class="rounded-xl bg-gradient-to-br from-green-50 to-lime-50 p-6 shadow-sm dark:from-green-950/50 dark:to-lime-950/50">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-medium text-green-700 dark:text-green-300">With Purchase Requests</p>
-                    <p class="mt-2 text-3xl font-semibold text-green-950 dark:text-green-50">{{ number_format($stats['withPurchaseRequests']) }}</p>
-                    <p class="mt-2 text-sm text-green-600 dark:text-green-400">
-                        {{ $stats['withPurchaseRequestsPercent'] }}% of projects
-                    </p>
-                </div>
-                <div class="rounded-full bg-green-100 p-3 dark:bg-green-900/50">
-                    <svg class="h-6 w-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
-                </div>
-            </div>
-        </div>
-
-        <!-- No Purchase Request -->
-        <div class="rounded-xl bg-gradient-to-br from-red-50 to-rose-50 p-6 shadow-sm dark:from-red-950/50 dark:to-rose-950/50">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-medium text-red-700 dark:text-red-300">No Purchase Request</p>
-                    <p class="mt-2 text-3xl font-semibold text-red-950 dark:text-red-50">{{ number_format($stats['noPurchaseRequestCount']) }}</p>
-                    <p class="mt-2 text-sm text-red-600 dark:text-red-400">
-                        {{ $stats['noPurchaseRequestPercent'] }}% of projects
-                    </p>
-                </div>
-                <div class="rounded-full bg-red-100 p-3 dark:bg-red-900/50">
-                    <svg class="h-6 w-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                </div>
-            </div>
-        </div>
-
-        <!-- Total Payments -->
-        <div class="rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 p-6 shadow-sm dark:from-amber-950/50 dark:to-orange-950/50">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-medium text-amber-700 dark:text-amber-300">Total Payments</p>
-                    <p class="mt-2 text-3xl font-semibold text-amber-950 dark:text-amber-50">₱{{ number_format($stats['paymentsTotalAmount'], 2) }}</p>
-                    <p class="mt-2 text-sm {{ $stats['paymentsGrowthPercent'] >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400' }}">
-                        {{ $stats['paymentsGrowthPercent'] >= 0 ? '+' : '' }}{{ $stats['paymentsGrowthPercent'] }}% from last week
-                    </p>
-                </div>
-                <div class="rounded-full bg-amber-100 p-3 dark:bg-amber-900/50">
-                    <svg class="h-6 w-6 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                </div>
-            </div>
-            <!-- Payment Chart -->
-            <div class="mt-4 h-20" wire:key="payment-chart-{{ $selectedYear }}">
-                <canvas id="paymentChart" class="w-full"></canvas>
-            </div>
-        </div>
-
-        <!-- Projects without Purchase Requests Bar -->
-        <div class="rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 p-6 shadow-sm dark:from-amber-950/50 dark:to-orange-950/50">
-            <p class="text-sm font-medium text-amber-700 dark:text-amber-300">Project Status</p>
-            <div class="mt-4 space-y-3">
-                <div>
-                    <div class="flex items-center justify-between text-sm">
-                        <span class="text-slate-600 dark:text-slate-400">With PR ({{ number_format($stats['withPurchaseRequests']) }})</span>
-                        <span class="font-medium text-slate-950 dark:text-slate-50">{{ $stats['withPurchaseRequestsPercent'] }}%</span>
-                    </div>
-                    <div class="mt-2 h-2.5 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
-                        <div class="h-full bg-gradient-to-r from-emerald-500 to-green-500 transition-all duration-500 ease-out" style="width: {{ $stats['withPurchaseRequestsPercent'] }}%"></div>
-                    </div>
-                </div>
-                <div>
-                    <div class="flex items-center justify-between text-sm">
-                        <span class="text-slate-600 dark:text-slate-400">Without PR ({{ number_format($stats['noPurchaseRequestCount']) }})</span>
-                        <span class="font-medium text-slate-950 dark:text-slate-50">{{ $stats['noPurchaseRequestPercent'] }}%</span>
-                    </div>
-                    <div class="mt-2 h-2.5 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
-                        <div class="h-full bg-gradient-to-r from-red-500 to-rose-500 transition-all duration-500 ease-out" style="width: {{ $stats['noPurchaseRequestPercent'] }}%"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    @push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        let paymentChart = null;
-
-        function initPaymentChart() {
-            const canvas = document.getElementById('paymentChart');
-            if (!canvas) return;
-
-            // Destroy existing chart if it exists
-            if (paymentChart) {
-                paymentChart.destroy();
-                paymentChart = null;
-            }
-
-            const ctx = canvas.getContext('2d');
-            const chartData = @json($stats['paymentChartData']);
-
-            paymentChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: ['6d ago', '5d ago', '4d ago', '3d ago', '2d ago', 'Yesterday', 'Today'],
-                    datasets: [{
-                        label: 'Payments',
-                        data: chartData,
-                        borderColor: 'rgb(245, 158, 11)',
-                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                        tension: 0.4,
-                        fill: true,
-                        pointRadius: 0,
-                        pointHoverRadius: 4,
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            mode: 'index',
-                            intersect: false
-                        }
-                    },
-                    scales: {
-                        x: {
-                            display: false
-                        },
-                        y: {
-                            display: false,
-                            beginAtZero: true
-                        }
-                    },
-                    interaction: {
-                        mode: 'nearest',
-                        axis: 'x',
-                        intersect: false
-                    }
-                }
-            });
-        }
-
-        // Initialize chart on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            initPaymentChart();
-        });
-
-        // Reinitialize chart after Livewire updates
-        window.addEventListener('livewire:initialized', () => {
-            window.Livewire.hook('morph.updated', ({ el, component }) => {
-                setTimeout(() => initPaymentChart(), 100);
-            });
-        });
-    </script>
-    @endpush
-</div>
+</x-filament-panels::page>

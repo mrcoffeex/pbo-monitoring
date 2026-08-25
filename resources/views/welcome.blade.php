@@ -5,6 +5,10 @@
     @include('partials.hero')
 @endsection
 
+@section('how-it-works')
+    @include('partials.how-it-works')
+@endsection
+
 @section('features')
     @include('partials.features')
 @endsection

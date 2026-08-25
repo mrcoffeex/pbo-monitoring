@@ -24,7 +24,7 @@ class AppServiceProvider extends ServiceProvider
     {
         FilamentView::registerRenderHook(
             PanelsRenderHook::BODY_START,
-            fn (): string => Blade::render('@vite(\'resources/css/app.css\')'),
+            fn (): string => Blade::render('@viteReactRefresh').Blade::render("@vite(['resources/css/app.css', 'resources/js/dashboard.jsx'])"),
         );
     }
 }
