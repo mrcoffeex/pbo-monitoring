@@ -94,6 +94,7 @@ it('shows grouped timeline entries in the activity slideover', function () {
     Livewire::test(ProjectMonitoring::class, ['record' => $project->getKey()])
         ->mountAction('activityLog')
         ->assertSee('id="project-activity-drawer"', false)
+        ->assertSee('activity-card', false)
         ->assertSee('Today')
         ->assertSee('Created')
         ->assertSee('Project')
