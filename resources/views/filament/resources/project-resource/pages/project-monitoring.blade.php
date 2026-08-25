@@ -387,29 +387,36 @@
             display: flex;
             flex-direction: column;
             gap: 1rem;
+            width: 100%;
+            min-width: 0;
+        }
+
+        .process-stage-grid > * {
+            min-width: 0;
+            max-width: 100%;
         }
 
         @media (min-width: 1024px) {
             .process-stage-grid.is-overview {
                 display: grid;
-                grid-template-columns: repeat(100, minmax(0, 1fr));
+                grid-template-columns: repeat(15, minmax(0, 1fr));
                 align-items: stretch;
             }
 
             .process-stage-grid.is-overview .process-span-33 {
-                grid-column: span 33;
+                grid-column: span 5;
             }
 
             .process-stage-grid.is-overview .process-span-40 {
-                grid-column: span 40;
+                grid-column: span 6;
             }
 
             .process-stage-grid.is-overview .process-span-60 {
-                grid-column: span 60;
+                grid-column: span 9;
             }
 
             .process-stage-grid.is-overview .process-span-100 {
-                grid-column: span 100;
+                grid-column: span 15;
             }
         }
     </style>
