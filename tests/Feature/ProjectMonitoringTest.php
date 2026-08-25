@@ -57,7 +57,15 @@ it('renders the improved monitoring overview and activity drawer', function () {
         ->assertSee('Purchase Requests')
         ->assertSee('Payments')
         ->assertSee('data-stage="pr"', false)
-        ->assertSee('Open stage', false);
+        ->assertSee('data-overview-grid', false)
+        ->assertSee('process-span-33', false)
+        ->assertSee('process-span-40', false)
+        ->assertSee('process-span-60', false)
+        ->assertSee('process-span-100', false)
+        ->assertSee('No pre-procurement records yet')
+        ->assertSee('No purchase requests yet')
+        ->assertSee('No payments yet')
+        ->assertDontSee('Open stage');
 });
 
 it('shows grouped timeline entries in the activity slideover', function () {
@@ -116,5 +124,6 @@ it('builds summary and stage counts for the monitored project', function () {
         ->and($page->summary['fundLabels'])->toContain('General Funds')
         ->and($page->stages)->toHaveCount(9)
         ->and($page->stages[0]['key'])->toBe('pre')
+        ->and($page->defaultStage())->toBe('overview')
         ->and($page->activitiesUrl())->toContain('/activities');
 });

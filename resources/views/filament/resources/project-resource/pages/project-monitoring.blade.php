@@ -17,8 +17,19 @@
     $implementations = $project->implementations;
     $payments = $project->payments;
 
-    $cardWrap = 'space-y-2 rounded-xl bg-gray-50 p-4 ring-1 ring-gray-950/5 dark:bg-gray-800/50 dark:ring-white/10';
-    $sectionBody = 'space-y-3 text-sm leading-6 text-gray-950 dark:text-white';
+    $cardWrap = 'space-y-2 rounded-xl bg-gray-50 p-4 ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10';
+    $sectionBody = 'space-y-3 text-sm leading-6 text-gray-950 dark:text-gray-100';
+    $overviewSpan = [
+        'pre' => 'process-span-33',
+        'pr' => 'process-span-33',
+        'twg' => 'process-span-33',
+        'pmo' => 'process-span-40',
+        'prc' => 'process-span-60',
+        'proc' => 'process-span-100',
+        'obr' => 'process-span-33',
+        'impl' => 'process-span-33',
+        'pay' => 'process-span-33',
+    ];
 @endphp
 
 <x-filament-panels::page>
@@ -34,7 +45,7 @@
                 });
             },
             shows(stage) {
-                return this.activeStage === stage;
+                return this.activeStage === 'overview' || this.activeStage === stage;
             },
             get isOverview() {
                 return this.activeStage === 'overview';
@@ -81,19 +92,6 @@
                         @endif
                     </div>
 
-                    <div class="flex shrink-0 flex-wrap gap-2">
-                        <button
-                            type="button"
-                            class="inline-flex items-center gap-2 rounded-xl bg-primary-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-500"
-                            wire:click="mountAction('activityLog')"
-                        >
-                            <x-filament::icon icon="heroicon-o-clock" class="h-4 w-4" />
-                            Activity
-                            @if ($recentActivities->isNotEmpty())
-                                <span class="rounded-full bg-white/20 px-2 py-1 text-xs">{{ $recentActivities->count() }}</span>
-                            @endif
-                        </button>
-                    </div>
                 </div>
             </div>
 
@@ -158,7 +156,7 @@
                     <span class="mt-1 block text-sm font-semibold">Overview</span>
                 </button>
 
-                @foreach ($stages as $index => $stage)
+                @foreach ($stages as $stage)
                     <button
                         type="button"
                         data-stage="{{ $stage['key'] }}"
@@ -168,58 +166,25 @@
                             ? 'border-primary-400 bg-primary-50 ring-1 ring-primary-200 dark:border-primary-400/50 dark:bg-primary-500/20'
                             : 'border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800'"
                     >
-                        <div class="flex items-center justify-between gap-2">
-                            <span
-                                class="inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold"
-                                :class="activeStage === '{{ $stage['key'] }}'
-                                    ? 'bg-primary-600 text-white'
-                                    : '{{ $stage['done'] ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300' }}'"
-                            >{{ $index + 1 }}</span>
+                        <div class="flex items-start justify-between gap-2">
+                            <span class="text-sm font-semibold leading-tight text-gray-950 dark:text-white">{{ $stage['label'] }}</span>
                             <span class="rounded-full bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-600 dark:bg-gray-900 dark:text-gray-300">{{ $stage['count'] }}</span>
                         </div>
-                        <span class="mt-2 block text-sm font-semibold leading-tight text-gray-950 dark:text-white">{{ $stage['label'] }}</span>
                     </button>
                 @endforeach
             </div>
         </section>
 
-        <div x-ref="stagePanel" class="scroll-mt-28">
-            {{-- Overview --}}
-            <div x-show="isOverview" class="space-y-4">
-                <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                    @foreach ($stages as $index => $stage)
-                        <button
-                            type="button"
-                            x-on:click="select('{{ $stage['key'] }}')"
-                            class="rounded-2xl border border-gray-200 bg-white p-4 text-left shadow-sm transition hover:border-primary-300 hover:shadow-md dark:border-gray-700 dark:bg-gray-900 dark:hover:border-primary-500/40"
-                        >
-                            <div class="flex items-start justify-between gap-3">
-                                <div class="flex items-center gap-3">
-                                    <span @class([
-                                        'inline-flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold',
-                                        $stage['done'] ? 'bg-emerald-500 text-white' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300',
-                                    ])>{{ $index + 1 }}</span>
-                                    <div>
-                                        <p class="text-sm font-semibold text-gray-950 dark:text-white">{{ $stage['label'] }}</p>
-                                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                            {{ $stage['done'] ? 'Has records' : 'No records yet' }}
-                                        </p>
-                                    </div>
-                                </div>
-                                <span class="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700 dark:bg-gray-800 dark:text-gray-300">
-                                    {{ $stage['count'] }}
-                                </span>
-                            </div>
-                            <p class="mt-3 text-xs font-semibold text-primary-600 dark:text-primary-400">Open stage →</p>
-                        </button>
-                    @endforeach
-                </div>
-            </div>
-
-            {{-- Stage details (one at a time) --}}
-            <div x-show="shows('pre')" x-cloak>
-                <x-filament::section>
-                    <x-slot name="heading">Pre-Procurement <span class="ml-2 text-sm font-normal text-gray-500">({{ $preProcurements->count() }})</span></x-slot>
+        <div
+            x-ref="stagePanel"
+            data-overview-grid
+            class="process-stage-grid scroll-mt-28"
+            :class="{ 'is-overview': isOverview }"
+        >
+            {{-- Process details: all on Overview in a 2–3 card grid, one when a stage is selected --}}
+            <div x-show="shows('pre')" class="min-w-0 {{ $overviewSpan['pre'] }}">
+                <x-filament::section class="h-full">
+                    <x-slot name="heading">Pre-Procurement <span class="ml-2 text-sm font-normal text-gray-500 dark:text-gray-400">({{ $preProcurements->count() }})</span></x-slot>
                     <div class="{{ $sectionBody }}">
                         @forelse ($preProcurements as $preProcurement)
                             <div class="{{ $cardWrap }}">
@@ -234,9 +199,9 @@
                 </x-filament::section>
             </div>
 
-            <div x-show="shows('pr')" x-cloak>
-                <x-filament::section>
-                    <x-slot name="heading">Purchase Requests <span class="ml-2 text-sm font-normal text-gray-500">({{ $purchaseRequests->count() }})</span></x-slot>
+            <div x-show="shows('pr')" class="min-w-0 {{ $overviewSpan['pr'] }}">
+                <x-filament::section class="h-full">
+                    <x-slot name="heading">Purchase Requests <span class="ml-2 text-sm font-normal text-gray-500 dark:text-gray-400">({{ $purchaseRequests->count() }})</span></x-slot>
                     <div class="{{ $sectionBody }}">
                         @forelse ($purchaseRequests as $pr)
                             <div class="{{ $cardWrap }}">
@@ -253,9 +218,9 @@
                 </x-filament::section>
             </div>
 
-            <div x-show="shows('twg')" x-cloak>
-                <x-filament::section>
-                    <x-slot name="heading">Technical Working Group <span class="ml-2 text-sm font-normal text-gray-500">({{ $twgs->count() }})</span></x-slot>
+            <div x-show="shows('twg')" class="min-w-0 {{ $overviewSpan['twg'] }}">
+                <x-filament::section class="h-full">
+                    <x-slot name="heading">Technical Working Group <span class="ml-2 text-sm font-normal text-gray-500 dark:text-gray-400">({{ $twgs->count() }})</span></x-slot>
                     <div class="{{ $sectionBody }}">
                         @forelse ($twgs as $twg)
                             <div class="{{ $cardWrap }}">
@@ -270,9 +235,9 @@
                 </x-filament::section>
             </div>
 
-            <div x-show="shows('pmo')" x-cloak>
-                <x-filament::section>
-                    <x-slot name="heading">PMO Control <span class="ml-2 text-sm font-normal text-gray-500">({{ $pmoControls->count() }})</span></x-slot>
+            <div x-show="shows('pmo')" class="min-w-0 {{ $overviewSpan['pmo'] }}">
+                <x-filament::section class="h-full">
+                    <x-slot name="heading">PMO Control <span class="ml-2 text-sm font-normal text-gray-500 dark:text-gray-400">({{ $pmoControls->count() }})</span></x-slot>
                     <div class="{{ $sectionBody }}">
                         @forelse ($pmoControls as $pmoControl)
                             <div class="{{ $cardWrap }}">
@@ -288,9 +253,9 @@
                 </x-filament::section>
             </div>
 
-            <div x-show="shows('prc')" x-cloak>
-                <x-filament::section>
-                    <x-slot name="heading">Purchase Request Control <span class="ml-2 text-sm font-normal text-gray-500">({{ $prControls->count() }})</span></x-slot>
+            <div x-show="shows('prc')" class="min-w-0 {{ $overviewSpan['prc'] }}">
+                <x-filament::section class="h-full">
+                    <x-slot name="heading">Purchase Request Control <span class="ml-2 text-sm font-normal text-gray-500 dark:text-gray-400">({{ $prControls->count() }})</span></x-slot>
                     <div class="{{ $sectionBody }}">
                         @forelse ($prControls as $prc)
                             <div class="{{ $cardWrap }}">
@@ -306,12 +271,12 @@
                 </x-filament::section>
             </div>
 
-            <div x-show="shows('proc')" x-cloak>
-                <x-filament::section>
-                    <x-slot name="heading">Procurement <span class="ml-2 text-sm font-normal text-gray-500">({{ $procurements->count() }})</span></x-slot>
+            <div x-show="shows('proc')" class="min-w-0 {{ $overviewSpan['proc'] }}">
+                <x-filament::section class="h-full">
+                    <x-slot name="heading">Procurement <span class="ml-2 text-sm font-normal text-gray-500 dark:text-gray-400">({{ $procurements->count() }})</span></x-slot>
                     <div class="{{ $sectionBody }}">
                         @forelse ($procurements as $proc)
-                            <div class="grid grid-cols-1 gap-x-4 gap-y-1 rounded-xl bg-gray-50 p-4 ring-1 ring-gray-950/5 md:grid-cols-2 dark:bg-gray-800/50 dark:ring-white/10">
+                            <div class="grid grid-cols-1 gap-x-4 gap-y-1 rounded-xl bg-gray-50 p-4 ring-1 ring-gray-950/5 md:grid-cols-2 dark:bg-gray-900 dark:ring-white/10">
                                 <x-item-badge label="IB Number" :value="$proc->ib_number" />
                                 <x-item-badge label="Pre Procurement Conference" :value="$proc->pre_procurement_conference" :isDay="true" />
                                 <x-item-badge label="Pre Bid Conference" :value="$proc->pre_bid_conference" :isDay="true" />
@@ -334,9 +299,9 @@
                 </x-filament::section>
             </div>
 
-            <div x-show="shows('obr')" x-cloak>
-                <x-filament::section>
-                    <x-slot name="heading">Obligation Request <span class="ml-2 text-sm font-normal text-gray-500">({{ $obrs->count() }})</span></x-slot>
+            <div x-show="shows('obr')" class="min-w-0 {{ $overviewSpan['obr'] }}">
+                <x-filament::section class="h-full">
+                    <x-slot name="heading">Obligation Request <span class="ml-2 text-sm font-normal text-gray-500 dark:text-gray-400">({{ $obrs->count() }})</span></x-slot>
                     <div class="{{ $sectionBody }}">
                         @forelse ($obrs as $obr)
                             <div class="{{ $cardWrap }}">
@@ -352,9 +317,9 @@
                 </x-filament::section>
             </div>
 
-            <div x-show="shows('impl')" x-cloak>
-                <x-filament::section>
-                    <x-slot name="heading">Implementation <span class="ml-2 text-sm font-normal text-gray-500">({{ $implementations->count() }})</span></x-slot>
+            <div x-show="shows('impl')" class="min-w-0 {{ $overviewSpan['impl'] }}">
+                <x-filament::section class="h-full">
+                    <x-slot name="heading">Implementation <span class="ml-2 text-sm font-normal text-gray-500 dark:text-gray-400">({{ $implementations->count() }})</span></x-slot>
                     <div class="{{ $sectionBody }}">
                         @forelse ($implementations as $imp)
                             @if ($loop->first)
@@ -382,9 +347,9 @@
                 </x-filament::section>
             </div>
 
-            <div x-show="shows('pay')" x-cloak class="space-y-4">
+            <div x-show="shows('pay')" class="min-w-0 space-y-4 {{ $overviewSpan['pay'] }}">
                 <x-filament::section>
-                    <x-slot name="heading">Payments <span class="ml-2 text-sm font-normal text-gray-500">({{ $payments->count() }})</span></x-slot>
+                    <x-slot name="heading">Payments <span class="ml-2 text-sm font-normal text-gray-500 dark:text-gray-400">({{ $payments->count() }})</span></x-slot>
                     <div class="{{ $sectionBody }}">
                         @forelse ($payments as $pay)
                             <div class="{{ $cardWrap }}">
@@ -416,4 +381,36 @@
             </div>
         </div>
     </div>
+
+    <style>
+        .process-stage-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        @media (min-width: 1024px) {
+            .process-stage-grid.is-overview {
+                display: grid;
+                grid-template-columns: repeat(100, minmax(0, 1fr));
+                align-items: stretch;
+            }
+
+            .process-stage-grid.is-overview .process-span-33 {
+                grid-column: span 33;
+            }
+
+            .process-stage-grid.is-overview .process-span-40 {
+                grid-column: span 40;
+            }
+
+            .process-stage-grid.is-overview .process-span-60 {
+                grid-column: span 60;
+            }
+
+            .process-stage-grid.is-overview .process-span-100 {
+                grid-column: span 100;
+            }
+        }
+    </style>
 </x-filament-panels::page>

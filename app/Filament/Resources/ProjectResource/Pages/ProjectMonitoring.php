@@ -84,10 +84,13 @@ class ProjectMonitoring extends Page
                 ->color('gray')
                 ->url(ProjectResource::getUrl('index')),
             Actions\Action::make('activityLog')
-                ->label('Activity')
+                ->label(function (): string {
+                    $count = $this->recentActivities->count();
+
+                    return $count > 0 ? "Activity ({$count})" : 'Activity';
+                })
                 ->icon('heroicon-o-clock')
                 ->color('primary')
-                ->badge(fn (): ?string => ($count = $this->recentActivities->count()) > 0 ? (string) $count : null)
                 ->slideOver()
                 ->modalWidth('md')
                 ->modalHeading('Project activity')
@@ -206,7 +209,7 @@ class ProjectMonitoring extends Page
 
     public function defaultStage(): string
     {
-        return collect($this->stages)->firstWhere('done', true)['key'] ?? 'overview';
+        return 'overview';
     }
 
     /**
