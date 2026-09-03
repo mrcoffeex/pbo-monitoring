@@ -45,7 +45,7 @@
             </ol>
         </div>
 
-        <aside class="reservation-card lg:sticky lg:top-28" aria-label="Sign in">
+        <aside class="reservation-card lg:sticky lg:top-24" aria-label="Sign in">
             <p class="text-[21px] font-bold leading-[1.43] text-ink">Ready to track a project?</p>
             <p class="mt-2 text-sm leading-relaxed text-muted">
                 Sign in with your office account to open the dashboard. Access follows your role.

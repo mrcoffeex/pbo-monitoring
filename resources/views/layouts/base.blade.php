@@ -24,6 +24,8 @@
         @yield('hero')
         @yield('how-it-works')
         @yield('features')
+        @yield('audience')
+        @yield('faq')
         @yield('dev-team')
         @yield('contact')
     </main>

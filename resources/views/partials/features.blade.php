@@ -16,7 +16,7 @@
             @endphp
             @foreach($features as $f)
                 <article class="amenity-row border-b border-hairline-soft">
-                    <span class="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-canvas text-ink ring-1 ring-hairline">
+                    <span class="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-surface-strong text-ink">
                         <x-dynamic-component :component="$f['icon']" class="h-5 w-5" aria-hidden="true" />
                     </span>
                     <div class="pb-3">

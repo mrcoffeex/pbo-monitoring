@@ -9,11 +9,10 @@
         <div>
             <h3 class="text-base font-medium text-ink">On this page</h3>
             <ul class="mt-3 space-y-3">
-                <li><a href="#projects" class="footer-link">Projects</a></li>
-                <li><a href="#budget" class="footer-link">Budget</a></li>
-                <li><a href="#payments" class="footer-link">Payments</a></li>
                 <li><a href="#how-it-works" class="footer-link">How it works</a></li>
                 <li><a href="#features" class="footer-link">What you can do</a></li>
+                <li><a href="#audience" class="footer-link">Who it's for</a></li>
+                <li><a href="#faq" class="footer-link">FAQ</a></li>
                 <li><a href="#team" class="footer-link">The team</a></li>
                 <li><a href="#contact" class="footer-link">Contact</a></li>
             </ul>

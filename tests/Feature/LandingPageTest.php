@@ -12,8 +12,14 @@ it('renders the public landing page for visitors', function () {
     $response->assertSee('Payments', false);
     $response->assertSee('How it works', false);
     $response->assertSee('What you can do', false);
-    $response->assertSee('Contact the office', false);
+    $response->assertSee('Who it\'s for', false);
+    $response->assertSee('Frequently asked questions', false);
+    $response->assertSee('Budget staff', false);
+    $response->assertSee('Who can sign in?', false);
     $response->assertSee('Sign in to the dashboard', false);
+    $response->assertSee('Photographs of Davao del Sur', false);
+    $response->assertSee('images/hero/kapatagan-mt-apo.jpg', false);
+    $response->assertSee('images/hero/passig-islet.jpg', false);
     $response->assertSee('pbodavsur@gmail.com', false);
 });
 

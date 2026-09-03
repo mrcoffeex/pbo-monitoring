@@ -13,6 +13,14 @@
     @include('partials.features')
 @endsection
 
+@section('audience')
+    @include('partials.audience')
+@endsection
+
+@section('faq')
+    @include('partials.faq')
+@endsection
+
 @section('dev-team')
     @include('partials.dev-team')
 @endsection

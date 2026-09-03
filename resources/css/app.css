@@ -27,6 +27,8 @@
     --color-canvas: #ffffff;
     --color-surface-soft: #f7f7f7;
     --color-surface-strong: #f2f2f2;
+    --color-elevated: #ffffff;
+    --color-control-hover: #e8e8e8;
     --color-on-primary: #ffffff;
     --color-on-dark: #ffffff;
     --color-legal-link: #428bff;
@@ -54,21 +56,22 @@
         --color-body: #d4d4d4;
         --color-muted: #a3a3a3;
         --color-muted-soft: #737373;
-        --color-hairline: #3f3f3f;
-        --color-hairline-soft: #333333;
-        --color-border-strong: #525252;
-        --color-canvas: #121212;
-        --color-surface-soft: #1a1a1a;
+        --color-hairline: #2c2c2c;
+        --color-hairline-soft: #242424;
+        --color-border-strong: #333333;
+        --color-canvas: #0f0f0f;
+        --color-surface-soft: #171717;
         --color-surface-strong: #262626;
+        --color-elevated: #1c1c1c;
+        --color-control-hover: #333333;
 
         --shadow-card:
-            rgba(255, 255, 255, 0.04) 0 0 0 1px,
-            rgba(0, 0, 0, 0.3) 0 2px 6px 0,
-            rgba(0, 0, 0, 0.4) 0 4px 8px 0;
+            rgba(0, 0, 0, 0.4) 0 2px 8px 0,
+            rgba(0, 0, 0, 0.5) 0 10px 24px 0;
     }
 
     html {
-        scroll-padding-top: 7.5rem;
+        scroll-padding-top: 5.5rem;
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -98,30 +101,16 @@
     }
 
     .official-banner {
-        @apply border-b border-hairline bg-surface-soft text-sm text-body;
+        @apply border-b border-hairline bg-surface-soft text-xs text-body;
     }
 
     .landing-nav-link {
-        @apply text-base font-semibold text-muted transition-colors;
+        @apply text-sm font-medium text-muted transition-colors;
     }
 
     .landing-nav-link:hover,
     .landing-nav-link.is-active {
         @apply text-ink;
-    }
-
-    .product-tab {
-        @apply relative flex min-w-[5.5rem] flex-col items-center gap-1 px-3 pb-2 text-muted transition-colors;
-    }
-
-    .product-tab:hover,
-    .product-tab.is-active {
-        @apply text-ink;
-    }
-
-    .product-tab.is-active::after {
-        content: "";
-        @apply absolute inset-x-3 -bottom-px h-0.5 rounded-full bg-ink;
     }
 
     .btn-rausch {
@@ -134,12 +123,12 @@
     }
 
     .btn-secondary {
-        @apply inline-flex items-center justify-center gap-2 rounded-sm border border-ink bg-canvas px-6 text-base font-medium text-ink transition-colors;
+        @apply inline-flex items-center justify-center gap-2 rounded-sm bg-surface-strong px-6 text-base font-medium text-ink transition-colors;
         min-height: 48px;
     }
 
     .btn-secondary:hover {
-        @apply bg-surface-soft;
+        background-color: var(--color-control-hover);
     }
 
     .btn-tertiary {
@@ -147,7 +136,7 @@
     }
 
     .icon-btn-circle {
-        @apply inline-flex h-10 w-10 items-center justify-center rounded-full border border-hairline bg-canvas text-ink transition-colors;
+        @apply inline-flex h-9 w-9 items-center justify-center rounded-full bg-surface-soft text-ink transition-colors;
     }
 
     .icon-btn-circle:hover {
@@ -155,17 +144,17 @@
     }
 
     .landing-card {
-        @apply rounded-md border border-hairline bg-canvas;
+        @apply rounded-md bg-elevated;
         box-shadow: var(--shadow-card);
     }
 
     .reservation-card {
-        @apply rounded-md border border-hairline bg-canvas p-6;
+        @apply rounded-md bg-elevated p-6;
         box-shadow: var(--shadow-card);
     }
 
     .search-pill {
-        @apply flex flex-col overflow-hidden rounded-xl border border-hairline bg-canvas sm:flex-row sm:items-center sm:rounded-full;
+        @apply flex flex-col overflow-hidden rounded-xl bg-surface-soft sm:flex-row sm:items-center sm:rounded-full;
         box-shadow: var(--shadow-card);
     }
 
@@ -202,8 +191,7 @@
     }
 
     .landing-badge {
-        @apply inline-flex items-center rounded-full bg-canvas px-2.5 py-1 text-[11px] font-semibold text-ink;
-        box-shadow: var(--shadow-card);
+        @apply inline-flex items-center rounded-full bg-surface-strong px-2.5 py-1 text-[11px] font-semibold text-ink;
     }
 
     .step-index {
@@ -225,5 +213,49 @@
 
     .animate-in {
         @apply translate-y-0 opacity-100;
+    }
+
+    .hero-photo {
+        @apply absolute inset-0 h-full w-full object-cover;
+        opacity: 0;
+        transition: opacity 1.1s ease;
+    }
+
+    .hero-photo.is-active {
+        opacity: 1;
+    }
+
+    .hero-overlay {
+        @apply absolute inset-0;
+        background: linear-gradient(
+            180deg,
+            rgba(12, 12, 12, 0.46) 0%,
+            rgba(12, 12, 12, 0.4) 42%,
+            rgba(12, 12, 12, 0.74) 100%
+        );
+    }
+
+    .hero-dot {
+        @apply relative inline-flex h-8 w-8 items-center justify-center;
+    }
+
+    .hero-dot::after {
+        content: "";
+        height: 6px;
+        width: 6px;
+        border-radius: 9999px;
+        background: rgba(255, 255, 255, 0.5);
+        transition: width 0.2s ease, background-color 0.2s ease;
+    }
+
+    .hero-dot[aria-current="true"]::after {
+        width: 20px;
+        background: #ffffff;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .hero-photo {
+            transition: none;
+        }
     }
 }

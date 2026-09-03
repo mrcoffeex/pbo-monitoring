@@ -13,14 +13,14 @@
                         'role' => 'Project Leader',
                         'bio'  => 'Provincial Budget Officer. Sets direction and signs off on how the office uses this system.',
                         'img'  => 'https://ui-avatars.com/api/?name=DS&background=222222&color=fff',
-                        'links' => ['facebook' => '#'],
+                        'links' => [],
                     ],
                     [
                         'name' => 'Bhengie Mark Tubiano',
                         'role' => 'Quality Assurance',
                         'bio'  => 'Head of Budget Execution. Reviews records so project data stays accurate and complete.',
                         'img'  => 'https://ui-avatars.com/api/?name=BMT&background=222222&color=fff',
-                        'links' => ['facebook' => '#'],
+                        'links' => [],
                     ],
                     [
                         'name' => 'Kent John Gocotano',
