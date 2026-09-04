@@ -65,6 +65,14 @@
             'iconWrap' => 'bg-green-100 dark:bg-green-900/50',
             'icon' => 'text-green-600 dark:text-green-400',
         ],
+        'rose' => [
+            'card' => 'from-rose-50 to-red-50 dark:from-rose-950/40 dark:to-red-950/40',
+            'label' => 'text-rose-700 dark:text-rose-300',
+            'value' => 'text-rose-950 dark:text-rose-50',
+            'hint' => 'text-rose-600 dark:text-rose-400',
+            'iconWrap' => 'bg-rose-100 dark:bg-rose-900/50',
+            'icon' => 'text-rose-600 dark:text-rose-400',
+        ],
     ];
     $icons = [
         'users' => 'M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z',
@@ -79,46 +87,100 @@
 @endphp
 
 <x-filament-panels::page>
-    <div>
-        <div class="mb-4 flex items-center justify-end">
-            <div class="w-40">
-                <x-filament::input.wrapper>
-                    <x-filament::input.select wire:model.live="selectedYear">
+    <div class="dashboard-page">
+        <form wire:submit="searchProjects" class="dashboard-toolbar">
+            <div class="dashboard-toolbar-search">
+                <label for="projectSearch" class="sr-only">Search projects</label>
+                <x-filament::input.wrapper prefix-icon="heroicon-m-magnifying-glass">
+                    <x-filament::input
+                        type="search"
+                        id="projectSearch"
+                        wire:model="projectSearch"
+                        maxlength="255"
+                        placeholder="Search projects by name, code, or status"
+                    />
+                </x-filament::input.wrapper>
+            </div>
+            <x-filament::button type="submit">
+                Search
+            </x-filament::button>
+            <div class="dashboard-toolbar-year">
+                <label for="selectedYear" class="sr-only">Dashboard year</label>
+                <x-filament::input.wrapper prefix="Year">
+                    <x-filament::input.select id="selectedYear" wire:model.live="selectedYear">
                         @foreach($this->getAvailableYears() as $value => $label)
                             <option value="{{ $value }}">{{ $label }}</option>
                         @endforeach
                     </x-filament::input.select>
                 </x-filament::input.wrapper>
             </div>
-        </div>
+        </form>
 
-        <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
-            @foreach ($dashboard['cards'] as $card)
-                @php
-                    $tone = $tones[$card['tone']] ?? $tones['emerald'];
-                    $hintClass = match ($card['hintTone'] ?? null) {
-                        'positive' => 'text-emerald-600 dark:text-emerald-400',
-                        'negative' => 'text-red-600 dark:text-red-400',
-                        default => $tone['hint'],
-                    };
-                @endphp
-                <div class="min-w-0 rounded-lg bg-gradient-to-br p-3 shadow-sm {{ $tone['card'] }}">
-                    <div class="flex items-start justify-between gap-2">
-                        <div class="min-w-0">
-                            <p class="text-[11px] font-medium leading-tight {{ $tone['label'] }}">{{ $card['label'] }}</p>
-                            <p class="mt-1 truncate text-lg font-semibold leading-none {{ $tone['value'] }}" title="{{ $card['hint'] }}">
-                                {{ $card['value'] }}
-                            </p>
-                            <p class="mt-1.5 truncate text-[11px] leading-tight {{ $hintClass }}">{{ $card['hint'] }}</p>
+        <div class="dashboard-top-layout">
+            <div class="dashboard-top-main">
+                <div class="dashboard-top-cards">
+                    @foreach ($dashboard['cards'] as $card)
+                        @php
+                            $tone = $tones[$card['tone']] ?? $tones['emerald'];
+                            $hintClass = match ($card['hintTone'] ?? null) {
+                                'positive' => 'text-emerald-600 dark:text-emerald-400',
+                                'negative' => 'text-red-600 dark:text-red-400',
+                                default => $tone['hint'],
+                            };
+                        @endphp
+                        <div class="dashboard-stat-card min-w-0 rounded-lg bg-gradient-to-br p-3 shadow-sm {{ $tone['card'] }}">
+                            <div class="flex items-start justify-between gap-2">
+                                <div class="min-w-0">
+                                    <p class="text-[11px] font-medium leading-tight {{ $tone['label'] }}">{{ $card['label'] }}</p>
+                                    <p class="mt-1 truncate text-lg font-semibold leading-none {{ $tone['value'] }}" title="{{ $card['hint'] }}">
+                                        {{ $card['value'] }}
+                                    </p>
+                                    <p class="mt-1.5 truncate text-[11px] leading-tight {{ $hintClass }}">{{ $card['hint'] }}</p>
+                                </div>
+                                <div class="shrink-0 rounded-full p-1.5 {{ $tone['iconWrap'] }}">
+                                    <svg class="h-4 w-4 {{ $tone['icon'] }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="{{ $icons[$card['icon']] ?? $icons['check'] }}" />
+                                    </svg>
+                                </div>
+                            </div>
                         </div>
-                        <div class="shrink-0 rounded-full p-1.5 {{ $tone['iconWrap'] }}">
-                            <svg class="h-4 w-4 {{ $tone['icon'] }}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="{{ $icons[$card['icon']] ?? $icons['check'] }}" />
-                            </svg>
-                        </div>
-                    </div>
+                    @endforeach
                 </div>
-            @endforeach
+            </div>
+
+            <section class="dashboard-top-insights rounded-lg bg-white p-2.5 ring-1 ring-gray-200 dark:bg-gray-900 dark:ring-white/10">
+                <h2 class="text-xs font-semibold text-gray-900 dark:text-white">Insights</h2>
+                <ul class="mt-1.5 space-y-1">
+                    @foreach ($dashboard['insights'] as $insight)
+                        @php
+                            $tone = $tones[$insight['tone']] ?? $tones['amber'];
+                        @endphp
+                        <li class="flex items-baseline justify-between gap-2 rounded-md bg-gradient-to-r px-2 py-1 {{ $tone['card'] }}" title="{{ $insight['detail'] }}">
+                            <span class="min-w-0 truncate text-[11px] font-medium {{ $tone['label'] }}">{{ $insight['title'] }}</span>
+                            <span class="shrink-0 text-xs font-semibold {{ $tone['value'] }}">{{ $insight['value'] }}</span>
+                        </li>
+                    @endforeach
+                </ul>
+
+                @if (($dashboard['watchlist'] ?? []) !== [])
+                    <p class="mt-2 text-[10px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">Needs attention</p>
+                    <ul class="mt-1 divide-y divide-gray-100 dark:divide-white/10">
+                        @foreach ($dashboard['watchlist'] as $item)
+                            <li>
+                                <a
+                                    href="{{ $item['url'] }}"
+                                    wire:navigate
+                                    class="flex items-center justify-between gap-2 py-1 text-xs transition hover:opacity-80"
+                                    title="{{ $item['reason'] }}"
+                                >
+                                    <span class="min-w-0 truncate text-gray-800 dark:text-gray-100">{{ $item['name'] }}</span>
+                                    <span class="shrink-0 text-[10px] text-primary-600 dark:text-primary-300">Monitor</span>
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+            </section>
         </div>
 
         <div

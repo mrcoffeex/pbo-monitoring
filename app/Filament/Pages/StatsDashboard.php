@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Enums\CustomOptions;
+use App\Filament\Resources\ProjectResource;
 use App\Models\Implementation;
 use App\Models\ObligationRequest;
 use App\Models\Payment;
@@ -10,6 +11,7 @@ use App\Models\Procurement;
 use App\Models\Project;
 use App\Models\User;
 use Filament\Pages\Dashboard as BaseDashboard;
+use Filament\Support\Facades\FilamentView;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -31,6 +33,8 @@ class StatsDashboard extends BaseDashboard
 
     public string $selectedYear;
 
+    public string $projectSearch = '';
+
     /**
      * @return array<class-string>
      */
@@ -47,6 +51,19 @@ class StatsDashboard extends BaseDashboard
     public function updatedSelectedYear(): void
     {
         $this->dispatch('dashboard-charts-updated', charts: $this->dashboard['charts']);
+    }
+
+    public function searchProjects(): void
+    {
+        $search = trim($this->projectSearch);
+
+        $this->redirect(
+            ProjectResource::getUrl(
+                'index',
+                filled($search) ? ['tableSearch' => $search] : [],
+            ),
+            navigate: FilamentView::hasSpaMode(),
+        );
     }
 
     /**
@@ -84,7 +101,7 @@ class StatsDashboard extends BaseDashboard
     }
 
     /**
-     * @return array{cards: list<array<string, mixed>>, charts: array<string, mixed>}
+     * @return array{cards: list<array<string, mixed>>, charts: array<string, mixed>, insights: list<array<string, mixed>>, watchlist: list<array<string, mixed>>}
      */
     #[Computed]
     public function dashboard(): array
@@ -93,7 +110,7 @@ class StatsDashboard extends BaseDashboard
     }
 
     /**
-     * @return array{cards: list<array<string, mixed>>, charts: array<string, mixed>}
+     * @return array{cards: list<array<string, mixed>>, charts: array<string, mixed>, insights: list<array<string, mixed>>, watchlist: list<array<string, mixed>>}
      */
     public function getDashboardData(): array
     {
@@ -101,7 +118,7 @@ class StatsDashboard extends BaseDashboard
     }
 
     /**
-     * @return array{cards: list<array<string, mixed>>, charts: array<string, mixed>}
+     * @return array{cards: list<array<string, mixed>>, charts: array<string, mixed>, insights: list<array<string, mixed>>, watchlist: list<array<string, mixed>>}
      */
     private function buildDashboardData(): array
     {
@@ -196,6 +213,17 @@ class StatsDashboard extends BaseDashboard
                 'projectTypes' => $this->projectTypeSeries($projectQuery),
                 'monthlyImplementations' => $this->monthlyImplementationSeries($year, $months),
             ],
+            ...$this->buildInsights($projectQuery, [
+                'totalProjects' => $totalProjects,
+                'releasedProjects' => $releasedProjects,
+                'unreleasedProjects' => $unreleasedProjects,
+                'totalAllotment' => $totalAllotment,
+                'totalObligated' => $totalObligated,
+                'paymentsTotalAmount' => $paymentsTotalAmount,
+                'withPurchaseRequests' => $withPurchaseRequests,
+                'prCoveragePercent' => $prCoveragePercent,
+                'procurementsWithNTP' => $procurementsWithNTP,
+            ]),
         ];
     }
 
@@ -264,6 +292,176 @@ class StatsDashboard extends BaseDashboard
                 'tone' => 'green',
             ],
         ];
+    }
+
+    /**
+     * @param  array<string, float|int>  $stats
+     * @return array{insights: list<array<string, mixed>>, watchlist: list<array<string, mixed>>}
+     */
+    private function buildInsights(Builder $projectQuery, array $stats): array
+    {
+        $releasedWithoutPr = (clone $projectQuery)
+            ->where('status', 'released')
+            ->doesntHave('purchase_requests')
+            ->count();
+
+        $prWithoutProcurement = (clone $projectQuery)
+            ->has('purchase_requests')
+            ->doesntHave('procurements')
+            ->count();
+
+        $ntpWithoutImplementation = (clone $projectQuery)
+            ->whereHas(
+                'procurements',
+                fn (Builder $query): Builder => $query->whereNotNull('ntp_number')->where('ntp_number', '!=', ''),
+            )
+            ->doesntHave('implementations')
+            ->count();
+
+        $unreleasedAllotment = (float) (clone $projectQuery)
+            ->where('status', 'unreleased')
+            ->sum('allotment');
+
+        $idleAllotment = max(0.0, (float) $stats['totalAllotment'] - (float) $stats['totalObligated']);
+        $utilizationBase = (float) $stats['totalObligated'] > 0
+            ? (float) $stats['totalObligated']
+            : (float) $stats['totalAllotment'];
+        $utilizationPercent = $utilizationBase > 0
+            ? round(((float) $stats['paymentsTotalAmount'] / $utilizationBase) * 100, 1)
+            : null;
+
+        $insights = [];
+
+        if ($utilizationPercent !== null) {
+            $insights[] = [
+                'title' => 'Fund utilization',
+                'value' => $utilizationPercent.'%',
+                'detail' => 'Disbursed versus '.((float) $stats['totalObligated'] > 0 ? 'obligated' : 'allotment').' for this period.',
+                'tone' => $utilizationPercent >= 70 ? 'green' : ($utilizationPercent >= 40 ? 'amber' : 'rose'),
+            ];
+        }
+
+        if ((int) $stats['unreleasedProjects'] > 0) {
+            $insights[] = [
+                'title' => 'Still unreleased',
+                'value' => number_format((int) $stats['unreleasedProjects']),
+                'detail' => $this->compactPhp($unreleasedAllotment).' allotment has not been released.',
+                'tone' => 'amber',
+            ];
+        }
+
+        if ($releasedWithoutPr > 0) {
+            $insights[] = [
+                'title' => 'Released without PR',
+                'value' => number_format($releasedWithoutPr),
+                'detail' => 'Released projects have not moved to purchase request.',
+                'tone' => 'rose',
+            ];
+        }
+
+        if ($prWithoutProcurement > 0) {
+            $insights[] = [
+                'title' => 'PR awaiting award',
+                'value' => number_format($prWithoutProcurement),
+                'detail' => 'Projects have a purchase request but no procurement record.',
+                'tone' => 'fuchsia',
+            ];
+        }
+
+        if ($ntpWithoutImplementation > 0) {
+            $insights[] = [
+                'title' => 'NTP with no progress',
+                'value' => number_format($ntpWithoutImplementation),
+                'detail' => 'Notice to Proceed is out, but no implementation update is logged.',
+                'tone' => 'cyan',
+            ];
+        }
+
+        if ($idleAllotment > 0 && (float) $stats['totalAllotment'] > 0) {
+            $insights[] = [
+                'title' => 'Unobligated allotment',
+                'value' => $this->compactPhp($idleAllotment),
+                'detail' => 'Allotment not yet covered by obligation requests.',
+                'tone' => 'indigo',
+            ];
+        }
+
+        if ($insights === []) {
+            $insights[] = [
+                'title' => 'On track',
+                'value' => number_format((int) $stats['releasedProjects']),
+                'detail' => 'No pipeline gaps found for this period.',
+                'tone' => 'green',
+            ];
+        }
+
+        return [
+            'insights' => $insights,
+            'watchlist' => $this->attentionProjects($projectQuery),
+        ];
+    }
+
+    /**
+     * @return list<array{id: int, code: string, name: string, reason: string, url: string}>
+     */
+    private function attentionProjects(Builder $projectQuery): array
+    {
+        return (clone $projectQuery)
+            ->withCount([
+                'purchase_requests',
+                'procurements',
+                'implementations',
+                'procurements as ntp_count' => fn (Builder $query): Builder => $query
+                    ->whereNotNull('ntp_number')
+                    ->where('ntp_number', '!=', ''),
+            ])
+            ->where(function (Builder $query): void {
+                $query->where('status', 'unreleased')
+                    ->orWhere(function (Builder $released): void {
+                        $released->where('status', 'released')->doesntHave('purchase_requests');
+                    })
+                    ->orWhere(function (Builder $stalled): void {
+                        $stalled->has('purchase_requests')->doesntHave('procurements');
+                    })
+                    ->orWhere(function (Builder $ntp): void {
+                        $ntp->whereHas(
+                            'procurements',
+                            fn (Builder $query): Builder => $query->whereNotNull('ntp_number')->where('ntp_number', '!=', ''),
+                        )->doesntHave('implementations');
+                    });
+            })
+            ->latest('id')
+            ->limit(5)
+            ->get(['id', 'code', 'name', 'status'])
+            ->map(fn (Project $project): array => [
+                'id' => $project->id,
+                'code' => (string) $project->code,
+                'name' => (string) $project->name,
+                'reason' => $this->attentionReason($project),
+                'url' => ProjectResource::getUrl('monitoring', ['record' => $project]),
+            ])
+            ->all();
+    }
+
+    private function attentionReason(Project $project): string
+    {
+        if ($project->status === 'unreleased') {
+            return 'Budget not released';
+        }
+
+        if ((int) $project->purchase_requests_count === 0) {
+            return 'Released without a purchase request';
+        }
+
+        if ((int) $project->procurements_count === 0) {
+            return 'PR has no procurement record';
+        }
+
+        if ((int) $project->ntp_count > 0 && (int) $project->implementations_count === 0) {
+            return 'NTP issued, no implementation update';
+        }
+
+        return 'Needs follow-up';
     }
 
     /**
