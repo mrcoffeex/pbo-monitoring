@@ -2,10 +2,7 @@
     "mcpServers": {
         "laravel-boost": {
             "command": "/usr/bin/php",
-            "args": [
-                "/home/hotkopi/projects/hotkopiv1/artisan",
-                "boost:mcp"
-            ]
+            "args": ["/home/hotkopi/projects/hotkopiv1/artisan", "boost:mcp"]
         }
     }
 }

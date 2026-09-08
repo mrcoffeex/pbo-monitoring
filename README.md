@@ -11,17 +11,17 @@ A Laravel application for **provincial infrastructure monitoring**—tracking pr
 
 Each **project** ties together related records across the full process:
 
-| Stage | Resource |
-|-------|----------|
-| Project master | Projects |
-| Pre-procurement | Pre-Procurement |
-| Purchase request | Purchase Requests |
-| Technical working group | TWG |
+| Stage                     | Resource                        |
+| ------------------------- | ------------------------------- |
+| Project master            | Projects                        |
+| Pre-procurement           | Pre-Procurement                 |
+| Purchase request          | Purchase Requests               |
+| Technical working group   | TWG                             |
 | Procurement / PMO control | Procurement Control, PR Control |
-| Award & contract | Procurement |
-| Obligation | Obligation Requests |
-| Implementation progress | Implementations |
-| Disbursement | Payments |
+| Award & contract          | Procurement                     |
+| Obligation                | Obligation Requests             |
+| Implementation progress   | Implementations                 |
+| Disbursement              | Payments                        |
 
 ### Admin capabilities
 
@@ -38,16 +38,16 @@ Public homepage with an Airbnb-inspired design system (see `DESIGN.md`), dark mo
 
 ## Tech stack
 
-| Layer | Technology |
-|-------|------------|
-| Backend | PHP 8.2+, Laravel 12 |
-| Admin UI | Filament 3, Livewire 3 |
-| Frontend | Vite 7, Tailwind CSS 4 |
-| Auth & RBAC | Filament Shield |
-| Auditing | Spatie Activity Log, noxoua/filament-activity-log |
-| PDF | barryvdh/laravel-dompdf |
-| Tests | Pest 3, PHPUnit 11 |
-| Code style | Laravel Pint |
+| Layer       | Technology                                        |
+| ----------- | ------------------------------------------------- |
+| Backend     | PHP 8.2+, Laravel 12                              |
+| Admin UI    | Filament 3, Livewire 3                            |
+| Frontend    | Vite 7, Tailwind CSS 4                            |
+| Auth & RBAC | Filament Shield                                   |
+| Auditing    | Spatie Activity Log, noxoua/filament-activity-log |
+| PDF         | barryvdh/laravel-dompdf                           |
+| Tests       | Pest 3, PHPUnit 11                                |
+| Code style  | Laravel Pint                                      |
 
 ## Requirements
 
@@ -98,10 +98,10 @@ php artisan db:seed
 
 The default seeder creates an admin user:
 
-| Field | Value |
-|-------|-------|
-| Email | `admin@example.com` |
-| Password | `password` |
+| Field    | Value               |
+| -------- | ------------------- |
+| Email    | `admin@example.com` |
+| Password | `password`          |
 
 Change these credentials after first login.
 
@@ -176,14 +176,14 @@ This project includes [Laravel Boost](https://github.com/laravel/boost) for AI-a
 
 ```json
 {
-  "mcpServers": {
-    "laravel-boost": {
-      "type": "stdio",
-      "command": "php",
-      "args": ["${workspaceFolder}/artisan", "boost:mcp"],
-      "envFile": ".env"
+    "mcpServers": {
+        "laravel-boost": {
+            "type": "stdio",
+            "command": "php",
+            "args": ["${workspaceFolder}/artisan", "boost:mcp"],
+            "envFile": ".env"
+        }
     }
-  }
 }
 ```
 
@@ -213,13 +213,13 @@ routes/web.php         # Landing + PDF routes
 
 ## Key routes
 
-| Route | Description |
-|-------|-------------|
-| `GET /` | Public landing page |
-| `GET /admin` | Filament admin (auth) |
+| Route                                     | Description              |
+| ----------------------------------------- | ------------------------ |
+| `GET /`                                   | Public landing page      |
+| `GET /admin`                              | Filament admin (auth)    |
 | `GET /admin/projects/{record}/monitoring` | Project monitoring board |
 | `GET /admin/projects/{record}/activities` | Per-project activity log |
-| `GET /admin/projects/{project}/pdf` | Project PDF (auth) |
+| `GET /admin/projects/{project}/pdf`       | Project PDF (auth)       |
 
 ## Design
 

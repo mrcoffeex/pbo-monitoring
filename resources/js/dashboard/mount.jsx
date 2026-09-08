@@ -1,5 +1,5 @@
-import { createRoot } from 'react-dom/client';
-import DashboardCharts from './DashboardCharts';
+import { createRoot } from "react-dom/client";
+import DashboardCharts from "./DashboardCharts";
 
 const roots = new WeakMap();
 
@@ -9,7 +9,7 @@ function parseCharts(el, fallback = {}) {
     }
 
     try {
-        return JSON.parse(el.dataset.charts || '{}');
+        return JSON.parse(el.dataset.charts || "{}");
     } catch {
         return {};
     }

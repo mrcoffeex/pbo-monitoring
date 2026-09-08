@@ -1,21 +1,21 @@
 function mountFromDom() {
-    const el = document.getElementById('dashboard-charts-root');
+    const el = document.getElementById("dashboard-charts-root");
 
     if (!el) {
         return;
     }
 
-    import('./dashboard/mount.jsx').then(({ mountDashboardCharts }) => {
+    import("./dashboard/mount.jsx").then(({ mountDashboardCharts }) => {
         mountDashboardCharts(el);
     });
 }
 
-document.addEventListener('DOMContentLoaded', mountFromDom);
-document.addEventListener('livewire:navigated', mountFromDom);
+document.addEventListener("DOMContentLoaded", mountFromDom);
+document.addEventListener("livewire:navigated", mountFromDom);
 
-document.addEventListener('livewire:init', () => {
-    Livewire.on('dashboard-charts-updated', (event) => {
-        const el = document.getElementById('dashboard-charts-root');
+document.addEventListener("livewire:init", () => {
+    Livewire.on("dashboard-charts-updated", (event) => {
+        const el = document.getElementById("dashboard-charts-root");
 
         if (!el) {
             return;
@@ -23,7 +23,7 @@ document.addEventListener('livewire:init', () => {
 
         const charts = event?.charts ?? event?.[0]?.charts;
 
-        import('./dashboard/mount.jsx').then(({ mountDashboardCharts }) => {
+        import("./dashboard/mount.jsx").then(({ mountDashboardCharts }) => {
             mountDashboardCharts(el, charts ?? {});
         });
     });
