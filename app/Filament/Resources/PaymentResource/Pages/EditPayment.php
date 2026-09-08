@@ -19,4 +19,18 @@ class EditPayment extends EditRecord
             Actions\DeleteAction::make(),
         ];
     }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        $project = $this->getRecord()->project;
+
+        $data['current_payments'] = number_format($project?->paidPaymentTotal($this->getRecord()) ?? 0, 2, '.', '');
+        $data['balance'] = number_format($project?->remainingPaymentBalance($this->getRecord()) ?? 0, 2, '.', '');
+
+        return $data;
+    }
 }

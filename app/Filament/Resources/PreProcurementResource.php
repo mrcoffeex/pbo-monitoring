@@ -3,10 +3,8 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PreProcurementResource\Pages;
-use App\Filament\Resources\PreProcurementResource\RelationManagers;
 use App\Models\PreProcurement;
 use App\Models\Project;
-use Filament\Forms;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Form;
@@ -14,10 +12,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class PreProcurementResource extends Resource
 {
@@ -33,8 +28,8 @@ class PreProcurementResource extends Resource
                 Select::make('project_id')
                     ->label('Project')
                     ->options(
-                        Project::get()->mapWithKeys(fn($project) => [
-                            $project->id => ($project->code) . (' - ' . $project->name ?? 'no projects')
+                        Project::get()->mapWithKeys(fn ($project) => [
+                            $project->id => ($project->code).(' - '.$project->name ?? 'no projects'),
                         ])
                     )
                     ->searchable()
@@ -56,14 +51,15 @@ class PreProcurementResource extends Resource
                     ->label('Project')
                     ->wrap()
                     ->limit(35)
-                    ->tooltip(fn($record) => $record->project?->name)
+                    ->tooltip(fn ($record) => $record->project?->name)
                     ->sortable()
-                    ->searchable(),
+                    ->searchable()
+                    ->url(fn ($record): ?string => ProjectResource::monitoringUrl($record->project)),
                 TextColumn::make('remarks')
                     ->label('Remarks')
                     ->wrap()
                     ->limit(50)
-                    ->tooltip(fn($record) => $record->remarks)
+                    ->tooltip(fn ($record) => $record->remarks)
                     ->sortable()
                     ->searchable(),
                 TextColumn::make('user.name')

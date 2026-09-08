@@ -3,10 +3,8 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ProcurementControlResource\Pages;
-use App\Filament\Resources\ProcurementControlResource\RelationManagers;
 use App\Models\ProcurementControl;
 use App\Models\Project;
-use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
@@ -19,9 +17,7 @@ use Filament\Tables;
 use Filament\Tables\Actions\CreateAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
 
 class ProcurementControlResource extends Resource
@@ -40,8 +36,8 @@ class ProcurementControlResource extends Resource
                         Select::make('project_id')
                             ->label('Project')
                             ->options(
-                                Project::get()->mapWithKeys(fn($project) => [
-                                    $project->id => ($project->code) . (' - ' . $project->name ?? 'no projects')
+                                Project::get()->mapWithKeys(fn ($project) => [
+                                    $project->id => ($project->code).(' - '.$project->name ?? 'no projects'),
                                 ])
                             )
                             ->searchable()
@@ -85,15 +81,16 @@ class ProcurementControlResource extends Resource
                     ->label('Project')
                     ->wrap()
                     ->limit(35)
-                    ->tooltip(fn($record) => $record->project?->name)
+                    ->tooltip(fn ($record) => $record->project?->name)
                     ->sortable()
                     ->searchable()
-                    ->description(fn($record) => $record->project?->year . ' - ' . $record->project?->code, position: 'above'),
+                    ->description(fn ($record) => $record->project?->year.' - '.$record->project?->code, position: 'above')
+                    ->url(fn ($record): ?string => ProjectResource::monitoringUrl($record->project)),
                 TextColumn::make('controlled_date')
                     ->label('Controlled')
                     ->dateTime('M d, Y')
                     ->badge()
-                    ->color(fn($state) => $state ? 'success' : 'gray')
+                    ->color(fn ($state) => $state ? 'success' : 'gray')
                     ->sortable()
                     ->toggleable(),
                 TextColumn::make('abc')
@@ -102,12 +99,12 @@ class ProcurementControlResource extends Resource
                     ->money('PHP', true)
                     ->sortable()
                     ->alignEnd()
-                    ->color(fn($state) => $state > 0 ? 'success' : 'gray'),
+                    ->color(fn ($state) => $state > 0 ? 'success' : 'gray'),
                 TextColumn::make('remarks')
                     ->label('Remarks')
                     ->wrap()
                     ->limit(30)
-                    ->tooltip(fn($record) => $record->remarks)
+                    ->tooltip(fn ($record) => $record->remarks)
                     ->toggleable(),
                 TextColumn::make('user.name')
                     ->label('Created By')
@@ -117,12 +114,12 @@ class ProcurementControlResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('created_at')
                     ->since()
-                    ->tooltip(fn($record) => $record->created_at?->format('Y-m-d H:i'))
+                    ->tooltip(fn ($record) => $record->created_at?->format('Y-m-d H:i'))
                     ->sortable()
                     ->toggleable(),
                 TextColumn::make('updated_at')
                     ->since()
-                    ->tooltip(fn($record) => $record->updated_at?->format('Y-m-d H:i'))
+                    ->tooltip(fn ($record) => $record->updated_at?->format('Y-m-d H:i'))
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
@@ -163,17 +160,17 @@ class ProcurementControlResource extends Resource
 
                             $csv = $csvData->map(function ($row) {
                                 return collect($row)->map(function ($value) {
-                                    return '"' . str_replace('"', '""', $value ?? '') . '"';
+                                    return '"'.str_replace('"', '""', $value ?? '').'"';
                                 })->join(',');
                             })->join("\n");
 
-                            $filename = 'pmo_controls_export_' . now()->format('Y-m-d_His') . '.csv';
+                            $filename = 'pmo_controls_export_'.now()->format('Y-m-d_His').'.csv';
 
                             return response()->streamDownload(function () use ($csv) {
                                 echo $csv;
                             }, $filename, [
                                 'Content-Type' => 'text/csv',
-                                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                                'Content-Disposition' => 'attachment; filename="'.$filename.'"',
                             ]);
                         })
                         ->requiresConfirmation()

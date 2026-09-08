@@ -4,19 +4,18 @@ namespace App\Filament\Resources;
 
 use App\Enums\CustomOptions;
 use App\Filament\Resources\PaymentResource\Pages;
-use App\Filament\Resources\PaymentResource\RelationManagers;
 use App\Models\Payment;
-use App\Models\Procurement;
 use App\Models\Project;
-use Filament\Facades\Filament;
+use Closure;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Grid;
-use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
+use Filament\Forms\Set;
 use Filament\Resources\Resource;
 use Filament\Support\RawJs;
 use Filament\Tables;
@@ -24,7 +23,6 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class PaymentResource extends Resource
 {
@@ -43,33 +41,19 @@ class PaymentResource extends Resource
                             ->columns(12)
                             ->schema([
                                 Select::make('project_id')
-                                ->label('Project')
-                                ->options(
-                                    Project::get()->mapWithKeys(fn ($project) => [
-                                        $project->id => ($project->code) . (' - ' . $project->name ?? 'no projects')
-                                    ])
-                                )
-                                ->searchable()
-                                ->required()
-                                ->reactive()
-                                ->afterStateUpdated(function ($state, callable $set) {
-                                    if (! $state) {
-                                        $set('current_payments', 0);
-                                        return;
-                                    }
-
-                                    $total = Payment::where('project_id', $state)->sum('amount');
-                                    $contract_amount = Procurement::where('project_id', $state)->value('contract_amount');
-
-                                    $total = (float) $total;
-                                    $contract_amount = (float) $contract_amount;
-
-                                    $balance = $contract_amount - $total;
-
-                                    $set('current_payments', number_format($total, 2));
-                                    $set('balance', number_format($balance, 2));
-                                })
-                                ->columnSpan(9),
+                                    ->label('Project')
+                                    ->options(
+                                        Project::get()->mapWithKeys(fn ($project) => [
+                                            $project->id => ($project->code).(' - '.$project->name ?? 'no projects'),
+                                        ])
+                                    )
+                                    ->searchable()
+                                    ->required()
+                                    ->reactive()
+                                    ->afterStateUpdated(function (mixed $state, Set $set, ?Payment $record): void {
+                                        static::syncPaymentBalanceFields($state, $set, $record);
+                                    })
+                                    ->columnSpan(9),
 
                                 DatePicker::make('date')
                                     ->label('Date of Payment')
@@ -94,6 +78,35 @@ class PaymentResource extends Resource
                                     ->placeholder('0.00')
                                     ->mask(RawJs::make('$money($input)'))
                                     ->stripCharacters(',')
+                                    ->helperText(function (Get $get, ?Payment $record): ?string {
+                                        $project = filled($get('project_id'))
+                                            ? Project::query()->find($get('project_id'))
+                                            : null;
+
+                                        if ($project === null) {
+                                            return 'Cannot exceed the remaining project balance.';
+                                        }
+
+                                        return 'Remaining balance: ₱'.number_format($project->remainingPaymentBalance($record), 2);
+                                    })
+                                    ->rules([
+                                        fn (Get $get, ?Payment $record): Closure => function (string $attribute, mixed $value, Closure $fail) use ($get, $record): void {
+                                            $project = filled($get('project_id'))
+                                                ? Project::query()->find($get('project_id'))
+                                                : null;
+
+                                            if ($project === null) {
+                                                return;
+                                            }
+
+                                            $amount = round((float) str_replace(',', '', (string) $value), 2);
+                                            $remaining = $project->remainingPaymentBalance($record);
+
+                                            if ($amount > $remaining) {
+                                                $fail('The payment amount exceeds the remaining balance of ₱'.number_format($remaining, 2).'.');
+                                            }
+                                        },
+                                    ])
                                     ->columnSpan(3),
 
                                 TextInput::make('current_payments')
@@ -123,11 +136,6 @@ class PaymentResource extends Resource
                                     ->placeholder('Enter payable reference')
                                     ->columnSpan(3),
 
-                                TextInput::make('payment_reference')
-                                    ->label('Payment Reference')
-                                    ->placeholder('Enter payment reference')
-                                    ->columnSpan(3),
-
                                 TextInput::make('check_number')
                                     ->label('Check Number')
                                     ->placeholder('Enter check number (if applicable)')
@@ -135,6 +143,11 @@ class PaymentResource extends Resource
 
                                 DatePicker::make('check_date')
                                     ->label('Check Date')
+                                    ->columnSpan(3),
+
+                                TextInput::make('payment_reference')
+                                    ->label('Payment Reference')
+                                    ->placeholder('Enter payment reference')
                                     ->columnSpan(3),
                             ]),
 
@@ -168,7 +181,8 @@ class PaymentResource extends Resource
                     ->tooltip(fn ($record) => $record->project?->name)
                     ->sortable()
                     ->searchable()
-                    ->description(fn ($record) => $record->project?->year . ' - ' . $record->project?->code, position: 'above'),
+                    ->description(fn ($record) => $record->project?->year.' - '.$record->project?->code, position: 'above')
+                    ->url(fn ($record): ?string => ProjectResource::monitoringUrl($record->project)),
                 TextColumn::make('type')
                     ->label('Type')
                     ->badge()
@@ -252,7 +266,7 @@ class PaymentResource extends Resource
                             ->options(CustomOptions::PAYMENTS)
                             ->label('Payment Type'),
                     ])
-                    ->query(fn (Builder $q, array $data) => $q->when($data['type'] ?? null, fn ($qq,$v) => $qq->where('type', $v))),
+                    ->query(fn (Builder $q, array $data) => $q->when($data['type'] ?? null, fn ($qq, $v) => $qq->where('type', $v))),
                 Tables\Filters\Filter::make('date_range')
                     ->label('Date Range')
                     ->form([
@@ -299,17 +313,17 @@ class PaymentResource extends Resource
 
                             $csv = $csvData->map(function ($row) {
                                 return collect($row)->map(function ($value) {
-                                    return '"' . str_replace('"', '""', $value ?? '') . '"';
+                                    return '"'.str_replace('"', '""', $value ?? '').'"';
                                 })->join(',');
                             })->join("\n");
 
-                            $filename = 'payments_export_' . now()->format('Y-m-d_His') . '.csv';
+                            $filename = 'payments_export_'.now()->format('Y-m-d_His').'.csv';
 
                             return response()->streamDownload(function () use ($csv) {
                                 echo $csv;
                             }, $filename, [
                                 'Content-Type' => 'text/csv',
-                                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                                'Content-Disposition' => 'attachment; filename="'.$filename.'"',
                             ]);
                         })
                         ->requiresConfirmation()
@@ -326,8 +340,16 @@ class PaymentResource extends Resource
             ->emptyStateActions([
                 Tables\Actions\CreateAction::make(),
             ])
-            ->paginated([15,25,50,100])
+            ->paginated([15, 25, 50, 100])
             ->defaultPaginationPageOption(15);
+    }
+
+    public static function syncPaymentBalanceFields(mixed $projectId, Set $set, ?Payment $record = null): void
+    {
+        $project = filled($projectId) ? Project::query()->find($projectId) : null;
+
+        $set('current_payments', number_format($project?->paidPaymentTotal($record) ?? 0, 2, '.', ''));
+        $set('balance', number_format($project?->remainingPaymentBalance($record) ?? 0, 2, '.', ''));
     }
 
     public static function getLabel(): string

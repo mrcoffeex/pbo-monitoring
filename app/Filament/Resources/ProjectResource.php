@@ -139,7 +139,8 @@ class ProjectResource extends Resource
                     ->tooltip(fn ($record) => $record->name)
                     ->sortable()
                     ->searchable()
-                    ->description(fn ($record) => $record->year, position: 'above'),
+                    ->description(fn ($record) => $record->year, position: 'above')
+                    ->url(fn (Project $record): ?string => static::monitoringUrl($record)),
                 TextColumn::make('type')
                     ->label('Type')
                     ->badge()
@@ -455,6 +456,15 @@ class ProjectResource extends Resource
         return [
             //
         ];
+    }
+
+    public static function monitoringUrl(?Project $project): ?string
+    {
+        if (! $project instanceof Project) {
+            return null;
+        }
+
+        return static::getUrl('monitoring', ['record' => $project]);
     }
 
     public static function getPages(): array

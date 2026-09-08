@@ -3,28 +3,21 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\TechnicalWorkingGroupResource\Pages;
-use App\Filament\Resources\TechnicalWorkingGroupResource\RelationManagers;
 use App\Models\Project;
 use App\Models\TechnicalWorkingGroup;
-use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\DateTimePicker;
-use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Support\RawJs;
 use Filament\Tables;
 use Filament\Tables\Actions\CreateAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
 
 class TechnicalWorkingGroupResource extends Resource
@@ -43,8 +36,8 @@ class TechnicalWorkingGroupResource extends Resource
                         Select::make('project_id')
                             ->label('Project')
                             ->options(
-                                Project::get()->mapWithKeys(fn($project) => [
-                                    $project->id => ($project->code) . (' - ' . $project->name ?? 'no projects')
+                                Project::get()->mapWithKeys(fn ($project) => [
+                                    $project->id => ($project->code).(' - '.$project->name ?? 'no projects'),
                                 ])
                             )
                             ->searchable()
@@ -84,10 +77,11 @@ class TechnicalWorkingGroupResource extends Resource
                     ->label('Project')
                     ->wrap()
                     ->limit(35)
-                    ->tooltip(fn($record) => $record->project?->name)
+                    ->tooltip(fn ($record) => $record->project?->name)
                     ->sortable()
                     ->searchable()
-                    ->description(fn($record) => $record->project?->year . ' - ' . $record->project?->code, position: 'above'),
+                    ->description(fn ($record) => $record->project?->year.' - '.$record->project?->code, position: 'above')
+                    ->url(fn ($record): ?string => ProjectResource::monitoringUrl($record->project)),
                 TextColumn::make('review_date')
                     ->label('Review')
                     ->dateTime('M d, Y')
@@ -99,7 +93,7 @@ class TechnicalWorkingGroupResource extends Resource
                     ->label('Review Remarks')
                     ->wrap()
                     ->limit(30)
-                    ->tooltip(fn($record) => $record->review_remarks)
+                    ->tooltip(fn ($record) => $record->review_remarks)
                     ->toggleable(),
                 TextColumn::make('user.name')
                     ->label('Created By')
@@ -109,12 +103,12 @@ class TechnicalWorkingGroupResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('created_at')
                     ->since()
-                    ->tooltip(fn($record) => $record->created_at?->format('Y-m-d H:i'))
+                    ->tooltip(fn ($record) => $record->created_at?->format('Y-m-d H:i'))
                     ->sortable()
                     ->toggleable(),
                 TextColumn::make('updated_at')
                     ->since()
-                    ->tooltip(fn($record) => $record->updated_at?->format('Y-m-d H:i'))
+                    ->tooltip(fn ($record) => $record->updated_at?->format('Y-m-d H:i'))
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
@@ -132,8 +126,8 @@ class TechnicalWorkingGroupResource extends Resource
                     ])
                     ->query(function (Builder $q, array $data) {
                         return $q
-                            ->when($data['from'] ?? null, fn($qq, $d) => $qq->whereDate('review_date', '>=', $d))
-                            ->when($data['until'] ?? null, fn($qq, $d) => $qq->whereDate('review_date', '<=', $d));
+                            ->when($data['from'] ?? null, fn ($qq, $d) => $qq->whereDate('review_date', '>=', $d))
+                            ->when($data['until'] ?? null, fn ($qq, $d) => $qq->whereDate('review_date', '<=', $d));
                     }),
             ])
             ->actions([
@@ -175,19 +169,19 @@ class TechnicalWorkingGroupResource extends Resource
                             $csv = $csvData->map(function ($row) {
                                 return collect($row)->map(function ($value) {
                                     // Escape double quotes and wrap in quotes
-                                    return '"' . str_replace('"', '""', $value ?? '') . '"';
+                                    return '"'.str_replace('"', '""', $value ?? '').'"';
                                 })->join(',');
                             })->join("\n");
 
                             // Generate filename with timestamp
-                            $filename = 'twg_reviews_export_' . now()->format('Y-m-d_His') . '.csv';
+                            $filename = 'twg_reviews_export_'.now()->format('Y-m-d_His').'.csv';
 
                             // Return download response
                             return response()->streamDownload(function () use ($csv) {
                                 echo $csv;
                             }, $filename, [
                                 'Content-Type' => 'text/csv',
-                                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                                'Content-Disposition' => 'attachment; filename="'.$filename.'"',
                             ]);
                         })
                         ->requiresConfirmation()

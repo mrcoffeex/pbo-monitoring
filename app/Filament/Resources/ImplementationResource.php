@@ -3,15 +3,11 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ImplementationResource\Pages;
-use App\Filament\Resources\ImplementationResource\RelationManagers;
 use App\Models\Implementation;
 use App\Models\Project;
 use Carbon\Carbon;
-use Filament\Facades\Filament;
-use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Grid;
-use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -21,9 +17,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class ImplementationResource extends Resource
 {
@@ -38,97 +32,98 @@ class ImplementationResource extends Resource
                 Section::make('Implementation Details')
                     ->columns(12)
                     ->schema([
-                    Grid::make('')
-                        ->columns(12)
-                        ->schema([
-                            Select::make('project_id')
-                                ->label('Project')
-                                ->options(
-                                    Project::get()->mapWithKeys(fn ($project) => [
-                                        $project->id => ($project->code) . (' - ' . $project->name ?? 'no projects')
-                                    ])
-                                )
-                                ->searchable()
-                                ->required()
-                                ->reactive()
-                                ->afterStateUpdated(function ($state, callable $set) {
+                        Grid::make('')
+                            ->columns(12)
+                            ->schema([
+                                Select::make('project_id')
+                                    ->label('Project')
+                                    ->options(
+                                        Project::get()->mapWithKeys(fn ($project) => [
+                                            $project->id => ($project->code).(' - '.$project->name ?? 'no projects'),
+                                        ])
+                                    )
+                                    ->searchable()
+                                    ->required()
+                                    ->reactive()
+                                    ->afterStateUpdated(function ($state, callable $set) {
 
-                                    if (!$state) {
-                                        $set('current_percentage', null);
-                                        $set('start_date', null);
-                                        $set('end_date', null);
-                                        return;
-                                    }
+                                        if (! $state) {
+                                            $set('current_percentage', null);
+                                            $set('start_date', null);
+                                            $set('end_date', null);
 
-                                    $latest = Implementation::where('project_id', $state)
-                                        ->orderBy('date', 'desc')
-                                        ->orderBy('id', 'desc')
-                                        ->first();
+                                            return;
+                                        }
 
-                                    $set('current_percentage', $latest?->percentage ?? 0);
+                                        $latest = Implementation::where('project_id', $state)
+                                            ->orderBy('date', 'desc')
+                                            ->orderBy('id', 'desc')
+                                            ->first();
 
-                                    if ($latest?->start_date) {
-                                        $set('start_date', Carbon::parse($latest->start_date)->toDateString());
-                                    } else {
-                                        $set('start_date', null);
-                                    }
+                                        $set('current_percentage', $latest?->percentage ?? 0);
 
-                                    if ($latest?->end_date) {
-                                        $set('end_date', Carbon::parse($latest->end_date)->toDateString());
-                                    } else {
-                                        $set('end_date', null);
-                                    }
+                                        if ($latest?->start_date) {
+                                            $set('start_date', Carbon::parse($latest->start_date)->toDateString());
+                                        } else {
+                                            $set('start_date', null);
+                                        }
 
-                                    if ($latest?->coordinates) {
-                                        $set('coordinates', $latest->coordinates);
-                                    } else {
-                                        $set('coordinates', null);
-                                    }
-                                })
-                                ->columnSpan(6),
-                            DatePicker::make('start_date')
-                                ->label('Start Date')
-                                ->required()
-                                ->columnSpan(3),
-                            DatePicker::make('end_date')
-                                ->label('Completion Date')
-                                ->required()
-                                ->columnSpan(3),
-                    ]),
-                    Grid::make('')
-                        ->columns(12)
-                        ->schema([
-                            DatePicker::make('date')
-                                ->label('Date')
-                                ->required()
-                                ->columnSpan(3),
-                            TextInput::make('percentage')
-                                ->label('% Complete')
-                                ->required()
-                                ->numeric()
-                                ->minValue(1)
-                                ->maxValue(100)
-                                ->rules(['nullable', 'numeric', 'between:1,100'])
-                                ->suffix('%')
-                                ->placeholder('e.g. 50')
-                                ->columnSpan(3),
-                            TextInput::make('current_percentage')
-                                ->label('Current % Complete')
-                                ->disabled()
-                                ->dehydrated(false)
-                                ->suffix('%')
-                                ->columnSpan(3),
-                            TextInput::make('coordinates')
-                                ->label('Coordinates')
-                                ->placeholder('e.g. 14.5995, 120.9842')
-                                ->helperText('Format: latitude, longitude')
-                                ->columnSpan(3),
-                            Textarea::make('remarks')
-                                ->label('Remarks')
-                                ->rows(3)
-                                ->columnSpan(12)
-                                ->placeholder('e.g. the document is awesome'),
-                        ]),
+                                        if ($latest?->end_date) {
+                                            $set('end_date', Carbon::parse($latest->end_date)->toDateString());
+                                        } else {
+                                            $set('end_date', null);
+                                        }
+
+                                        if ($latest?->coordinates) {
+                                            $set('coordinates', $latest->coordinates);
+                                        } else {
+                                            $set('coordinates', null);
+                                        }
+                                    })
+                                    ->columnSpan(6),
+                                DatePicker::make('start_date')
+                                    ->label('Start Date')
+                                    ->required()
+                                    ->columnSpan(3),
+                                DatePicker::make('end_date')
+                                    ->label('Completion Date')
+                                    ->required()
+                                    ->columnSpan(3),
+                            ]),
+                        Grid::make('')
+                            ->columns(12)
+                            ->schema([
+                                DatePicker::make('date')
+                                    ->label('Date')
+                                    ->required()
+                                    ->columnSpan(3),
+                                TextInput::make('percentage')
+                                    ->label('% Complete')
+                                    ->required()
+                                    ->numeric()
+                                    ->minValue(1)
+                                    ->maxValue(100)
+                                    ->rules(['nullable', 'numeric', 'between:1,100'])
+                                    ->suffix('%')
+                                    ->placeholder('e.g. 50')
+                                    ->columnSpan(3),
+                                TextInput::make('current_percentage')
+                                    ->label('Current % Complete')
+                                    ->disabled()
+                                    ->dehydrated(false)
+                                    ->suffix('%')
+                                    ->columnSpan(3),
+                                TextInput::make('coordinates')
+                                    ->label('Coordinates')
+                                    ->placeholder('e.g. 14.5995, 120.9842')
+                                    ->helperText('Format: latitude, longitude')
+                                    ->columnSpan(3),
+                                Textarea::make('remarks')
+                                    ->label('Remarks')
+                                    ->rows(3)
+                                    ->columnSpan(12)
+                                    ->placeholder('e.g. the document is awesome'),
+                            ]),
 
                     ]),
             ]);
@@ -160,7 +155,8 @@ class ImplementationResource extends Resource
                     ->tooltip(fn ($record) => $record->project?->name)
                     ->sortable()
                     ->searchable()
-                    ->description(fn ($record) => $record->project?->year . ' - ' . $record->project?->code, position: 'above'),
+                    ->description(fn ($record) => $record->project?->year.' - '.$record->project?->code, position: 'above')
+                    ->url(fn ($record): ?string => ProjectResource::monitoringUrl($record->project)),
                 TextColumn::make('start_date')
                     ->label('Start Date')
                     ->date('M d, Y')
@@ -259,17 +255,17 @@ class ImplementationResource extends Resource
 
                             $csv = $csvData->map(function ($row) {
                                 return collect($row)->map(function ($value) {
-                                    return '"' . str_replace('"', '""', $value ?? '') . '"';
+                                    return '"'.str_replace('"', '""', $value ?? '').'"';
                                 })->join(',');
                             })->join("\n");
 
-                            $filename = 'implementations_export_' . now()->format('Y-m-d_His') . '.csv';
+                            $filename = 'implementations_export_'.now()->format('Y-m-d_His').'.csv';
 
                             return response()->streamDownload(function () use ($csv) {
                                 echo $csv;
                             }, $filename, [
                                 'Content-Type' => 'text/csv',
-                                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                                'Content-Disposition' => 'attachment; filename="'.$filename.'"',
                             ]);
                         })
                         ->requiresConfirmation()
@@ -286,7 +282,7 @@ class ImplementationResource extends Resource
             ->emptyStateActions([
                 Tables\Actions\CreateAction::make(),
             ])
-            ->paginated([15,25,50,100])
+            ->paginated([15, 25, 50, 100])
             ->defaultPaginationPageOption(15);
     }
 

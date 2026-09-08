@@ -3,14 +3,10 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ObligationRequestResource\Pages;
-use App\Filament\Resources\ObligationRequestResource\RelationManagers;
 use App\Models\ObligationRequest;
 use App\Models\Project;
-use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\Grid;
-use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -23,7 +19,6 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
 
 class ObligationRequestResource extends Resource
@@ -42,14 +37,15 @@ class ObligationRequestResource extends Resource
                         Select::make('project_id')
                             ->label('Project')
                             ->options(
-                                Project::get()->mapWithKeys(fn($project) => [
-                                    $project->id => ($project->code) . (' - ' . $project->name ?? 'no projects')
+                                Project::get()->mapWithKeys(fn ($project) => [
+                                    $project->id => ($project->code).(' - '.$project->name ?? 'no projects'),
                                 ])
                             )
                             ->reactive()
                             ->afterStateUpdated(function ($state, callable $set) {
                                 if (! $state) {
                                     $set('amount', null);
+
                                     return;
                                 }
 
@@ -107,10 +103,11 @@ class ObligationRequestResource extends Resource
                     ->label('Project')
                     ->wrap()
                     ->limit(35)
-                    ->tooltip(fn($record) => $record->project?->name)
+                    ->tooltip(fn ($record) => $record->project?->name)
                     ->sortable()
                     ->searchable()
-                    ->description(fn($record) => $record->project?->year . ' - ' . $record->project?->code, position: 'above'),
+                    ->description(fn ($record) => $record->project?->year.' - '.$record->project?->code, position: 'above')
+                    ->url(fn ($record): ?string => ProjectResource::monitoringUrl($record->project)),
                 TextColumn::make('controlled_date')
                     ->label('OBR Date')
                     ->date('M d, Y')
@@ -129,7 +126,7 @@ class ObligationRequestResource extends Resource
                     ->money('PHP', true)
                     ->sortable()
                     ->alignEnd()
-                    ->color(fn($state) => $state > 0 ? 'success' : 'gray'),
+                    ->color(fn ($state) => $state > 0 ? 'success' : 'gray'),
                 TextColumn::make('user.name')
                     ->label('Created By')
                     ->badge()
@@ -138,12 +135,12 @@ class ObligationRequestResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('created_at')
                     ->since()
-                    ->tooltip(fn($record) => $record->created_at?->format('Y-m-d H:i'))
+                    ->tooltip(fn ($record) => $record->created_at?->format('Y-m-d H:i'))
                     ->sortable()
                     ->toggleable(),
                 TextColumn::make('updated_at')
                     ->since()
-                    ->tooltip(fn($record) => $record->updated_at?->format('Y-m-d H:i'))
+                    ->tooltip(fn ($record) => $record->updated_at?->format('Y-m-d H:i'))
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
@@ -161,8 +158,8 @@ class ObligationRequestResource extends Resource
                     ])
                     ->query(function (Builder $q, array $data) {
                         return $q
-                            ->when($data['from'] ?? null, fn($qq, $d) => $qq->whereDate('controlled_date', '>=', $d))
-                            ->when($data['until'] ?? null, fn($qq, $d) => $qq->whereDate('controlled_date', '<=', $d));
+                            ->when($data['from'] ?? null, fn ($qq, $d) => $qq->whereDate('controlled_date', '>=', $d))
+                            ->when($data['until'] ?? null, fn ($qq, $d) => $qq->whereDate('controlled_date', '<=', $d));
                     }),
             ])
             ->actions([
@@ -199,17 +196,17 @@ class ObligationRequestResource extends Resource
 
                             $csv = $csvData->map(function ($row) {
                                 return collect($row)->map(function ($value) {
-                                    return '"' . str_replace('"', '""', $value ?? '') . '"';
+                                    return '"'.str_replace('"', '""', $value ?? '').'"';
                                 })->join(',');
                             })->join("\n");
 
-                            $filename = 'obligation_requests_export_' . now()->format('Y-m-d_His') . '.csv';
+                            $filename = 'obligation_requests_export_'.now()->format('Y-m-d_His').'.csv';
 
                             return response()->streamDownload(function () use ($csv) {
                                 echo $csv;
                             }, $filename, [
                                 'Content-Type' => 'text/csv',
-                                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                                'Content-Disposition' => 'attachment; filename="'.$filename.'"',
                             ]);
                         })
                         ->requiresConfirmation()

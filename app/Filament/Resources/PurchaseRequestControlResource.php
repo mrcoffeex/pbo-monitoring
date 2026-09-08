@@ -3,14 +3,10 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PurchaseRequestControlResource\Pages;
-use App\Filament\Resources\PurchaseRequestControlResource\RelationManagers;
 use App\Models\Project;
 use App\Models\PurchaseRequestControl;
-use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\DateTimePicker;
-use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -23,7 +19,6 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
 
 class PurchaseRequestControlResource extends Resource
@@ -43,13 +38,14 @@ class PurchaseRequestControlResource extends Resource
                             ->label('Project')
                             ->options(
                                 Project::get()->mapWithKeys(fn ($project) => [
-                                    $project->id => ($project->code) . (' - ' . $project->name ?? 'no projects')
+                                    $project->id => ($project->code).(' - '.$project->name ?? 'no projects'),
                                 ])
                             )
                             ->reactive()
                             ->afterStateUpdated(function ($state, callable $set) {
                                 if (! $state) {
                                     $set('amount', null);
+
                                     return;
                                 }
 
@@ -111,7 +107,8 @@ class PurchaseRequestControlResource extends Resource
                     ->tooltip(fn ($record) => $record->project?->name)
                     ->sortable()
                     ->searchable()
-                    ->description(fn ($record) => $record->project?->year . ' - ' . $record->project?->code, position: 'above'),
+                    ->description(fn ($record) => $record->project?->year.' - '.$record->project?->code, position: 'above')
+                    ->url(fn ($record): ?string => ProjectResource::monitoringUrl($record->project)),
                 TextColumn::make('controlled_date')
                     ->label('Controlled')
                     ->dateTime('M d, Y')
@@ -200,17 +197,17 @@ class PurchaseRequestControlResource extends Resource
 
                             $csv = $csvData->map(function ($row) {
                                 return collect($row)->map(function ($value) {
-                                    return '"' . str_replace('"', '""', $value ?? '') . '"';
+                                    return '"'.str_replace('"', '""', $value ?? '').'"';
                                 })->join(',');
                             })->join("\n");
 
-                            $filename = 'pr_controls_export_' . now()->format('Y-m-d_His') . '.csv';
+                            $filename = 'pr_controls_export_'.now()->format('Y-m-d_His').'.csv';
 
                             return response()->streamDownload(function () use ($csv) {
                                 echo $csv;
                             }, $filename, [
                                 'Content-Type' => 'text/csv',
-                                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                                'Content-Disposition' => 'attachment; filename="'.$filename.'"',
                             ]);
                         })
                         ->requiresConfirmation()
@@ -236,7 +233,7 @@ class PurchaseRequestControlResource extends Resource
                         return PurchaseRequestControl::create($data);
                     }),
             ])
-            ->paginated([15,25,50,100])
+            ->paginated([15, 25, 50, 100])
             ->defaultPaginationPageOption(15);
     }
 

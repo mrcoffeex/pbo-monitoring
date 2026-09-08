@@ -90,6 +90,32 @@ class Project extends Model
         return (float) $balance;
     }
 
+    public function paymentCeiling(): float
+    {
+        $contractAmount = (float) $this->procurements()->sum('contract_amount');
+
+        if ($contractAmount > 0) {
+            return $contractAmount;
+        }
+
+        return (float) $this->allotment;
+    }
+
+    public function paidPaymentTotal(?Payment $except = null): float
+    {
+        return (float) $this->payments()
+            ->when(
+                $except instanceof Payment && $except->exists,
+                fn (Builder $query): Builder => $query->whereKeyNot($except->getKey()),
+            )
+            ->sum('amount');
+    }
+
+    public function remainingPaymentBalance(?Payment $except = null): float
+    {
+        return round(max(0, $this->paymentCeiling() - $this->paidPaymentTotal($except)), 2);
+    }
+
     /**
      * @return array<class-string<Model>, \Illuminate\Support\Collection<int, int|string>>
      */

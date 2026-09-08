@@ -3,14 +3,11 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ProcurementResource\Pages;
-use App\Filament\Resources\ProcurementResource\RelationManagers;
 use App\Models\Procurement;
 use App\Models\Project;
-use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Grid;
-use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TagsInput;
@@ -25,7 +22,6 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Illuminate\Support\Facades\Date;
 
 class ProcurementResource extends Resource
 {
@@ -47,7 +43,7 @@ class ProcurementResource extends Resource
                                     ->label('Project')
                                     ->options(
                                         Project::get()->mapWithKeys(fn ($project) => [
-                                            $project->id => ($project->code) . (' - ' . $project->name ?? 'no projects')
+                                            $project->id => ($project->code).(' - '.$project->name ?? 'no projects'),
                                         ])
                                     )
                                     ->searchable()
@@ -63,36 +59,36 @@ class ProcurementResource extends Resource
                         Grid::make('')
                             ->columns(12)
                             ->schema([
-                            DatePicker::make('pre_procurement_conference')
-                                ->label('Pre Procurement Conference Date')
-                                ->columnSpan(4),
-                            DatePicker::make('pre_bid_conference')
-                                ->label('Pre Bid Conference Date')
-                                ->columnSpan(4),
-                            TagsInput::make('bid_opening')
-                                ->label('Bid Opening')
-                                ->placeholder('e.g. 2024-01-01')
-                                ->helperText('You can add up to 3 dates')
-                                ->columnSpan(4),
-                        ]),
+                                DatePicker::make('pre_procurement_conference')
+                                    ->label('Pre Procurement Conference Date')
+                                    ->columnSpan(4),
+                                DatePicker::make('pre_bid_conference')
+                                    ->label('Pre Bid Conference Date')
+                                    ->columnSpan(4),
+                                TagsInput::make('bid_opening')
+                                    ->label('Bid Opening')
+                                    ->placeholder('e.g. 2024-01-01')
+                                    ->helperText('You can add up to 3 dates')
+                                    ->columnSpan(4),
+                            ]),
                         Grid::make('')
                             ->columns(12)
                             ->schema([
-                            DatePicker::make('ber')
-                                ->label('Bid Evaluation Report (BER)')
-                                ->columnSpan(4),
-                            DatePicker::make('post_qua_date')
-                                ->label('Post Qualification Date')
-                                ->columnSpan(4),
-                        ]),
+                                DatePicker::make('ber')
+                                    ->label('Bid Evaluation Report (BER)')
+                                    ->columnSpan(4),
+                                DatePicker::make('post_qua_date')
+                                    ->label('Post Qualification Date')
+                                    ->columnSpan(4),
+                            ]),
                         Grid::make('')
                             ->columns(12)
                             ->schema([
-                            Textarea::make('remarks')
-                                ->label('Remarks')
-                                ->rows(3)
-                                ->columnSpan(12)
-                                ->placeholder('e.g. the document is awesome')
+                                Textarea::make('remarks')
+                                    ->label('Remarks')
+                                    ->rows(3)
+                                    ->columnSpan(12)
+                                    ->placeholder('e.g. the document is awesome'),
                             ]),
                     ]),
 
@@ -163,7 +159,8 @@ class ProcurementResource extends Resource
                     ->tooltip(fn ($record) => $record->project?->name)
                     ->sortable()
                     ->searchable()
-                    ->description(fn ($record) => $record->project?->year . ' - ' . $record->project?->code, position: 'above'),
+                    ->description(fn ($record) => $record->project?->year.' - '.$record->project?->code, position: 'above')
+                    ->url(fn ($record): ?string => ProjectResource::monitoringUrl($record->project)),
 
                 TextColumn::make('ib_number')
                     ->label('IB')
@@ -242,11 +239,22 @@ class ProcurementResource extends Resource
                 TextColumn::make('status')
                     ->label('Progress')
                     ->state(function ($record) {
-                        if ($record->ntp_date) return 'NTP Issued';
-                        if ($record->noa_date_received) return 'NOA';
-                        if ($record->bid_opening) return 'Bidding';
-                        if ($record->pre_bid_conference) return 'Pre-Bid';
-                        if ($record->pre_procurement_conference) return 'Pre-Proc';
+                        if ($record->ntp_date) {
+                            return 'NTP Issued';
+                        }
+                        if ($record->noa_date_received) {
+                            return 'NOA';
+                        }
+                        if ($record->bid_opening) {
+                            return 'Bidding';
+                        }
+                        if ($record->pre_bid_conference) {
+                            return 'Pre-Bid';
+                        }
+                        if ($record->pre_procurement_conference) {
+                            return 'Pre-Proc';
+                        }
+
                         return 'Draft';
                     })
                     ->badge()
@@ -348,17 +356,17 @@ class ProcurementResource extends Resource
 
                             $csv = $csvData->map(function ($row) {
                                 return collect($row)->map(function ($value) {
-                                    return '"' . str_replace('"', '""', $value ?? '') . '"';
+                                    return '"'.str_replace('"', '""', $value ?? '').'"';
                                 })->join(',');
                             })->join("\n");
 
-                            $filename = 'procurements_export_' . now()->format('Y-m-d_His') . '.csv';
+                            $filename = 'procurements_export_'.now()->format('Y-m-d_His').'.csv';
 
                             return response()->streamDownload(function () use ($csv) {
                                 echo $csv;
                             }, $filename, [
                                 'Content-Type' => 'text/csv',
-                                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                                'Content-Disposition' => 'attachment; filename="'.$filename.'"',
                             ]);
                         })
                         ->requiresConfirmation()
