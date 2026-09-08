@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\ProcessStage;
 use App\Filament\Resources\PurchaseRequestControlResource\Pages;
+use App\Filament\Support\WorkflowProjectSelect;
 use App\Models\Project;
 use App\Models\PurchaseRequestControl;
 use Filament\Forms;
@@ -36,11 +38,8 @@ class PurchaseRequestControlResource extends Resource
                     ->schema([
                         Select::make('project_id')
                             ->label('Project')
-                            ->options(
-                                Project::get()->mapWithKeys(fn ($project) => [
-                                    $project->id => ($project->code).(' - '.$project->name ?? 'no projects'),
-                                ])
-                            )
+                            ->options(fn (): array => Project::optionsForStage(ProcessStage::PurchaseRequestControl))
+                            ->rules([WorkflowProjectSelect::rule(ProcessStage::PurchaseRequestControl)])
                             ->reactive()
                             ->afterStateUpdated(function ($state, callable $set) {
                                 if (! $state) {

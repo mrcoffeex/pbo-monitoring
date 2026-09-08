@@ -318,6 +318,11 @@ class StatsDashboard extends BaseDashboard
             ->doesntHave('implementations')
             ->count();
 
+        $unpaidImplementations = (clone $projectQuery)
+            ->has('implementations')
+            ->doesntHave('payments')
+            ->count();
+
         $unreleasedAllotment = (float) (clone $projectQuery)
             ->where('status', 'unreleased')
             ->sum('allotment');
@@ -377,6 +382,15 @@ class StatsDashboard extends BaseDashboard
             ];
         }
 
+        if ($unpaidImplementations > 0) {
+            $insights[] = [
+                'title' => 'Unpaid implementations',
+                'value' => number_format($unpaidImplementations),
+                'detail' => 'Implementation is underway, but no payment has been recorded.',
+                'tone' => 'amber',
+            ];
+        }
+
         if ($idleAllotment > 0 && (float) $stats['totalAllotment'] > 0) {
             $insights[] = [
                 'title' => 'Unobligated allotment',
@@ -411,6 +425,7 @@ class StatsDashboard extends BaseDashboard
                 'purchase_requests',
                 'procurements',
                 'implementations',
+                'payments',
                 'procurements as ntp_count' => fn (Builder $query): Builder => $query
                     ->whereNotNull('ntp_number')
                     ->where('ntp_number', '!=', ''),
@@ -428,6 +443,9 @@ class StatsDashboard extends BaseDashboard
                             'procurements',
                             fn (Builder $query): Builder => $query->whereNotNull('ntp_number')->where('ntp_number', '!=', ''),
                         )->doesntHave('implementations');
+                    })
+                    ->orWhere(function (Builder $unpaid): void {
+                        $unpaid->has('implementations')->doesntHave('payments');
                     });
             })
             ->latest('id')
@@ -459,6 +477,10 @@ class StatsDashboard extends BaseDashboard
 
         if ((int) $project->ntp_count > 0 && (int) $project->implementations_count === 0) {
             return 'NTP issued, no implementation update';
+        }
+
+        if ((int) $project->implementations_count > 0 && (int) $project->payments_count === 0) {
+            return 'Implementation underway, no payment';
         }
 
         return 'Needs follow-up';

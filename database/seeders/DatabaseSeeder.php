@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
         );
 
         $this->call([
+            ProjectTypeWorkflowSeeder::class,
             ProjectSeeder::class,
             PreProcurementSeeder::class,
             PurchaseRequestSeeder::class,

@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\ProcessStage;
 use App\Filament\Resources\ProcurementControlResource\Pages;
+use App\Filament\Support\WorkflowProjectSelect;
 use App\Models\ProcurementControl;
 use App\Models\Project;
 use Filament\Forms\Components\DatePicker;
@@ -35,13 +37,10 @@ class ProcurementControlResource extends Resource
                     ->schema([
                         Select::make('project_id')
                             ->label('Project')
-                            ->options(
-                                Project::get()->mapWithKeys(fn ($project) => [
-                                    $project->id => ($project->code).(' - '.$project->name ?? 'no projects'),
-                                ])
-                            )
+                            ->options(fn (): array => Project::optionsForStage(ProcessStage::ProcurementControl))
                             ->searchable()
-                            ->required(),
+                            ->required()
+                            ->rules([WorkflowProjectSelect::rule(ProcessStage::ProcurementControl)]),
                         DatePicker::make('controlled_date')
                             ->label('Controlled Date')
                             ->required(),

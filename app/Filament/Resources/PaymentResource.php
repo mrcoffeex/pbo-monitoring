@@ -3,7 +3,10 @@
 namespace App\Filament\Resources;
 
 use App\Enums\CustomOptions;
+use App\Enums\ProcessStage;
 use App\Filament\Resources\PaymentResource\Pages;
+use App\Filament\Support\WorkflowProjectSelect;
+use App\Models\Implementation;
 use App\Models\Payment;
 use App\Models\Project;
 use Closure;
@@ -23,6 +26,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Carbon;
 
 class PaymentResource extends Resource
 {
@@ -42,15 +46,13 @@ class PaymentResource extends Resource
                             ->schema([
                                 Select::make('project_id')
                                     ->label('Project')
-                                    ->options(
-                                        Project::get()->mapWithKeys(fn ($project) => [
-                                            $project->id => ($project->code).(' - '.$project->name ?? 'no projects'),
-                                        ])
-                                    )
+                                    ->options(fn (): array => Project::optionsForStage(ProcessStage::Payment))
                                     ->searchable()
                                     ->required()
+                                    ->rules([WorkflowProjectSelect::rule(ProcessStage::Payment)])
                                     ->reactive()
                                     ->afterStateUpdated(function (mixed $state, Set $set, ?Payment $record): void {
+                                        $set('implementation_id', null);
                                         static::syncPaymentBalanceFields($state, $set, $record);
                                     })
                                     ->columnSpan(9),
@@ -59,6 +61,56 @@ class PaymentResource extends Resource
                                     ->label('Date of Payment')
                                     ->required()
                                     ->columnSpan(3),
+
+                                Select::make('implementation_id')
+                                    ->label('Implementation')
+                                    ->placeholder('Select an implementation record')
+                                    ->options(fn (Get $get): array => Implementation::optionsForProject(
+                                        filled($get('project_id')) ? (int) $get('project_id') : null,
+                                    ))
+                                    ->searchable()
+                                    ->reactive()
+                                    ->visible(fn (Get $get): bool => filled($get('project_id')))
+                                    ->required(fn (Get $get): bool => filled($get('project_id'))
+                                        && Implementation::query()->where('project_id', $get('project_id'))->exists())
+                                    ->helperText('The accomplishment % suggests the payment amount. You can still change it, as long as it does not exceed the remaining balance.')
+                                    ->rules([
+                                        fn (Get $get): Closure => function (string $attribute, mixed $value, Closure $fail) use ($get): void {
+                                            if (! filled($value)) {
+                                                return;
+                                            }
+
+                                            $implementation = Implementation::query()->find($value);
+
+                                            if ($implementation === null) {
+                                                return;
+                                            }
+
+                                            if ((int) $implementation->project_id !== (int) $get('project_id')) {
+                                                $fail('The selected implementation does not belong to this project.');
+                                            }
+                                        },
+                                    ])
+                                    ->afterStateUpdated(function (mixed $state, Get $get, Set $set, ?Payment $record): void {
+                                        $project = filled($get('project_id'))
+                                            ? Project::query()->find($get('project_id'))
+                                            : null;
+                                        $implementation = filled($state)
+                                            ? Implementation::query()->find($state)
+                                            : null;
+
+                                        if (! $project instanceof Project || ! $implementation instanceof Implementation) {
+                                            return;
+                                        }
+
+                                        $set('amount', number_format(
+                                            $project->suggestedPaymentAmount($implementation, $record),
+                                            2,
+                                            '.',
+                                            '',
+                                        ));
+                                    })
+                                    ->columnSpan(12),
                             ]),
                         Grid::make('')
                             ->columns(12)
@@ -87,7 +139,21 @@ class PaymentResource extends Resource
                                             return 'Cannot exceed the remaining project balance.';
                                         }
 
-                                        return 'Remaining balance: ₱'.number_format($project->remainingPaymentBalance($record), 2);
+                                        $implementation = filled($get('implementation_id'))
+                                            ? Implementation::query()->find($get('implementation_id'))
+                                            : null;
+
+                                        $remaining = 'Remaining balance: ₱'.number_format($project->remainingPaymentBalance($record), 2);
+
+                                        if (! $implementation instanceof Implementation) {
+                                            return $remaining;
+                                        }
+
+                                        $percentage = is_numeric($implementation->percentage)
+                                            ? rtrim(rtrim(number_format((float) $implementation->percentage, 2, '.', ''), '0'), '.')
+                                            : '0';
+
+                                        return "Suggested from {$percentage}% accomplishment. {$remaining}";
                                     })
                                     ->rules([
                                         fn (Get $get, ?Payment $record): Closure => function (string $attribute, mixed $value, Closure $fail) use ($get, $record): void {
@@ -183,6 +249,26 @@ class PaymentResource extends Resource
                     ->searchable()
                     ->description(fn ($record) => $record->project?->year.' - '.$record->project?->code, position: 'above')
                     ->url(fn ($record): ?string => ProjectResource::monitoringUrl($record->project)),
+                TextColumn::make('implementation.percentage')
+                    ->label('Implementation')
+                    ->formatStateUsing(function ($state, $record): string {
+                        if (! $record->implementation) {
+                            return '—';
+                        }
+
+                        $percentage = is_numeric($state)
+                            ? rtrim(rtrim(number_format((float) $state, 2, '.', ''), '0'), '.').'%'
+                            : '—';
+
+                        $date = $record->implementation->date
+                            ? Carbon::parse($record->implementation->date)->format('M d, Y')
+                            : null;
+
+                        return $date ? "{$percentage} · {$date}" : $percentage;
+                    })
+                    ->badge()
+                    ->color('success')
+                    ->toggleable(),
                 TextColumn::make('type')
                     ->label('Type')
                     ->badge()

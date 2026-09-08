@@ -6,6 +6,7 @@
     $defaultStage = $this->defaultStage();
     $stageLabels = collect($stages)->mapWithKeys(fn (array $stage): array => [$stage['key'] => $stage['label']])->all();
     $stageLabels['overview'] = 'Overview';
+    $visibleStageKeys = collect($stages)->pluck('key')->all();
 
     $preProcurements = $project->pre_procurements;
     $purchaseRequests = $project->purchase_requests;
@@ -182,6 +183,7 @@
             :class="{ 'is-overview': isOverview }"
         >
             {{-- Process details: all on Overview in a 2–3 card grid, one when a stage is selected --}}
+            @if (in_array('pre', $visibleStageKeys, true))
             <div x-show="shows('pre')" class="min-w-0 {{ $overviewSpan['pre'] }}">
                 <x-filament::section class="h-full">
                     <x-slot name="heading">Pre-Procurement <span class="ml-2 text-sm font-normal text-gray-500 dark:text-gray-400">({{ $preProcurements->count() }})</span></x-slot>
@@ -198,7 +200,9 @@
                     </div>
                 </x-filament::section>
             </div>
+            @endif
 
+            @if (in_array('pr', $visibleStageKeys, true))
             <div x-show="shows('pr')" class="min-w-0 {{ $overviewSpan['pr'] }}">
                 <x-filament::section class="h-full">
                     <x-slot name="heading">Purchase Requests <span class="ml-2 text-sm font-normal text-gray-500 dark:text-gray-400">({{ $purchaseRequests->count() }})</span></x-slot>
@@ -217,7 +221,9 @@
                     </div>
                 </x-filament::section>
             </div>
+            @endif
 
+            @if (in_array('twg', $visibleStageKeys, true))
             <div x-show="shows('twg')" class="min-w-0 {{ $overviewSpan['twg'] }}">
                 <x-filament::section class="h-full">
                     <x-slot name="heading">Technical Working Group <span class="ml-2 text-sm font-normal text-gray-500 dark:text-gray-400">({{ $twgs->count() }})</span></x-slot>
@@ -234,7 +240,9 @@
                     </div>
                 </x-filament::section>
             </div>
+            @endif
 
+            @if (in_array('pmo', $visibleStageKeys, true))
             <div x-show="shows('pmo')" class="min-w-0 {{ $overviewSpan['pmo'] }}">
                 <x-filament::section class="h-full">
                     <x-slot name="heading">PMO Control <span class="ml-2 text-sm font-normal text-gray-500 dark:text-gray-400">({{ $pmoControls->count() }})</span></x-slot>
@@ -252,7 +260,9 @@
                     </div>
                 </x-filament::section>
             </div>
+            @endif
 
+            @if (in_array('prc', $visibleStageKeys, true))
             <div x-show="shows('prc')" class="min-w-0 {{ $overviewSpan['prc'] }}">
                 <x-filament::section class="h-full">
                     <x-slot name="heading">Purchase Request Control <span class="ml-2 text-sm font-normal text-gray-500 dark:text-gray-400">({{ $prControls->count() }})</span></x-slot>
@@ -270,7 +280,9 @@
                     </div>
                 </x-filament::section>
             </div>
+            @endif
 
+            @if (in_array('proc', $visibleStageKeys, true))
             <div x-show="shows('proc')" class="min-w-0 {{ $overviewSpan['proc'] }}">
                 <x-filament::section class="h-full">
                     <x-slot name="heading">Procurement <span class="ml-2 text-sm font-normal text-gray-500 dark:text-gray-400">({{ $procurements->count() }})</span></x-slot>
@@ -298,7 +310,9 @@
                     </div>
                 </x-filament::section>
             </div>
+            @endif
 
+            @if (in_array('obr', $visibleStageKeys, true))
             <div x-show="shows('obr')" class="min-w-0 {{ $overviewSpan['obr'] }}">
                 <x-filament::section class="h-full">
                     <x-slot name="heading">Obligation Request <span class="ml-2 text-sm font-normal text-gray-500 dark:text-gray-400">({{ $obrs->count() }})</span></x-slot>
@@ -316,7 +330,9 @@
                     </div>
                 </x-filament::section>
             </div>
+            @endif
 
+            @if (in_array('impl', $visibleStageKeys, true))
             <div x-show="shows('impl')" class="min-w-0 {{ $overviewSpan['impl'] }}">
                 <x-filament::section class="h-full">
                     <x-slot name="heading">Implementation <span class="ml-2 text-sm font-normal text-gray-500 dark:text-gray-400">({{ $implementations->count() }})</span></x-slot>
@@ -346,7 +362,9 @@
                     </div>
                 </x-filament::section>
             </div>
+            @endif
 
+            @if (in_array('pay', $visibleStageKeys, true))
             <div x-show="shows('pay')" class="min-w-0 space-y-4 {{ $overviewSpan['pay'] }}">
                 <x-filament::section>
                     <x-slot name="heading">Payments <span class="ml-2 text-sm font-normal text-gray-500 dark:text-gray-400">({{ $payments->count() }})</span></x-slot>
@@ -379,6 +397,7 @@
                     </div>
                 </x-filament::section>
             </div>
+            @endif
         </div>
     </div>
 
