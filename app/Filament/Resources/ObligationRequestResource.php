@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\ProcessStage;
 use App\Filament\Resources\ObligationRequestResource\Pages;
+use App\Filament\Support\WorkflowProjectSelect;
 use App\Models\ObligationRequest;
 use App\Models\Project;
 use Filament\Forms;
@@ -36,11 +38,8 @@ class ObligationRequestResource extends Resource
                     ->schema([
                         Select::make('project_id')
                             ->label('Project')
-                            ->options(
-                                Project::get()->mapWithKeys(fn ($project) => [
-                                    $project->id => ($project->code).(' - '.$project->name ?? 'no projects'),
-                                ])
-                            )
+                            ->options(fn (): array => Project::optionsForStage(ProcessStage::ObligationRequest))
+                            ->rules([WorkflowProjectSelect::rule(ProcessStage::ObligationRequest)])
                             ->reactive()
                             ->afterStateUpdated(function ($state, callable $set) {
                                 if (! $state) {

@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\ProcessStage;
 use App\Filament\Resources\PreProcurementResource\Pages;
+use App\Filament\Support\WorkflowProjectSelect;
 use App\Models\PreProcurement;
 use App\Models\Project;
 use Filament\Forms\Components\Select;
@@ -27,13 +29,10 @@ class PreProcurementResource extends Resource
             ->schema([
                 Select::make('project_id')
                     ->label('Project')
-                    ->options(
-                        Project::get()->mapWithKeys(fn ($project) => [
-                            $project->id => ($project->code).(' - '.$project->name ?? 'no projects'),
-                        ])
-                    )
+                    ->options(fn (): array => Project::optionsForStage(ProcessStage::PreProcurement))
                     ->searchable()
-                    ->required(),
+                    ->required()
+                    ->rules([WorkflowProjectSelect::rule(ProcessStage::PreProcurement)]),
 
                 Textarea::make('remarks')
                     ->label('Remarks')

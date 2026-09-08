@@ -187,23 +187,29 @@ class ProjectMonitoring extends Page
     #[Computed]
     public function stages(): array
     {
-        $map = [
-            ['key' => 'pre', 'label' => 'Pre-Procurement', 'count' => $this->project->pre_procurements->count()],
-            ['key' => 'pr', 'label' => 'Purchase Requests', 'count' => $this->project->purchase_requests->count()],
-            ['key' => 'twg', 'label' => 'TWG', 'count' => $this->project->technical_working_groups->count()],
-            ['key' => 'pmo', 'label' => 'PMO Control', 'count' => $this->project->procurement_controls->count()],
-            ['key' => 'prc', 'label' => 'PR Control', 'count' => $this->project->purchase_request_controls->count()],
-            ['key' => 'proc', 'label' => 'Procurement', 'count' => $this->project->procurements->count()],
-            ['key' => 'obr', 'label' => 'Obligation', 'count' => $this->project->obligation_requests->count()],
-            ['key' => 'impl', 'label' => 'Implementation', 'count' => $this->project->implementations->count()],
-            ['key' => 'pay', 'label' => 'Payments', 'count' => $this->project->payments->count()],
+        $counts = [
+            'pre' => $this->project->pre_procurements->count(),
+            'pr' => $this->project->purchase_requests->count(),
+            'twg' => $this->project->technical_working_groups->count(),
+            'pmo' => $this->project->procurement_controls->count(),
+            'prc' => $this->project->purchase_request_controls->count(),
+            'proc' => $this->project->procurements->count(),
+            'obr' => $this->project->obligation_requests->count(),
+            'impl' => $this->project->implementations->count(),
+            'pay' => $this->project->payments->count(),
         ];
 
-        return collect($map)
-            ->map(fn (array $stage): array => [
-                ...$stage,
-                'done' => $stage['count'] > 0,
-            ])
+        return collect($this->project->workflowProcessStages())
+            ->map(function ($stage): array {
+                $key = $stage->monitorKey();
+
+                return [
+                    'key' => $key,
+                    'label' => $stage->label(),
+                    'count' => $counts[$key] ?? 0,
+                    'done' => ($counts[$key] ?? 0) > 0,
+                ];
+            })
             ->all();
     }
 

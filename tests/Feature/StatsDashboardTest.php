@@ -2,6 +2,7 @@
 
 use App\Filament\Pages\StatsDashboard;
 use App\Filament\Resources\ProjectResource;
+use App\Models\Implementation;
 use App\Models\ObligationRequest;
 use App\Models\Payment;
 use App\Models\Procurement;
@@ -152,6 +153,64 @@ it('builds period insights and an attention watchlist', function () {
         'contract_amount' => '400000.00',
     ]);
 
+    $unpaidImplementation = Project::factory()->create([
+        'year' => $year,
+        'status' => 'released',
+        'name' => 'Unpaid Road Implementation',
+        'code' => 'RC2601005',
+        'user_id' => $user->id,
+    ]);
+
+    PurchaseRequest::factory()->create([
+        'project_id' => $unpaidImplementation->id,
+        'user_id' => $user->id,
+    ]);
+
+    Procurement::factory()->create([
+        'project_id' => $unpaidImplementation->id,
+        'user_id' => $user->id,
+        'ntp_number' => 'NTP-999002',
+        'contract_amount' => '350000.00',
+    ]);
+
+    Implementation::factory()->create([
+        'project_id' => $unpaidImplementation->id,
+        'user_id' => $user->id,
+        'percentage' => 50,
+    ]);
+
+    $paidImplementation = Project::factory()->create([
+        'year' => $year,
+        'status' => 'released',
+        'name' => 'Paid Bridge Implementation',
+        'code' => 'RC2601006',
+        'user_id' => $user->id,
+    ]);
+
+    PurchaseRequest::factory()->create([
+        'project_id' => $paidImplementation->id,
+        'user_id' => $user->id,
+    ]);
+
+    Procurement::factory()->create([
+        'project_id' => $paidImplementation->id,
+        'user_id' => $user->id,
+        'ntp_number' => 'NTP-999003',
+        'contract_amount' => '150000.00',
+    ]);
+
+    Implementation::factory()->create([
+        'project_id' => $paidImplementation->id,
+        'user_id' => $user->id,
+        'percentage' => 80,
+    ]);
+
+    Payment::factory()->create([
+        'project_id' => $paidImplementation->id,
+        'user_id' => $user->id,
+        'amount' => '150000.00',
+    ]);
+
     $otherYear = Project::factory()->create([
         'year' => (string) (now()->year - 1),
         'status' => 'unreleased',
@@ -167,6 +226,7 @@ it('builds period insights and an attention watchlist', function () {
         ->assertSee('Released without PR')
         ->assertSee('PR awaiting award')
         ->assertSee('NTP with no progress')
+        ->assertSee('Unpaid implementations')
         ->assertSee('Needs attention')
         ->assertSee('Unreleased Farm to Market Road')
         ->assertDontSee('Old Year Unreleased')
@@ -176,14 +236,17 @@ it('builds period insights and an attention watchlist', function () {
     $titles = collect($dashboard['insights'])->pluck('title');
     $watchlistNames = collect($dashboard['watchlist'])->pluck('name');
 
-    expect($titles->all())->toContain('Still unreleased', 'Released without PR', 'PR awaiting award', 'NTP with no progress')
+    expect($titles->all())->toContain('Still unreleased', 'Released without PR', 'PR awaiting award', 'NTP with no progress', 'Unpaid implementations')
         ->and($watchlistNames->all())->toContain(
             $unreleased->name,
             $releasedWithoutPr->name,
             $prOnly->name,
             $ntpOnly->name,
+            $unpaidImplementation->name,
         )
         ->and($watchlistNames->all())->not->toContain($otherYear->name)
+        ->and($watchlistNames->all())->not->toContain($paidImplementation->name)
+        ->and(collect($dashboard['insights'])->firstWhere('title', 'Unpaid implementations')['value'])->toBe('1')
         ->and($dashboard['watchlist'][0]['url'])->toBe(ProjectResource::getUrl('monitoring', ['record' => $dashboard['watchlist'][0]['id']]));
 });
 

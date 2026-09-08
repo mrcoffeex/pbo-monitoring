@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Enums\ProcessStage;
+use App\Models\Concerns\EnforcesProjectWorkflow;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Payment extends Model
 {
+    use EnforcesProjectWorkflow;
     use HasFactory;
     use SoftDeletes;
 
@@ -21,6 +24,7 @@ class Payment extends Model
         'check_date',
         'user_id',
         'project_id',
+        'implementation_id',
     ];
 
     public function user()
@@ -31,5 +35,15 @@ class Payment extends Model
     public function project()
     {
         return $this->belongsTo(Project::class);
+    }
+
+    public function implementation()
+    {
+        return $this->belongsTo(Implementation::class);
+    }
+
+    public static function workflowStage(): ProcessStage
+    {
+        return ProcessStage::Payment;
     }
 }

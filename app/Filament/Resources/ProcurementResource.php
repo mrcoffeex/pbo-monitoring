@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\ProcessStage;
 use App\Filament\Resources\ProcurementResource\Pages;
+use App\Filament\Support\WorkflowProjectSelect;
 use App\Models\Procurement;
 use App\Models\Project;
 use Filament\Forms;
@@ -41,13 +43,10 @@ class ProcurementResource extends Resource
                             ->schema([
                                 Select::make('project_id')
                                     ->label('Project')
-                                    ->options(
-                                        Project::get()->mapWithKeys(fn ($project) => [
-                                            $project->id => ($project->code).(' - '.$project->name ?? 'no projects'),
-                                        ])
-                                    )
+                                    ->options(fn (): array => Project::optionsForStage(ProcessStage::Procurement))
                                     ->searchable()
                                     ->required()
+                                    ->rules([WorkflowProjectSelect::rule(ProcessStage::Procurement)])
                                     ->columnSpan(9),
                                 TextInput::make('ib_number')
                                     ->label('IB Number')

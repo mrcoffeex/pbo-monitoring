@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ProcessStage;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -16,6 +17,7 @@ class Project extends Model
 
     protected $fillable = [
         'type',
+        'workflow_stages',
         'code',
         'name',
         'year',
@@ -28,6 +30,7 @@ class Project extends Model
 
     protected $casts = [
         'type' => 'array',
+        'workflow_stages' => 'array',
         'funds' => 'array',
     ];
 
@@ -114,6 +117,149 @@ class Project extends Model
     public function remainingPaymentBalance(?Payment $except = null): float
     {
         return round(max(0, $this->paymentCeiling() - $this->paidPaymentTotal($except)), 2);
+    }
+
+    public function suggestedPaymentAmount(Implementation $implementation, ?Payment $except = null): float
+    {
+        $percentage = max(0.0, min(100.0, (float) $implementation->percentage));
+        $earned = round($this->paymentCeiling() * ($percentage / 100), 2);
+        $remaining = $this->remainingPaymentBalance($except);
+        $unpaidTowardAccomplishment = $earned - $this->paidPaymentTotal($except);
+
+        return round(max(0, min($remaining, $unpaidTowardAccomplishment)), 2);
+    }
+
+    public static function normalizeType(mixed $type): ?string
+    {
+        if (is_array($type)) {
+            foreach ($type as $value) {
+                if (is_string($value) && filled($value)) {
+                    return $value;
+                }
+            }
+
+            return null;
+        }
+
+        return filled($type) ? (string) $type : null;
+    }
+
+    public function primaryType(): ?string
+    {
+        return self::normalizeType($this->type);
+    }
+
+    public function hasFrozenWorkflow(): bool
+    {
+        return $this->frozenWorkflowStages() !== [];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function frozenWorkflowStages(): array
+    {
+        $stages = $this->workflow_stages;
+
+        if (! is_array($stages)) {
+            return [];
+        }
+
+        return array_values(array_filter(
+            $stages,
+            fn (mixed $stage): bool => is_string($stage) && ProcessStage::tryFrom($stage) instanceof ProcessStage,
+        ));
+    }
+
+    /**
+     * @return list<ProcessStage>
+     */
+    public function workflowProcessStages(): array
+    {
+        if (! $this->hasFrozenWorkflow()) {
+            return ProcessStage::cases();
+        }
+
+        return array_values(array_filter(
+            array_map(
+                fn (string $stage): ?ProcessStage => ProcessStage::tryFrom($stage),
+                $this->frozenWorkflowStages(),
+            ),
+        ));
+    }
+
+    public function isStageComplete(ProcessStage $stage): bool
+    {
+        $relationship = $stage->relationship();
+
+        return $this->{$relationship}()->exists();
+    }
+
+    public function canEnterStage(ProcessStage $stage): bool
+    {
+        if (! $this->hasFrozenWorkflow()) {
+            return true;
+        }
+
+        $stages = $this->frozenWorkflowStages();
+
+        if (! in_array($stage->value, $stages, true)) {
+            return false;
+        }
+
+        foreach ($stages as $stageKey) {
+            if ($stageKey === $stage->value) {
+                return true;
+            }
+
+            $previous = ProcessStage::tryFrom($stageKey);
+
+            if (! $previous instanceof ProcessStage || ! $this->isStageComplete($previous)) {
+                return false;
+            }
+        }
+
+        return false;
+    }
+
+    public function stageBlockReason(ProcessStage $stage): ?string
+    {
+        if (! $this->hasFrozenWorkflow()) {
+            return null;
+        }
+
+        if (! in_array($stage->value, $this->frozenWorkflowStages(), true)) {
+            return "{$stage->label()} is not part of this project's workflow.";
+        }
+
+        foreach ($this->frozenWorkflowStages() as $stageKey) {
+            if ($stageKey === $stage->value) {
+                return null;
+            }
+
+            $previous = ProcessStage::tryFrom($stageKey);
+
+            if ($previous instanceof ProcessStage && ! $this->isStageComplete($previous)) {
+                return "Complete {$previous->label()} before adding {$stage->label()}.";
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public static function optionsForStage(ProcessStage $stage): array
+    {
+        return static::query()
+            ->orderBy('name')
+            ->get()
+            ->filter(fn (Project $project): bool => $project->canEnterStage($stage))
+            ->mapWithKeys(fn (Project $project): array => [
+                $project->id => trim(($project->code ?? '').' - '.($project->name ?? 'no projects'), ' -'),
+            ])
+            ->all();
     }
 
     /**

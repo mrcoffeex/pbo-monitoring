@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\ProcessStage;
 use App\Filament\Resources\TechnicalWorkingGroupResource\Pages;
+use App\Filament\Support\WorkflowProjectSelect;
 use App\Models\Project;
 use App\Models\TechnicalWorkingGroup;
 use Filament\Forms;
@@ -35,14 +37,11 @@ class TechnicalWorkingGroupResource extends Resource
                     ->schema([
                         Select::make('project_id')
                             ->label('Project')
-                            ->options(
-                                Project::get()->mapWithKeys(fn ($project) => [
-                                    $project->id => ($project->code).(' - '.$project->name ?? 'no projects'),
-                                ])
-                            )
+                            ->options(fn (): array => Project::optionsForStage(ProcessStage::TechnicalWorkingGroup))
                             ->searchable()
                             ->preload()
-                            ->required(),
+                            ->required()
+                            ->rules([WorkflowProjectSelect::rule(ProcessStage::TechnicalWorkingGroup)]),
                         DatePicker::make('review_date')
                             ->label('Review Date')
                             ->required(),

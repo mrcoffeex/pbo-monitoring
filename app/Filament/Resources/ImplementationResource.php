@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\ProcessStage;
 use App\Filament\Resources\ImplementationResource\Pages;
+use App\Filament\Support\WorkflowProjectSelect;
 use App\Models\Implementation;
 use App\Models\Project;
 use Carbon\Carbon;
@@ -37,13 +39,10 @@ class ImplementationResource extends Resource
                             ->schema([
                                 Select::make('project_id')
                                     ->label('Project')
-                                    ->options(
-                                        Project::get()->mapWithKeys(fn ($project) => [
-                                            $project->id => ($project->code).(' - '.$project->name ?? 'no projects'),
-                                        ])
-                                    )
+                                    ->options(fn (): array => Project::optionsForStage(ProcessStage::Implementation))
                                     ->searchable()
                                     ->required()
+                                    ->rules([WorkflowProjectSelect::rule(ProcessStage::Implementation)])
                                     ->reactive()
                                     ->afterStateUpdated(function ($state, callable $set) {
 
