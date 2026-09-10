@@ -66,7 +66,7 @@
         ],
         "dev": [
             "Composer\\Config::disableProcessTimeout",
-            "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve --host=127.0.0.1 --port=8000 --no-reload\" \"php artisan queue:listen --tries=1\" \"php artisan pail --timeout=0\" \"npm run dev\" --names=server,queue,logs,vite"
+            "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php -d max_execution_time=0 artisan serve --host=127.0.0.1 --port=8000 --no-reload\" \"php -d max_execution_time=0 artisan queue:work --tries=1 --timeout=0\" \"php -d max_execution_time=0 scripts/dev-logs.php\" \"npm run dev\" --names=server,queue,logs,vite"
         ],
         "serve": [
             "Composer\\Config::disableProcessTimeout",

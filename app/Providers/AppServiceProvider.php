@@ -22,6 +22,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if ($this->app->environment('local')) {
+            set_time_limit(0);
+        }
+
         FilamentView::registerRenderHook(
             PanelsRenderHook::BODY_START,
             fn (): string => Blade::render('@viteReactRefresh').Blade::render("@vite(['resources/css/app.css', 'resources/js/dashboard.jsx'])"),

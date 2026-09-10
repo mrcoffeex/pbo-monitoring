@@ -64,13 +64,15 @@ class PaymentResource extends Resource
 
                                 Select::make('implementation_id')
                                     ->label('Implementation')
-                                    ->placeholder('Select an implementation record')
+                                    ->placeholder(fn (Get $get): string => filled($get('project_id'))
+                                        ? 'Select an implementation record'
+                                        : 'Select a project first')
                                     ->options(fn (Get $get): array => Implementation::optionsForProject(
                                         filled($get('project_id')) ? (int) $get('project_id') : null,
                                     ))
                                     ->searchable()
+                                    ->native(false)
                                     ->reactive()
-                                    ->visible(fn (Get $get): bool => filled($get('project_id')))
                                     ->required(fn (Get $get): bool => filled($get('project_id'))
                                         && Implementation::query()->where('project_id', $get('project_id'))->exists())
                                     ->helperText('The accomplishment % suggests the payment amount. You can still change it, as long as it does not exceed the remaining balance.')

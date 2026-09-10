@@ -252,3 +252,55 @@ it('requires an implementation when the project already has implementation recor
         ->call('create')
         ->assertHasFormErrors(['implementation_id']);
 });
+
+it('only offers implementation records that belong to the selected project', function () {
+    [$user, $project] = makeProjectWithContract('500000.00');
+    $otherProject = Project::factory()->create([
+        'user_id' => $user->id,
+        'appropriation' => '1500000.00',
+        'allotment' => '1000000.00',
+    ]);
+
+    $projectImplementation = Implementation::factory()->create([
+        'project_id' => $project->id,
+        'user_id' => $user->id,
+        'percentage' => 40,
+        'date' => now()->toDateString(),
+        'remarks' => 'Selected project inspection',
+    ]);
+    $otherImplementation = Implementation::factory()->create([
+        'project_id' => $otherProject->id,
+        'user_id' => $user->id,
+        'percentage' => 80,
+        'date' => now()->toDateString(),
+        'remarks' => 'Other project inspection',
+    ]);
+
+    $this->actingAs($user);
+
+    $component = Livewire::test(CreatePayment::class)
+        ->fillForm([
+            'project_id' => $project->id,
+        ]);
+
+    $form = $component->instance()->form;
+    $options = ($form->getComponent('data.implementation_id')
+        ?? $form->getComponent('implementation_id'))
+        ?->getOptions() ?? [];
+
+    expect($options)->toHaveKey($projectImplementation->id)
+        ->and($options)->not->toHaveKey($otherImplementation->id)
+        ->and($options[$projectImplementation->id])->toBe($projectImplementation->paymentOptionLabel());
+
+    $component
+        ->fillForm([
+            'implementation_id' => $otherImplementation->id,
+            'date' => now()->toDateString(),
+            'type' => 'mobilization',
+            'amount' => '50000.00',
+        ])
+        ->call('create')
+        ->assertHasFormErrors(['implementation_id']);
+
+    expect(Payment::query()->where('project_id', $project->id)->exists())->toBeFalse();
+});
