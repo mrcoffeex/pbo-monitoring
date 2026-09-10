@@ -1,7 +1,16 @@
 <?php
 
 use App\Filament\Resources\ProjectResource\Pages\ProjectMonitoring;
+use App\Models\Implementation;
+use App\Models\ObligationRequest;
+use App\Models\Payment;
+use App\Models\PreProcurement;
+use App\Models\Procurement;
+use App\Models\ProcurementControl;
 use App\Models\Project;
+use App\Models\PurchaseRequest;
+use App\Models\PurchaseRequestControl;
+use App\Models\TechnicalWorkingGroup;
 use App\Models\User;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -127,4 +136,65 @@ it('builds summary and stage counts for the monitored project', function () {
         ->and($page->stages[0]['key'])->toBe('pre')
         ->and($page->defaultStage())->toBe('overview')
         ->and($page->activitiesUrl())->toContain('/activities');
+});
+
+it('shows actual related record counts on monitoring stage tabs', function () {
+    $user = makeMonitoringUser();
+    $project = Project::factory()->create([
+        'user_id' => $user->id,
+        'status' => 'released',
+        'appropriation' => '2000000.00',
+        'allotment' => '1800000.00',
+    ]);
+
+    $attributes = [
+        'user_id' => $user->id,
+        'project_id' => $project->id,
+    ];
+
+    PreProcurement::factory()->count(2)->create($attributes);
+    PurchaseRequest::factory()->create($attributes);
+    TechnicalWorkingGroup::factory()->count(3)->create($attributes);
+    ProcurementControl::factory()->create($attributes);
+    PurchaseRequestControl::factory()->count(4)->create($attributes);
+    Procurement::factory()->create($attributes);
+    ObligationRequest::factory()->count(2)->create($attributes);
+    Implementation::factory()->count(5)->create($attributes);
+    Payment::factory()->count(6)->create($attributes);
+
+    $this->actingAs($user);
+
+    $component = Livewire::test(ProjectMonitoring::class, ['record' => $project->getKey()])
+        ->assertOk()
+        ->assertSee('data-stage="pre"', false)
+        ->assertSee('data-count="2"', false)
+        ->assertSee('data-stage="pr"', false)
+        ->assertSee('data-count="1"', false)
+        ->assertSee('data-stage="twg"', false)
+        ->assertSee('data-count="3"', false)
+        ->assertSee('data-stage="pmo"', false)
+        ->assertSee('data-count="1"', false)
+        ->assertSee('data-stage="prc"', false)
+        ->assertSee('data-count="4"', false)
+        ->assertSee('data-stage="proc"', false)
+        ->assertSee('data-stage="obr"', false)
+        ->assertSee('data-count="5"', false)
+        ->assertSee('data-stage="impl"', false)
+        ->assertSee('data-stage="pay"', false)
+        ->assertSee('data-count="6"', false)
+        ->assertSee('monitor-card', false)
+        ->assertSee('stage-count', false);
+
+    $counts = collect($component->instance()->stages)
+        ->mapWithKeys(fn (array $stage): array => [$stage['key'] => $stage['count']]);
+
+    expect($counts['pre'])->toBe(2)
+        ->and($counts['pr'])->toBe(1)
+        ->and($counts['twg'])->toBe(3)
+        ->and($counts['pmo'])->toBe(1)
+        ->and($counts['prc'])->toBe(4)
+        ->and($counts['proc'])->toBe(1)
+        ->and($counts['obr'])->toBe(2)
+        ->and($counts['impl'])->toBe(5)
+        ->and($counts['pay'])->toBe(6);
 });

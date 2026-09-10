@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\ProjectResource\Pages;
 
 use App\Enums\CustomOptions;
+use App\Enums\ProcessStage;
 use App\Filament\Resources\ProjectResource;
 use App\Models\Implementation;
 use App\Models\ObligationRequest;
@@ -187,27 +188,15 @@ class ProjectMonitoring extends Page
     #[Computed]
     public function stages(): array
     {
-        $counts = [
-            'pre' => $this->project->pre_procurements->count(),
-            'pr' => $this->project->purchase_requests->count(),
-            'twg' => $this->project->technical_working_groups->count(),
-            'pmo' => $this->project->procurement_controls->count(),
-            'prc' => $this->project->purchase_request_controls->count(),
-            'proc' => $this->project->procurements->count(),
-            'obr' => $this->project->obligation_requests->count(),
-            'impl' => $this->project->implementations->count(),
-            'pay' => $this->project->payments->count(),
-        ];
-
         return collect($this->project->workflowProcessStages())
-            ->map(function ($stage): array {
-                $key = $stage->monitorKey();
+            ->map(function (ProcessStage $stage): array {
+                $count = (int) $this->project->{$stage->relationship()}()->count();
 
                 return [
-                    'key' => $key,
+                    'key' => $stage->monitorKey(),
                     'label' => $stage->label(),
-                    'count' => $counts[$key] ?? 0,
-                    'done' => ($counts[$key] ?? 0) > 0,
+                    'count' => $count,
+                    'done' => $count > 0,
                 ];
             })
             ->all();

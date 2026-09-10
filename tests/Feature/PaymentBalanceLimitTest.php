@@ -231,28 +231,6 @@ it('creates a payment using an implementation and a flexible amount within the b
         ->and((float) $payment->amount)->toBe(180000.0);
 });
 
-it('requires an implementation when the project already has implementation records', function () {
-    [$user, $project] = makeProjectWithContract('500000.00');
-
-    Implementation::factory()->create([
-        'project_id' => $project->id,
-        'user_id' => $user->id,
-        'percentage' => 25,
-    ]);
-
-    $this->actingAs($user);
-
-    Livewire::test(CreatePayment::class)
-        ->fillForm([
-            'project_id' => $project->id,
-            'date' => now()->toDateString(),
-            'type' => 'mobilization',
-            'amount' => '50000.00',
-        ])
-        ->call('create')
-        ->assertHasFormErrors(['implementation_id']);
-});
-
 it('only offers implementation records that belong to the selected project', function () {
     [$user, $project] = makeProjectWithContract('500000.00');
     $otherProject = Project::factory()->create([

@@ -73,8 +73,6 @@ class PaymentResource extends Resource
                                     ->searchable()
                                     ->native(false)
                                     ->reactive()
-                                    ->required(fn (Get $get): bool => filled($get('project_id'))
-                                        && Implementation::query()->where('project_id', $get('project_id'))->exists())
                                     ->helperText('The accomplishment % suggests the payment amount. You can still change it, as long as it does not exceed the remaining balance.')
                                     ->rules([
                                         fn (Get $get): Closure => function (string $attribute, mixed $value, Closure $fail) use ($get): void {

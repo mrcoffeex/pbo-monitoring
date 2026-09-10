@@ -75,10 +75,10 @@
                 class="fixed inset-0 z-50 flex items-center justify-center bg-black/30 dark:bg-black/60 backdrop-blur-sm"
             >
                 <div
-                    class="bg-white dark:bg-gray-900 text-gray-800 dark:text-white rounded-lg shadow-lg max-w-md w-full mx-4 p-6 space-y-4"
+                    class="bg-white dark:bg-gray-800 text-gray-800 dark:text-white rounded-lg shadow-lg ring-1 ring-gray-200 dark:ring-gray-700 max-w-md w-full mx-4 p-6 space-y-4"
                     x-transition.scale.origin.center
                 >
-                    <div class="flex justify-between items-center border-b pb-2">
+                    <div class="flex justify-between items-center border-b border-gray-200 pb-2 dark:border-gray-700">
                         <h2 class="text-lg font-semibold">Remarks</h2>
                         <button @click="open = false" class="text-gray-400 hover:text-gray-700 dark:hover:text-white text-lg">
                             &times;
