@@ -22,6 +22,16 @@ class CustomOptions
         'canceled' => 'Canceled',
     ];
 
+    public const IMPLEMENTATION_STATUS = [
+        'ongoing' => 'Ongoing',
+        'suspended' => 'Suspended',
+        'resumed' => 'Resumed',
+        'delayed' => 'Delayed',
+        'time_extension' => 'Time Extension',
+        'completed' => 'Completed',
+        'terminated' => 'Terminated',
+    ];
+
     public const PAYMENTS = [
         'mobilization' => 'Mobilization Payment',
         'first_partial' => 'First Partial Payment',

@@ -375,6 +375,7 @@
                                         ? rtrim(rtrim(number_format($imp->percentage, 2, '.', ''), '0'), '.').' %'
                                         : $imp->percentage"
                                 />
+                                <x-item-badge label="Status" :value="App\Enums\CustomOptions::IMPLEMENTATION_STATUS[$imp->status] ?? $imp->status" />
                                 <x-item-badge label="Remarks" :value="Str::limit($imp->remarks, 60, '...')" :tooltip="$imp->remarks" />
                                 <x-item-badge label="Created By" :value="$imp->user?->name" :isCreator="true" />
                             </div>

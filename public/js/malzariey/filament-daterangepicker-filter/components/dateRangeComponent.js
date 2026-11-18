@@ -1525,14 +1525,12 @@ var gz = oM((Gz, FM) => {
                                 Q > 1 && zM(Z),
                                 Q > 1 &&
                                     f2(
-                                        i
-                                            .slice(0, Q - 1)
-                                            .concat({
-                                                value:
-                                                    i[Q - 2].type === " "
-                                                        ? "*"
-                                                        : "",
-                                            }),
+                                        i.slice(0, Q - 1).concat({
+                                            value:
+                                                i[Q - 2].type === " "
+                                                    ? "*"
+                                                    : "",
+                                        }),
                                     ).replace(U0, "$1"),
                                 L,
                                 Q < N && x2(i.slice(Q, N)),

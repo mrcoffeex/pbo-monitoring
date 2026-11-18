@@ -213,6 +213,11 @@ class ProjectResource extends Resource
                         }
 
                         return $query;
+                    })
+                    ->indicateUsing(function (array $data): array {
+                        return collect($data['type'] ?? [])
+                            ->map(fn ($type): string => 'Project Type: '.(CustomOptions::PROJECT_TYPES[$type] ?? $type))
+                            ->all();
                     }),
                 SelectFilter::make('year')
                     ->label('Calendar Year')
@@ -252,8 +257,8 @@ class ProjectResource extends Resource
                             })
                         )->when(
                             $data['value'] === 'not_received',
-                            fn (Builder $query): Builder => $query->whereHas('procurements', function (Builder $query) {
-                                $query->whereNull('noa_date_received');
+                            fn (Builder $query): Builder => $query->whereDoesntHave('procurements', function (Builder $query) {
+                                $query->whereNotNull('noa_date_received');
                             })
                         );
                     }),
@@ -271,8 +276,8 @@ class ProjectResource extends Resource
                             })
                         )->when(
                             $data['value'] === 'not_issued',
-                            fn (Builder $query): Builder => $query->whereHas('procurements', function (Builder $query) {
-                                $query->whereNull('ntp_number');
+                            fn (Builder $query): Builder => $query->whereDoesntHave('procurements', function (Builder $query) {
+                                $query->whereNotNull('ntp_number');
                             })
                         );
                     }),
@@ -288,12 +293,12 @@ class ProjectResource extends Resource
                         return $query->when(
                             $data['value'] === 'paid',
                             function (Builder $query): Builder {
-                                return $query->whereRaw('(SELECT COALESCE(SUM(contract_amount), 0) FROM procurements WHERE procurements.project_id = projects.id) > 0 AND (SELECT COALESCE(SUM(contract_amount), 0) FROM procurements WHERE procurements.project_id = projects.id) <= (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE payments.project_id = projects.id)');
+                                return $query->whereRaw('(SELECT COALESCE(SUM(contract_amount), 0) FROM procurements WHERE procurements.project_id = projects.id AND procurements.deleted_at IS NULL) > 0 AND (SELECT COALESCE(SUM(contract_amount), 0) FROM procurements WHERE procurements.project_id = projects.id AND procurements.deleted_at IS NULL) <= (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE payments.project_id = projects.id AND payments.deleted_at IS NULL)');
                             }
                         )->when(
                             $data['value'] === 'unpaid',
                             function (Builder $query): Builder {
-                                return $query->whereRaw('(SELECT COALESCE(SUM(contract_amount), 0) FROM procurements WHERE procurements.project_id = projects.id) > 0 AND (SELECT COALESCE(SUM(contract_amount), 0) FROM procurements WHERE procurements.project_id = projects.id) > (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE payments.project_id = projects.id)');
+                                return $query->whereRaw('(SELECT COALESCE(SUM(contract_amount), 0) FROM procurements WHERE procurements.project_id = projects.id AND procurements.deleted_at IS NULL) > 0 AND (SELECT COALESCE(SUM(contract_amount), 0) FROM procurements WHERE procurements.project_id = projects.id AND procurements.deleted_at IS NULL) > (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE payments.project_id = projects.id AND payments.deleted_at IS NULL)');
                             }
                         )->when(
                             $data['value'] === 'unpaid_implementation',
@@ -301,7 +306,7 @@ class ProjectResource extends Resource
                         )->when(
                             $data['value'] === 'no_contract',
                             function (Builder $query): Builder {
-                                return $query->whereRaw('(SELECT COALESCE(SUM(contract_amount), 0) FROM procurements WHERE procurements.project_id = projects.id) = 0');
+                                return $query->whereRaw('(SELECT COALESCE(SUM(contract_amount), 0) FROM procurements WHERE procurements.project_id = projects.id AND procurements.deleted_at IS NULL) = 0');
                             }
                         );
                     }),
@@ -332,10 +337,17 @@ class ProjectResource extends Resource
                     ->query(function (Builder $query, array $data): Builder {
                         return $query->when(
                             ! empty($data['funds']),
-                            function (Builder $query) use ($data) {
-                                return $query->whereJsonContains('funds', $data['funds'], 'or');
-                            }
+                            fn (Builder $query): Builder => $query->where(function (Builder $subQuery) use ($data): void {
+                                foreach ($data['funds'] as $fund) {
+                                    $subQuery->orWhereJsonContains('funds', $fund);
+                                }
+                            })
                         );
+                    })
+                    ->indicateUsing(function (array $data): array {
+                        return collect($data['funds'] ?? [])
+                            ->map(fn ($fund): string => 'Fund Source: '.(CustomOptions::FUNDS[$fund] ?? $fund))
+                            ->all();
                     }),
                 Filter::make('latest_implementation_percentage')
                     ->label('Latest Implementation Percentage')
@@ -356,18 +368,25 @@ class ProjectResource extends Resource
                         }
 
                         return $query->whereHas('implementations', function (Builder $query) use ($data) {
-                            $query->whereRaw('implementations.id = (SELECT id FROM implementations WHERE project_id = projects.id ORDER BY date DESC LIMIT 1)');
+                            $query->whereRaw('implementations.id = (SELECT id FROM implementations WHERE project_id = projects.id AND deleted_at IS NULL ORDER BY date DESC, id DESC LIMIT 1)');
 
                             match ($data['percentage_range']) {
-                                '0-25' => $query->whereRaw('percentage BETWEEN 0 AND 25'),
-                                '25-50' => $query->whereRaw('percentage BETWEEN 25 AND 50'),
-                                '50-75' => $query->whereRaw('percentage BETWEEN 50 AND 75'),
-                                '75-100' => $query->whereRaw('percentage BETWEEN 75 AND 100'),
+                                '0-25' => $query->where('percentage', '>=', 0)->where('percentage', '<=', 25),
+                                '25-50' => $query->where('percentage', '>', 25)->where('percentage', '<=', 50),
+                                '50-75' => $query->where('percentage', '>', 50)->where('percentage', '<=', 75),
+                                '75-100' => $query->where('percentage', '>', 75)->where('percentage', '<=', 100),
                                 default => null,
                             };
 
                             return $query;
                         });
+                    })
+                    ->indicateUsing(function (array $data): ?string {
+                        if (empty($data['percentage_range'])) {
+                            return null;
+                        }
+
+                        return 'Latest Implementation: '.str_replace('-', '% - ', $data['percentage_range']).'%';
                     }),
             ])
             ->actions([

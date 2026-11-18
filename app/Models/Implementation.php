@@ -21,6 +21,7 @@ class Implementation extends Model
         'end_date',
         'date',
         'percentage',
+        'status',
         'remarks',
         'coordinates',
         'user_id',

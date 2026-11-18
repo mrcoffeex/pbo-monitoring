@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\CustomOptions;
 use App\Enums\ProcessStage;
 use App\Filament\Resources\ImplementationResource\Pages;
 use App\Filament\Support\WorkflowProjectSelect;
@@ -100,11 +101,18 @@ class ImplementationResource extends Resource
                                     ->label('% Complete')
                                     ->required()
                                     ->numeric()
-                                    ->minValue(1)
+                                    ->minValue(0)
                                     ->maxValue(100)
-                                    ->rules(['nullable', 'numeric', 'between:1,100'])
+                                    ->rules(['nullable', 'numeric', 'between:0,100'])
                                     ->suffix('%')
                                     ->placeholder('e.g. 50')
+                                    ->columnSpan(3),
+                                Select::make('status')
+                                    ->label('Status')
+                                    ->options(CustomOptions::IMPLEMENTATION_STATUS)
+                                    ->default('ongoing')
+                                    ->required()
+                                    ->native(false)
                                     ->columnSpan(3),
                                 TextInput::make('current_percentage')
                                     ->label('Current % Complete')
@@ -188,6 +196,19 @@ class ImplementationResource extends Resource
                     })
                     ->sortable()
                     ->toggleable(),
+                TextColumn::make('status')
+                    ->label('Status')
+                    ->badge()
+                    ->formatStateUsing(fn ($state) => CustomOptions::IMPLEMENTATION_STATUS[$state] ?? $state)
+                    ->color(fn ($state) => match ($state) {
+                        'completed' => 'success',
+                        'suspended', 'delayed' => 'warning',
+                        'terminated' => 'danger',
+                        'resumed', 'time_extension' => 'info',
+                        default => 'primary',
+                    })
+                    ->sortable()
+                    ->toggleable(),
                 TextColumn::make('coordinates')
                     ->label('Coordinates')
                     ->searchable()
@@ -216,6 +237,9 @@ class ImplementationResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
+                Tables\Filters\SelectFilter::make('status')
+                    ->label('Status')
+                    ->options(CustomOptions::IMPLEMENTATION_STATUS),
                 Tables\Filters\SelectFilter::make('project')
                     ->label('Project')
                     ->relationship('project', 'name')

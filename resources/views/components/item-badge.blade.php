@@ -46,7 +46,7 @@
     } elseif (!empty($value) && \Carbon\Carbon::hasFormat($value, 'Y-m-d')) {
         $display = \Carbon\Carbon::parse($value)->format('F d, Y');
     } elseif (!$hasValue) {
-        $display = '-';
+        $display = 'None';
     }
 @endphp
 
