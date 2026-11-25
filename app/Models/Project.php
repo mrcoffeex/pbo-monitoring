@@ -32,6 +32,7 @@ class Project extends Model
         'type' => 'array',
         'workflow_stages' => 'array',
         'funds' => 'array',
+        'status' => 'array',
     ];
 
     public function user()

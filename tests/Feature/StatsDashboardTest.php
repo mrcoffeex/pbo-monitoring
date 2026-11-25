@@ -70,7 +70,7 @@ it('includes selected-year payment totals in the chart payload', function () {
 
     $project = Project::factory()->create([
         'year' => $year,
-        'status' => 'released',
+        'status' => ['released', 'sourced'],
         'user_id' => $user->id,
         'appropriation' => '1000000.00',
         'allotment' => '800000.00',
@@ -100,6 +100,8 @@ it('includes selected-year payment totals in the chart payload', function () {
         ->and($charts['financialOverview'][3]['amount'])->toBe(250000.0)
         ->and($charts['projectStatus'][0]['name'])->toBe('Released')
         ->and($charts['projectStatus'][0]['value'])->toBe(1)
+        ->and($charts['projectStatus'][3]['name'])->toBe('Sourced')
+        ->and($charts['projectStatus'][3]['value'])->toBe(1)
         ->and($charts['paymentTypes'][0]['name'])->toBe('Mobilization Payment')
         ->and($charts['projectTypes'][0]['name'])->toBe('Infrastructure Project');
 });
@@ -110,7 +112,7 @@ it('builds period insights and an attention watchlist', function () {
 
     $unreleased = Project::factory()->create([
         'year' => $year,
-        'status' => 'unreleased',
+        'status' => ['unreleased'],
         'name' => 'Unreleased Farm to Market Road',
         'code' => 'RC2601001',
         'allotment' => '500000.00',
@@ -119,7 +121,7 @@ it('builds period insights and an attention watchlist', function () {
 
     $releasedWithoutPr = Project::factory()->create([
         'year' => $year,
-        'status' => 'released',
+        'status' => ['released'],
         'name' => 'Released School Building',
         'code' => 'RC2601002',
         'user_id' => $user->id,
@@ -127,7 +129,7 @@ it('builds period insights and an attention watchlist', function () {
 
     $prOnly = Project::factory()->create([
         'year' => $year,
-        'status' => 'released',
+        'status' => ['released'],
         'name' => 'PR Waiting for Award',
         'code' => 'RC2601003',
         'user_id' => $user->id,
@@ -140,7 +142,7 @@ it('builds period insights and an attention watchlist', function () {
 
     $ntpOnly = Project::factory()->create([
         'year' => $year,
-        'status' => 'released',
+        'status' => ['released'],
         'name' => 'NTP Without Progress',
         'code' => 'RC2601004',
         'user_id' => $user->id,
@@ -155,7 +157,7 @@ it('builds period insights and an attention watchlist', function () {
 
     $unpaidImplementation = Project::factory()->create([
         'year' => $year,
-        'status' => 'released',
+        'status' => ['released'],
         'name' => 'Unpaid Road Implementation',
         'code' => 'RC2601005',
         'user_id' => $user->id,
@@ -181,7 +183,7 @@ it('builds period insights and an attention watchlist', function () {
 
     $paidImplementation = Project::factory()->create([
         'year' => $year,
-        'status' => 'released',
+        'status' => ['released'],
         'name' => 'Paid Bridge Implementation',
         'code' => 'RC2601006',
         'user_id' => $user->id,
@@ -213,7 +215,7 @@ it('builds period insights and an attention watchlist', function () {
 
     $otherYear = Project::factory()->create([
         'year' => (string) (now()->year - 1),
-        'status' => 'unreleased',
+        'status' => ['unreleased'],
         'name' => 'Old Year Unreleased',
         'user_id' => $user->id,
     ]);
@@ -256,7 +258,7 @@ it('reports fund utilization from obligated and disbursed amounts', function () 
 
     $project = Project::factory()->create([
         'year' => $year,
-        'status' => 'released',
+        'status' => ['released'],
         'allotment' => '1000000.00',
         'user_id' => $user->id,
     ]);

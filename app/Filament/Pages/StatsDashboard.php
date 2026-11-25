@@ -130,9 +130,10 @@ class StatsDashboard extends BaseDashboard
         );
 
         $totalProjects = (clone $projectQuery)->count();
-        $releasedProjects = (clone $projectQuery)->where('status', 'released')->count();
-        $unreleasedProjects = (clone $projectQuery)->where('status', 'unreleased')->count();
-        $canceledProjects = (clone $projectQuery)->where('status', 'canceled')->count();
+        $releasedProjects = (clone $projectQuery)->whereJsonContains('status', 'released')->count();
+        $unreleasedProjects = (clone $projectQuery)->whereJsonContains('status', 'unreleased')->count();
+        $canceledProjects = (clone $projectQuery)->whereJsonContains('status', 'canceled')->count();
+        $sourcedProjects = (clone $projectQuery)->whereJsonContains('status', 'sourced')->count();
         $withPurchaseRequests = (clone $projectQuery)->has('purchase_requests')->count();
         $totalAppropriation = (float) (clone $projectQuery)->sum('appropriation');
         $totalAllotment = (float) (clone $projectQuery)->sum('allotment');
@@ -201,6 +202,7 @@ class StatsDashboard extends BaseDashboard
                     ['name' => 'Released', 'value' => $releasedProjects],
                     ['name' => 'Unreleased', 'value' => $unreleasedProjects],
                     ['name' => 'Canceled', 'value' => $canceledProjects],
+                    ['name' => 'Sourced', 'value' => $sourcedProjects],
                 ],
                 'procurementPipeline' => [
                     ['name' => 'Projects', 'value' => $totalProjects],
@@ -301,7 +303,7 @@ class StatsDashboard extends BaseDashboard
     private function buildInsights(Builder $projectQuery, array $stats): array
     {
         $releasedWithoutPr = (clone $projectQuery)
-            ->where('status', 'released')
+            ->whereJsonContains('status', 'released')
             ->doesntHave('purchase_requests')
             ->count();
 
@@ -324,7 +326,7 @@ class StatsDashboard extends BaseDashboard
             ->count();
 
         $unreleasedAllotment = (float) (clone $projectQuery)
-            ->where('status', 'unreleased')
+            ->whereJsonContains('status', 'unreleased')
             ->sum('allotment');
 
         $idleAllotment = max(0.0, (float) $stats['totalAllotment'] - (float) $stats['totalObligated']);
@@ -431,9 +433,9 @@ class StatsDashboard extends BaseDashboard
                     ->where('ntp_number', '!=', ''),
             ])
             ->where(function (Builder $query): void {
-                $query->where('status', 'unreleased')
+                $query->whereJsonContains('status', 'unreleased')
                     ->orWhere(function (Builder $released): void {
-                        $released->where('status', 'released')->doesntHave('purchase_requests');
+                        $released->whereJsonContains('status', 'released')->doesntHave('purchase_requests');
                     })
                     ->orWhere(function (Builder $stalled): void {
                         $stalled->has('purchase_requests')->doesntHave('procurements');
@@ -463,7 +465,7 @@ class StatsDashboard extends BaseDashboard
 
     private function attentionReason(Project $project): string
     {
-        if ($project->status === 'unreleased') {
+        if (in_array('unreleased', (array) $project->status, true)) {
             return 'Budget not released';
         }
 

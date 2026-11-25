@@ -20,6 +20,7 @@ class CustomOptions
         'released' => 'Released',
         'unreleased' => 'Unreleased',
         'canceled' => 'Canceled',
+        'sourced' => 'Sourced',
     ];
 
     public const IMPLEMENTATION_STATUS = [

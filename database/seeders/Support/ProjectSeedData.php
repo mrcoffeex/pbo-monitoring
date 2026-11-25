@@ -203,9 +203,9 @@ class ProjectSeedData
      */
     public static function implementationPercentages(Project $project): array
     {
-        return match ($project->status) {
-            'canceled' => [15, 25],
-            'unreleased' => [20, 40, 55],
+        return match (true) {
+            in_array('canceled', (array) $project->status, true) => [15, 25],
+            in_array('unreleased', (array) $project->status, true) => [20, 40, 55],
             default => [25, 50, 75, 100],
         };
     }
@@ -217,9 +217,9 @@ class ProjectSeedData
     {
         $types = array_keys(CustomOptions::PAYMENTS);
 
-        return match ($project->status) {
-            'canceled' => array_slice($types, 0, 1),
-            'unreleased' => array_slice($types, 0, 2),
+        return match (true) {
+            in_array('canceled', (array) $project->status, true) => array_slice($types, 0, 1),
+            in_array('unreleased', (array) $project->status, true) => array_slice($types, 0, 2),
             default => array_slice($types, 0, 4),
         };
     }

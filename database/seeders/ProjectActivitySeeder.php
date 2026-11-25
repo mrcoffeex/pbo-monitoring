@@ -70,11 +70,17 @@ class ProjectActivitySeeder extends Seeder
                 $this->logCreated($payment, $user, $occurredAt);
             }
 
-            if ($project->status === 'released') {
+            if (in_array('released', (array) $project->status, true)) {
+                $statuses = (array) $project->status;
+                $previousStatuses = array_values(array_merge(
+                    array_diff($statuses, ['released']),
+                    ['unreleased'],
+                ));
+
                 $this->logUpdated($project, $user, $timeline['ntp'], [
-                    'status' => 'unreleased',
+                    'status' => $previousStatuses,
                 ], [
-                    'status' => 'released',
+                    'status' => $statuses,
                 ]);
             }
         }

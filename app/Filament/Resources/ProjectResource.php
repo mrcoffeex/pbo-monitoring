@@ -69,7 +69,7 @@ class ProjectResource extends Resource
                                 Select::make('status')
                                     ->label('Project Status')
                                     ->options(CustomOptions::PROJECT_STATUS)
-                                    ->default('approved')
+                                    ->multiple()
                                     ->required(),
 
                                 Textarea::make('name')
@@ -123,10 +123,14 @@ class ProjectResource extends Resource
                     ->html(),
                 TextColumn::make('status')
                     ->badge()
-                    ->color(fn ($state) => match ($state) {
+                    ->formatStateUsing(fn ($state): string => collect((array) $state)
+                        ->map(fn ($status): string => CustomOptions::PROJECT_STATUS[$status] ?? ucfirst((string) $status))
+                        ->implode(', '))
+                    ->color(fn ($state) => match (collect((array) $state)->first()) {
                         'released' => 'success',
                         'unreleased' => 'primary',
                         'canceled' => 'danger',
+                        'sourced' => 'warning',
                         default => 'secondary',
                     })
                     ->extraAttributes(['style' => 'text-transform: uppercase;'])
@@ -420,7 +424,9 @@ class ProjectResource extends Resource
                                     $record->appropriation ?? 'N/A',
                                     $record->allotment ?? 'N/A',
                                     $record->balance ?? 'N/A',
-                                    $record->status ?? 'N/A',
+                                    collect((array) $record->status)
+                                        ->map(fn ($status): string => CustomOptions::PROJECT_STATUS[$status] ?? ucfirst((string) $status))
+                                        ->implode(', ') ?: 'N/A',
                                     $record->user?->name ?? 'System',
                                     $record->created_at->format('Y-m-d H:i:s'),
                                 ]);

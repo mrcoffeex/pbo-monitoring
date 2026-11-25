@@ -35,7 +35,7 @@ function seedProjectProcesses(): Project
 
     $project = Project::factory()->create([
         'user_id' => $user->id,
-        'status' => 'released',
+        'status' => ['released'],
         'year' => (string) now()->year,
         'appropriation' => '2000000.00',
         'allotment' => '1800000.00',

@@ -3,6 +3,9 @@
         $activities = $this->getActivities();
         $grouped = $this->getGroupedActivities();
         $stats = $this->getActivityStats();
+        $projectStatus = collect((array) $project->status)
+            ->map(fn ($status) => \App\Enums\CustomOptions::PROJECT_STATUS[$status] ?? ucfirst((string) $status))
+            ->implode(', ');
         $dateRange = $this->getDateRange();
         $preset = $dateRange['preset'];
         $subjectOptions = $this->getSubjectFilterOptions();
@@ -27,10 +30,10 @@
                 </h2>
                 <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
                     {{ $project->code }} · {{ $project->year }}
-                    @if ($project->status)
+                    @if ($projectStatus !== '')
                         <span class="mx-1 text-gray-300 dark:text-gray-600">·</span>
                         <span class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">
-                            {{ $project->status }}
+                            {{ $projectStatus }}
                         </span>
                     @endif
                 </p>

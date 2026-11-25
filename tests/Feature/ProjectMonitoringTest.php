@@ -44,7 +44,7 @@ it('renders the improved monitoring overview and activity drawer', function () {
     $project = Project::factory()->create([
         'user_id' => $user->id,
         'name' => 'Barangay Road Rehabilitation Monitoring Sample',
-        'status' => 'released',
+        'status' => ['released'],
         'year' => (string) now()->year,
         'appropriation' => '1500000.00',
         'allotment' => '1200000.00',
@@ -82,7 +82,7 @@ it('shows grouped timeline entries in the activity slideover', function () {
     $project = Project::factory()->create([
         'user_id' => $user->id,
         'name' => 'Coastal Drainage Improvement',
-        'status' => 'released',
+        'status' => ['released'],
         'year' => (string) now()->year,
     ]);
 
@@ -93,7 +93,7 @@ it('shows grouped timeline entries in the activity slideover', function () {
         ->withProperties([
             'attributes' => [
                 'name' => 'Coastal Drainage Improvement',
-                'status' => 'released',
+                'status' => ['released'],
             ],
         ])
         ->log('created');
@@ -116,7 +116,7 @@ it('builds summary and stage counts for the monitored project', function () {
     $user = makeMonitoringUser();
     $project = Project::factory()->create([
         'user_id' => $user->id,
-        'status' => 'released',
+        'status' => ['released', 'sourced'],
         'appropriation' => '2000000.00',
         'allotment' => '1800000.00',
         'type' => ['infrastructure_project'],
@@ -128,7 +128,7 @@ it('builds summary and stage counts for the monitored project', function () {
     $page = Livewire::test(ProjectMonitoring::class, ['record' => $project->getKey()])
         ->instance();
 
-    expect($page->summary['statusLabel'])->toBe('Released')
+    expect($page->summary['statusLabel'])->toBe('Released, Sourced')
         ->and($page->summary['appropriation'])->toBe(2000000.0)
         ->and($page->summary['typeLabels'])->toContain('Infrastructure Project')
         ->and($page->summary['fundLabels'])->toContain('General Funds')
@@ -142,7 +142,7 @@ it('shows actual related record counts on monitoring stage tabs', function () {
     $user = makeMonitoringUser();
     $project = Project::factory()->create([
         'user_id' => $user->id,
-        'status' => 'released',
+        'status' => ['released'],
         'appropriation' => '2000000.00',
         'allotment' => '1800000.00',
     ]);

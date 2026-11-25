@@ -161,6 +161,11 @@ class ProjectMonitoring extends Page
             ->values()
             ->all();
 
+        $statuses = array_values(array_filter(
+            (array) $this->project->status,
+            fn (mixed $status): bool => is_string($status) && filled($status),
+        ));
+
         return [
             'appropriation' => (float) $this->project->appropriation,
             'allotment' => (float) $this->project->allotment,
@@ -170,11 +175,14 @@ class ProjectMonitoring extends Page
             'paymentPct' => $contractAmount > 0 ? round(($totalPayment / $contractAmount) * 100, 1) : 0.0,
             'implPct' => round($implPct, 1),
             'contractor' => $contractor,
-            'statusLabel' => CustomOptions::PROJECT_STATUS[$this->project->status] ?? ucfirst((string) $this->project->status),
-            'statusColor' => match ($this->project->status) {
+            'statusLabel' => collect($statuses)
+                ->map(fn (string $status): string => CustomOptions::PROJECT_STATUS[$status] ?? ucfirst($status))
+                ->implode(', '),
+            'statusColor' => match ($statuses[0] ?? null) {
                 'released' => 'success',
                 'unreleased' => 'info',
                 'canceled' => 'danger',
+                'sourced' => 'warning',
                 default => 'gray',
             },
             'typeLabels' => $types,

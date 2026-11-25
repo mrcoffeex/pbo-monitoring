@@ -46,7 +46,7 @@ class ProjectFactory extends Factory
             ),
             'appropriation' => number_format($appropriation, 2, '.', ''),
             'allotment' => number_format($allotment, 2, '.', ''),
-            'status' => fake()->randomElement(array_keys(CustomOptions::PROJECT_STATUS)),
+            'status' => [fake()->randomElement(array_keys(CustomOptions::PROJECT_STATUS))],
             'user_id' => User::query()->value('id') ?? User::factory(),
         ];
     }

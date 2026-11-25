@@ -79,7 +79,7 @@ it('snapshots the current type workflow onto newly created projects', function (
             'code' => 'RC9999001',
             'funds' => ['GEN_FUND'],
             'year' => (string) now()->year,
-            'status' => 'released',
+            'status' => ['released', 'sourced'],
             'name' => 'Unique Land Workflow Project',
             'appropriation' => '1000000.00',
             'allotment' => '800000.00',
@@ -90,7 +90,8 @@ it('snapshots the current type workflow onto newly created projects', function (
     $project = Project::query()->where('name', 'Unique Land Workflow Project')->first();
 
     expect($project)->not->toBeNull()
-        ->and($project->workflow_stages)->toBe(ProjectTypeWorkflow::defaultStagesByType()['land_project']);
+        ->and($project->workflow_stages)->toBe(ProjectTypeWorkflow::defaultStagesByType()['land_project'])
+        ->and($project->status)->toBe(['released', 'sourced']);
 });
 
 it('does not change existing project workflows when the type workflow is updated', function () {
